@@ -51,6 +51,7 @@ Naming (11/15/2026): Chair 0 is the brand (maroon lift-terminal logo); Snow Desk
 - **Email:** `RESEND_API_KEY`, the owner's "Snow" send-only key; `EMAIL_FROM`
 - **Sending:** `SEND_ENABLED=1`
 - **App notifications:** `VAPID_PRIVATE_KEY` (sensitive; the Web Push signing key, kept only in Vercel). Generate one with `npx web-push generate-vapid-keys` and paste only the private key. The public key is derived from it and served by `GET /api/push`, so the two can't drift. If you rotate it, the app moves existing subscribers to the new key the next time they open it.
+- **Owner alerts:** `ADMIN_NTFY_TOPIC` (optional). When set, `bcbot/alert.py` sends a phone notification through ntfy if a channel fails during the daily send, or if a resort still has no report 30 minutes after `SEND_LATEST`. Without it, the same alerts are logged at error level and appear in Vercel's runtime errors. Set the same topic on the Cloudflare Worker to also hear about failed triggers.
 - **Optional, with defaults:** `RESORTS` (which resorts run; default all five), `OPENING_DAY` (Beaver Creek, 2026-11-25) and `OPENING_DAY_<SLUG>` for the others, `SEND_TIME` (07:00), `SEND_EARLIEST` (05:00), `SEND_LATEST` (09:00), `REFRESH_HOURS`, `NTFY_TOPIC`, `VAPID_SUBJECT`, `CAM_IDS`, `STAKE_SNAPSHOT_URL`
 
 ## Data sources
@@ -111,7 +112,7 @@ Naming (11/15/2026): Chair 0 is the brand (maroon lift-terminal logo); Snow Desk
    - The personal cloud environment "beaver-creek-grooming-bot" is archived.
    - Facebook: no longer used, so the old app secret in git history was left as is.
 2. **Still to do by hand:** delete the old Telegram bot in @BotFather (`/deletebot`) and the old Telegram channel. Optionally delete the leftover GitHub secrets `GOOGLE_SHEET_ID`, `SMS_RECIPIENTS` and `TWILIO_*`, which nothing uses.
-3. **Optional:** add `ADMIN_NTFY_TOPIC` to the Worker to get a phone alert if a trigger fails.
+3. **Alerts:** set `ADMIN_NTFY_TOPIC` in Vercel and on the Worker (same topic), then subscribe to it in the ntfy app.
 4. **Next season:** set each resort's opening day for 2027 (`opening_day` in `bcbot/resorts.py`, or the `OPENING_DAY*` env vars). Any date before it gets daily pre-season reports, so set it close to when you want those to begin. Also note that the crons are in UTC, so in daylight time the windows shift an hour later in local time.
 5. **Ideas parked as GitHub issues #1–3** (label `idea`): a one-sentence verdict at the top of Today, grouping groomed runs by mountain area, and the season shown as a snow pit.
 6. **Reference artifacts:**

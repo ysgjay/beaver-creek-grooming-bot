@@ -19,7 +19,7 @@ import re
 import sys
 from datetime import date, datetime, timedelta
 
-from . import config, forecast, notify, report, resorts, verify
+from . import alert, config, forecast, notify, report, resorts, verify
 from .sources import grooming, nws, openmeteo, resort, snotel
 from .store import get_store, resort_store
 from .util import get, now_local
@@ -210,6 +210,8 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
 
     if not full and decision is None:
         log.info("nothing new (map unchanged, forecast %.1fh old)", age)
+        if _watchdog(state, now, day_str, send, decision, errors):
+            store.put_json("data/state.json", state)
         return {"status": "skipped", "resort": slug, "forecast_age_h": round(age, 1), "map_new": map_new}
 
     if full:
@@ -228,6 +230,11 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
             map_url = f"{config.DASHBOARD_URL.rstrip('/')}/{g['image']}" if g.get("image") else None
             powder = report.powder_alert(day.get("forecast"))
             delivered = notify.send_all(dict(day, preseason=decision == "preseason", powder=powder), map_url, slug=slug)
+            failed = {k: v for k, v in (delivered or {}).items() if str(v).startswith("FAILED")}
+            if failed:
+                errors.append(f"delivery: {failed}")
+                alert.admin(f"Snow Desk {config.RESORT_NAME}: send failed",
+                            f"{day_str} {', '.join(f'{k} {v}' for k, v in failed.items())}")
             day["delivery"] = {"sent_at": now_local().isoformat(timespec="seconds"), "reason": decision,
                                "new_map": map_new, "snow_report_fresh": resort_fresh, "results": delivered}
             store.put_json(f"data/days/{day_str}.json", day)
@@ -237,9 +244,21 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
     elif in_window and map_new and not resort_fresh:
         log.info("new map is in; waiting for today's snow report")
 
+    _watchdog(state, now, day_str, send, decision, errors)
     store.put_json("data/state.json", state)
     return {"status": "ok", "resort": slug, "full_run": full, "map_changed": map_changed, "decision": decision,
             "sent": delivered, "errors": errors, "ok": bool(day.get("forecast")) and (groom is not None or not full)}
+
+
+def _watchdog(state, now, day_str, send, decision, errors):
+    """Half an hour past the deadline and still no report today: tell the owner, once a day."""
+    if (send and state.get("last_sent_date") != day_str and state.get("missed_alert") != day_str
+            and now >= _at(now, config.SEND_LATEST) + timedelta(minutes=30)):
+        state["missed_alert"] = day_str
+        alert.admin(f"Snow Desk {config.RESORT_NAME}: no report yet",
+                    f"{day_str}: nothing sent by {now.strftime('%H:%M')} (decision {decision!r}, errors {errors})")
+        return True
+    return False
 
 
 def _claim_send(day_str, reason, slug=resorts.DEFAULT):
