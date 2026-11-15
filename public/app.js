@@ -58,7 +58,7 @@
     { id: "liftticket", name: "Lift Ticket", mood: "Thermal print with a day-glow stripe", bg: "#ffffff", ac: "#d6006e", font: null },
     { id: "nightcat", name: "Night Cat", mood: "Snowcat headlights at 3 a.m.", bg: "#0e1a2b", ac: "#ffb52e", font: "Saira+Condensed:wght@700" },
     { id: "amberlens", name: "Amber Lens", mood: "Flat-light goggle tint", bg: "#3a2410", ac: "#ff9a1f", font: "Barlow:wght@700" },
-    { id: "bluebird", name: "Bluebird", mood: "Cloudless morning after a storm", bg: "#dcebfa", ac: "#7b1e2e", font: "Outfit:wght@700" },
+    { id: "bluebird", name: "Bluebird", mood: "Cloudless morning after a storm", bg: "#dcebfa", ac: "#0a5bd3", font: "Outfit:wght@700" },
     { id: "glade", name: "Glade", mood: "Spruce shade and low sun", bg: "#12261e", ac: "#f2c14e", font: "Bitter:wght@700" },
   ];
   const loadedFonts = new Set(["Outfit:wght@700"]);

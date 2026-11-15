@@ -53,9 +53,9 @@
 }
 [data-theme="bluebird"] {
   --radius: 24px; --card-border: 0 solid transparent;
-  --bg: #dcebfa; --surface: #ffffff; --ink: #0c2a4a; --accent: #7b1e2e; --on-accent: #ffffff;
+  --bg: #dcebfa; --surface: #ffffff; --ink: #0c2a4a; --accent: #0a5bd3; --on-accent: #ffffff;
   --font-display: "Outfit", "Arial", sans-serif; --display-weight: 700;
-  --texture: linear-gradient(180deg, rgba(255,255,255,.55), transparent 280px); color-scheme: light;
+  --texture: linear-gradient(180deg, rgba(10,91,211,.08), transparent 280px); color-scheme: light;
 }
 [data-theme="glade"] {
   --radius: 8px; --card-border: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
