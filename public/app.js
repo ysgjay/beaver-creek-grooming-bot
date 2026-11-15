@@ -306,16 +306,25 @@
     onMount && onMount(ov, close);
   }
 
+  // Temperatures at the resort's elevation bands (base, mid, peak), when the report carries them.
+  const bandsOf = (L) => (L?.bands || []).filter((b) => b && b.label && (b.now || b.hours?.length));
+  const bandFt = (b) => (b.elevation_ft ? `${Number(b.elevation_ft).toLocaleString("en-US")} ft` : "");
+  const bandTemp = (b, time) => { const h = (b.hours || []).find((x) => (x.time || "").slice(0, 13) === (time || "").slice(0, 13)); return h && h.temp != null ? `${h.temp}°` : "–"; };
+  const WIDE = "(min-width: 1200px)";
+
   /* ---------------- TODAY ---------------- */
   function viewToday() {
     const L = S.latest;
     const v = document.createElement("div");
-    v.className = "view";
+    v.className = "view v-today";
     if (!L) { v.innerHTML = `<p class="offline">The morning report isn't available yet. Check your connection and try again.</p>`; return v; }
     const g = L.grooming || {}, fc = L.forecast || {}, obs = L.observed || {}, rs = L.resort || {};
     const r24 = rs.last_24h_in ?? obs.snow_in;
     const isToday = L.date === todayIso();
     const now = (L.hourly?.hours || [])[0];
+    const bands = bandsOf(L);
+    if (g.none) v.classList.add("no-groom");
+    if (S.offline) v.classList.add("is-offline");
 
     const sentAt = L.delivery?.sent_at ? L.delivery.sent_at.slice(11, 16) : null;
     v.innerHTML = `
@@ -326,17 +335,18 @@
         ${rs.updated_time ? `<span>· Snow report ${esc(rs.updated_time)}</span>` : ""}
       </div>
 
-      <section class="card" aria-label="Conditions">
+      <section class="card a-cond" aria-label="Conditions">
         <div class="cond">
           <div><span class="label">New 24h</span><span class="big">${inch(r24)}</span></div>
-          <div><span class="label">Base</span><span class="mid">${inch(rs.base_in)}</span><span class="sub">Season ${inch(rs.season_in)}</span></div>
+          <div><span class="label">Base<span class="wide-only"> depth</span></span><span class="mid">${inch(rs.base_in)}</span><span class="sub">Season ${inch(rs.season_in)}</span></div>
           <div><span class="label">Now</span><span class="mid">${now ? now.temp + "°" : "–"}</span><span class="sub">${now ? `Feels ${now.feels}°` : ""}</span></div>
           <div><span class="label">Wind</span><span class="mid">${now ? now.wind : "–"}</span><span class="sub">${now ? `${esc(now.dir)} g${now.gust ?? "–"}` : ""}</span></div>
         </div>
+        ${bands.length ? `<div class="status-line bands"><span>Temp now</span>${bands.map((b) => { const t = b.now?.temp ?? b.hours?.[0]?.temp; return t == null ? "" : `<span title="${bandFt(b)}">· ${esc(b.label)} <strong class="num">${t}°</strong></span>`; }).join("")}</div>` : ""}
         ${now ? `<div class="hours">${L.hourly.hours.slice(1).map((h) => `<div class="hour"><span class="t">${hourLabel(h.time)}</span><span class="temp">${h.temp}°</span><span class="small">${esc(h.dir)} ${h.wind}</span>${h.snow ? `<span class="num small">${h.snow}"</span>` : ""}</div>`).join("")}</div>` : ""}
       </section>
 
-      ${g.none ? "" : `<section class="card" aria-labelledby="h-groom">
+      ${g.none ? "" : `<section class="card a-groom" aria-labelledby="h-groom">
         <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="muted small">${g.runs?.map_date ? esc(mapDate(g.runs.map_date)) : ""}</span></div>
         <div class="groom">
           ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="${esc(resortInfo().name)} grooming map" decoding="async"></button>` : `<p class="muted">No grooming map yet.</p>`}
@@ -344,17 +354,17 @@
         </div>
       </section>`}
 
-      <section class="card" aria-labelledby="h-fc">
+      <section class="card a-fc" aria-labelledby="h-fc">
         <div class="card-head"><h2 id="h-fc">Snow forecast</h2><a class="link" href="#forecast">Full forecast</a></div>
         <div class="status-line"><span>Next 5 days <strong class="num">${inch(fc.next_1_5)}</strong>${fc.next_1_5_range ? ` (likely ${inch(fc.next_1_5_range[0])}–${inch(fc.next_1_5_range[1])})` : ""}</span><span>· Days 6–10 <strong class="num">${inch(fc.next_6_10)}</strong></span></div>
         <div id="fc-mini"></div>
       </section>
 
-      <section class="card" aria-labelledby="h-cam">
+      <section class="card a-cam" aria-labelledby="h-cam">
         <div class="card-head"><h2 id="h-cam">Snow stake</h2><span class="muted small">Tap to switch cams</span></div>
         <div id="cams"></div>
       </section>
-      <a class="btn secondary block" href="#help" data-goto="alerts">Get this report at 7:00 by email or notification</a>`;
+      <a class="btn secondary block a-cta" href="#help" data-goto="alerts">Get this report at 7:00 by email or notification</a>`;
 
     if (fc.days?.length) $("#fc-mini", v).appendChild(heatStrip(fc.days));
     const mb = $("#map-open", v);
@@ -383,7 +393,7 @@
   /* ---------------- CALENDAR ---------------- */
   async function viewCalendar() {
     const v = document.createElement("div");
-    v.className = "view";
+    v.className = "view v-cal";
     const C = S.cal;
     C.sel = C.sel || (S.latest?.date || todayIso());
     C.month = C.month || C.sel.slice(0, 7);
@@ -438,9 +448,12 @@
       card.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => { C.sel = addDays(C.sel, +b.dataset.step); C.month = C.sel.slice(0, 7); route(); }));
     } else {
       const first = (new Date(y, m - 1, 1).getDay() + 6) % 7, today = todayIso();
+      // Two groups so wide screens can set the calendar beside the totals; on a phone they
+      // interleave back into one column (see .cal-main / .cal-side in app.css).
+      card.classList.add("month");
       card.innerHTML = `
+        <div class="cal-main">
         <div class="month-nav"><button type="button" data-ym="${prevYm}" aria-label="Previous month">‹</button><h2>${MONTH_FULL[m - 1]} ${y}</h2><button type="button" data-ym="${nextYm}" aria-label="Next month">›</button></div>
-        <div class="stats">${statTiles}</div>
         <div class="cal" role="grid" aria-label="${MONTH_FULL[m - 1]} ${y}">
           ${["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => `<span class="dow">${d.slice(0, 2)}</span>`).join("")}
           ${Array(first).fill('<button class="empty" tabindex="-1" aria-hidden="true"></button>').join("")}
@@ -452,8 +465,12 @@
           }).join("")}
         </div>
         <div class="legend"><span><i style="background:color-mix(in oklab, var(--snow) 50%, var(--surface))"></i>New snow that morning</span><span><i style="background:var(--accent);border-radius:50%"></i>Grooming report saved</span></div>
+        </div>
+        <div class="cal-side">
+        <div class="stats">${statTiles}</div>
         <div class="card-head" style="margin-top:4px"><h3>Snowfall so far in ${MONTH_FULL[m - 1]}</h3><span class="muted small">dashed = forecast</span></div>
-        <div id="accum"></div>`;
+        <div id="accum"></div>
+        </div>`;
       // Running total for the month; the current month continues with the forecast.
       let run = 0;
       const pts = monthDays.filter((d) => d <= today).map((d) => { const add = morningSnow(d) || 0; run += add; return { date: d, total: run, add }; });
@@ -496,7 +513,7 @@
     await month(d.slice(0, 7)); await month(addDays(d, -1).slice(0, 7));
     const r = dayRow(d) || {};
     const el = document.createElement("section");
-    el.className = "card";
+    el.className = "card day-card";
     el.innerHTML = `
       <div class="month-nav"><button type="button" data-step="-1" aria-label="Previous day">‹</button><h2>${fmtDay(d)}</h2><button type="button" data-step="1" aria-label="Next day">›</button></div>
       <div class="snow-grid">
@@ -536,12 +553,13 @@
   /* ---------------- FORECAST ---------------- */
   function viewForecast() {
     const v = document.createElement("div");
-    v.className = "view";
+    v.className = "view v-fc";
     const fc = S.latest?.forecast || {}, days = fc.days || [], labels = fc.model_labels || {};
+    const bands = bandsOf(S.latest);
     const vm = S.verification?.models || {};
     const hist = (S.verification?.history || []).slice(-10).reverse();
     v.innerHTML = `
-      <section class="card">
+      <section class="card a-ten">
         <div class="card-head"><h2>10-day snowfall</h2><span class="muted small">Blended from ${(fc.models_used || []).length} models</span></div>
         <div class="snow-grid">
           <div><span class="label">Days 1–5</span><span class="big">${inch(fc.next_1_5)}</span><span class="sub">${fc.next_1_5_range ? `likely ${inch(fc.next_1_5_range[0])}–${inch(fc.next_1_5_range[1])}` : ""}</span></div>
@@ -552,22 +570,22 @@
         <div class="legend stake-legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span></div>
       </section>
 
-      <section class="card">
+      <section class="card a-votes">
         <div class="card-head"><h2>Model votes</h2><span class="muted small">${(fc.models_used || []).length} models</span></div>
         <div id="fc-votes"></div>
         <div class="legend"><span><i style="background:var(--ink);opacity:.72;border-radius:50%"></i>One model's call</span><span><i style="background:var(--accent);height:4px;border-radius:2px"></i>Blend</span><span>Tight cluster = models agree</span></div>
       </section>
 
-      <section class="card">
-        <h2>Next 12 hours</h2>
-        <div class="scroll"><table><thead><tr><th>Hour</th><th>Temp</th><th>Feels</th><th>Wind</th><th>Gust</th><th>Snow</th><th>Cloud</th></tr></thead><tbody>
-          ${(S.latest?.hourly?.hours || []).map((h) => `<tr><td>${hourLabel(h.time)}</td><td>${h.temp}°</td><td>${h.feels}°</td><td>${esc(h.dir)} ${h.wind}</td><td>${h.gust ?? "–"}</td><td>${h.snow ? h.snow + '"' : "–"}</td><td>${h.cloud}%</td></tr>`).join("")}
+      <section class="card a-hours">
+        <div class="card-head"><h2>Next 12 hours</h2>${bands.length ? `<span class="muted small">${bands.map((b) => `${esc(b.label)} ${bandFt(b)}`).join(" · ")}</span>` : ""}</div>
+        <div class="scroll"><table><thead><tr><th>Hour</th>${bands.length ? bands.map((b) => `<th>${esc(b.label)}</th>`).join("") : "<th>Temp</th>"}<th>Feels</th><th>Wind</th><th>Gust</th><th>Snow</th><th>Cloud</th></tr></thead><tbody>
+          ${(S.latest?.hourly?.hours || []).map((h) => `<tr><td>${hourLabel(h.time)}</td>${bands.length ? bands.map((b) => `<td>${bandTemp(b, h.time)}</td>`).join("") : `<td>${h.temp}°</td>`}<td>${h.feels}°</td><td>${esc(h.dir)} ${h.wind}</td><td>${h.gust ?? "–"}</td><td>${h.snow ? h.snow + '"' : "–"}</td><td>${h.cloud}%</td></tr>`).join("")}
         </tbody></table></div>
       </section>
 
-      <section class="card">
-        <details><summary>Every model, day by day</summary>
-          <div class="scroll"><table><thead><tr><th>Model</th>${days.map((d) => `<th>${WD[pd(d.date).getDay()]} ${pd(d.date).getDate()}</th>`).join("")}<th>Weight ×</th></tr></thead><tbody>
+      <section class="card a-more">
+        <details${matchMedia(WIDE).matches ? " open" : ""}><summary>Every model, day by day</summary>
+          <div class="scroll"><table><thead><tr><th>Model</th>${days.map((d) => `<th>${dayTick(d.date).label}</th>`).join("")}<th>Weight ×</th></tr></thead><tbody>
             <tr><td><strong>Blend</strong></td>${days.map((d) => `<td><strong>${inch(d.snow)}</strong></td>`).join("")}<td></td></tr>
             ${(fc.models_used || []).map((m) => `<tr><td>${esc(labels[m] || m)}</td>${days.map((d) => `<td>${d.models?.[m] != null ? inch(d.models[m]) : "·"}</td>`).join("")}<td>${(vm[m]?.skill ?? 1).toFixed(2)}</td></tr>`).join("")}
           </tbody></table></div>
@@ -732,7 +750,7 @@ ${tell}
 
   function viewHelp() {
     const v = document.createElement("div");
-    v.className = "view";
+    v.className = "view v-help";
     const c = S.cfg || {};
     const q = new URLSearchParams(location.search).get("email");
     const notice = q === "confirmed" ? `<p class="offline" role="status">You're subscribed. The report arrives at 7:00 each morning.</p>`
@@ -807,6 +825,8 @@ ${tell}
     if (my !== routing) return;
     $("#tip").hidden = true;
     $("#main").replaceChildren(view);
+    const ts = $("#top-status"), sl = view.querySelector(":scope > .status-line");
+    if (ts) ts.innerHTML = sl ? sl.innerHTML : "";
     if (S.goto) { const t = document.getElementById(S.goto); S.goto = null; if (t) t.closest(".card").scrollIntoView({ block: "start" }); }
   }
 
