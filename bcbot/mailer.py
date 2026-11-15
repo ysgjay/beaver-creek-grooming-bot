@@ -46,7 +46,7 @@ def send_confirmation(email, token, slugs=("beaver-creek",)):
     html = _shell(f"""
       <h1 style="margin:0 0 8px;font-size:22px">Confirm your {names} report{"s" if many else ""}</h1>
       <p style="margin:0 0 16px">Tap the button to get the grooming report, snow forecast and cams by email every morning{", one email per resort" if many else ""}.</p>
-      <p style="margin:0 0 20px"><a href="{link}" style="background:#0a5bd3;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600;display:inline-block">Confirm my email</a></p>
+      <p style="margin:0 0 20px"><a href="{link}" style="background:#7b1e2e;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600;display:inline-block">Confirm my email</a></p>
       <p style="margin:0;color:#4a6382;font-size:13px">If you didn't ask for this, ignore this email and nothing will be sent.</p>""")
     return _post("/emails", {
         "from": _from(), "to": [email], "subject": f"Confirm your {_names(slugs)} morning report{'s' if many else ''}",
@@ -62,9 +62,9 @@ def send_daily(recipients, subject, html_body, text_body):
         for email, token in recipients[i:i + BATCH_MAX]:
             unsub = unsubscribe_url(token)
             footer = (f'<p style="margin:20px 0 0;color:#4a6382;font-size:12px">You get this because you signed up at '
-                      f'<a href="{config.DASHBOARD_URL}" style="color:#0a5bd3">snow.0xm.studio</a>. '
-                      f'<a href="{resorts_url(token)}" style="color:#0a5bd3">Choose resorts</a> or '
-                      f'<a href="{unsub}" style="color:#0a5bd3">unsubscribe</a> with one tap.</p>')
+                      f'<a href="{config.DASHBOARD_URL}" style="color:#7b1e2e">snow.0xm.studio</a>. '
+                      f'<a href="{resorts_url(token)}" style="color:#7b1e2e">Choose resorts</a> or '
+                      f'<a href="{unsub}" style="color:#7b1e2e">unsubscribe</a> with one tap.</p>')
             batch.append({
                 "from": _from(), "to": [email], "subject": subject,
                 "html": _shell(html_body + footer), "text": f"{text_body}\n\nChoose resorts: {resorts_url(token)}\nUnsubscribe: {unsub}",
@@ -119,4 +119,4 @@ def daily_html(day, map_url):
       {chips("Groomers of the day", runs.get("groomers_of_the_day"))}{chips("Groomed overnight", runs.get("overnight"))}{chips("Morning grooming", runs.get("morning"))}{"".join(chips(escape(a), l) for a, l in (runs.get("areas") or {"Groomed": runs.get("groomed")}).items())}
       <p style="margin:16px 0 6px;font-weight:600">Snow forecast: {inch(fc.get('next_1_5'))} next 5 days, {inch(fc.get('next_6_10'))} days 6–10</p>
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed"><tr>{cells}</tr></table>
-      <p style="margin:18px 0 0"><a href="{report.app_url(day)}" style="background:#0a5bd3;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:12px;font-weight:600;display:inline-block">Open Chair 0</a></p>"""
+      <p style="margin:18px 0 0"><a href="{report.app_url(day)}" style="background:#7b1e2e;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:12px;font-weight:600;display:inline-block">Open Chair 0</a></p>"""
