@@ -10,18 +10,35 @@
   const pd = (s) => { const [y, m, d] = s.slice(0, 10).split("-").map(Number); return new Date(y, m - 1, d); };
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const addDays = (s, n) => { const d = pd(s); d.setDate(d.getDate() + n); return iso(d); };
-  const fmtDay = (s) => { const d = pd(s); return `${WD[d.getDay()]} ${MO[d.getMonth()]} ${d.getDate()}`; };
+  const fmtDay = (s) => { const d = pd(s); return `${WD[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
   const inch = (x) => (x == null ? "–" : (x >= 1 || x === 0 ? Math.round(x) : x.toFixed(1)) + '"');
   const hourLabel = (t) => { const h = Number(t.slice(11, 13)); return `${h % 12 || 12}${h < 12 ? "a" : "p"}`; };
   // "Today" is the resort's calendar day, not the viewer's: someone checking from another
   // time zone sees the same day the mountain is on. Report times are already resort-local text.
   const RESORT_TZ = "America/Denver";
   const todayIso = () => {
-    try { return new Intl.DateTimeFormat("en-CA", { timeZone: S.cfg?.timezone || RESORT_TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); }
+    try { return new Intl.DateTimeFormat("en-CA", { timeZone: resortInfo().timezone || S.cfg?.timezone || RESORT_TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); }
     catch (e) { return iso(new Date()); }
   };
 
+  /* ---------------- resorts ----------------
+     Beaver Creek's archive lives at /data/..., every other resort's one folder down
+     (/data/vail/...). The picked resort is remembered on this device; ?resort= in a link
+     (emails and notifications use it) picks one too. */
+  const DEFAULT_RESORT = "beaver-creek";
+  const R = { list: [{ slug: DEFAULT_RESORT, name: "Beaver Creek", timezone: RESORT_TZ }], slug: DEFAULT_RESORT };
+  const resortInfo = () => R.list.find((r) => r.slug === R.slug) || R.list[0];
+  const dataPath = (p) => (R.slug === DEFAULT_RESORT ? p : p.replace(/^\/data\//, `/data/${R.slug}/`));
+  function pickResort(slug, remember = true) {
+    R.slug = R.list.some((r) => r.slug === slug) ? slug : DEFAULT_RESORT;
+    if (remember) { try { localStorage.setItem("resort", R.slug); } catch (e) {} }
+    document.title = `Snow Desk · ${resortInfo().name}`;
+    const sel = $("#resort-select");
+    if (sel) sel.value = R.slug;
+  }
+
   async function getJSON(path, { fresh = false } = {}) {
+    path = dataPath(path);
     try {
       const r = await fetch(path, { cache: fresh ? "no-cache" : "default" });
       return r.ok ? await r.json() : null;
@@ -219,7 +236,7 @@
         s += `<path d="M${seq.map((a, i) => `${x(o + i)},${y(a.hi)}`).join("L")}L${seq.map((a, i) => `${x(o + i)},${y(a.lo)}`).reverse().join("L")}Z" fill="var(--accent)" opacity=".10"/>`;
         s += `<path d="M${seq.map((a, i) => `${x(o + i)},${y(a.total)}`).join("L")}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3"/>`;
         const e = ahead[ahead.length - 1];
-        s += `<text class="val" x="${x(n - 1)}" y="${y(e.total) - 8}" text-anchor="end">${inch(e.total)} by ${fmtDay(e.date).slice(0, 3)} ${pd(e.date).getDate()}</text>`;
+        s += `<text class="val" x="${x(n - 1)}" y="${y(e.total) - 8}" text-anchor="end">${inch(e.total)} by ${pd(e.date).getMonth() + 1}/${pd(e.date).getDate()}</text>`;
       }
       if (points.length) {
         const p = points[points.length - 1];
@@ -308,7 +325,7 @@
       <section class="card" aria-labelledby="h-groom">
         <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="muted small">${g.runs?.map_date ? esc(g.runs.map_date) : ""}</span></div>
         <div class="groom">
-          ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="Beaver Creek grooming map" decoding="async"></button>` : `<p class="muted">No grooming map yet.</p>`}
+          ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="${esc(resortInfo().name)} grooming map" decoding="async"></button>` : `<p class="muted">No grooming map yet.</p>`}
           ${runsBlock(g.runs)}
         </div>
       </section>
@@ -333,7 +350,7 @@
   }
 
   function renderCams(el, L) {
-    const cams = (S.cfg?.cams || []).slice();
+    const cams = (resortInfo().cams || (R.slug === DEFAULT_RESORT ? S.cfg?.cams : null) || []).slice();
     const minute = Math.floor(Date.now() / 60000);
     const items = cams.map((c) => ({ label: c.label, src: `${c.image}?t=${minute}`, live: c.live }));
     if (L?.cam) items.splice(1, 0, { label: `Stake at ${(L.generated || "").slice(11, 16) || "report"}`, src: "/" + L.cam, live: null });
@@ -545,7 +562,7 @@
           <ol class="steps">
             <li>Seven public weather models (NOAA's GFS, HRRR and National Blend, ECMWF, ICON, GEM, UKMO) for this exact spot, with temperature corrected to 10,476 ft. The NWS forecasters' snowfall joins as an eighth voice.</li>
             <li>Liquid precipitation becomes snow with a temperature-based ratio tuned for dry Colorado snow, about 15 to 1 in the teens.</li>
-            <li>Every model is scored daily against the Vail Mountain SNOTEL gauge. Models that run dry here are scaled up, and models that keep missing get less weight.</li>
+            <li>Every model is scored daily against the ${esc(resortInfo().snotel || "nearest")} SNOTEL gauge. Models that run dry here are scaled up, and models that keep missing get less weight.</li>
             <li>High-resolution models lead for 48 hours, global models after that. Ensemble runs give the range and the powder odds.</li>
           </ol>
         </details>
@@ -569,7 +586,7 @@
       if (!/^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$/.test(email)) { msg.textContent = "Enter an email address like you@example.com."; input.focus(); return; }
       const btn = form.querySelector("button"); btn.disabled = true; msg.textContent = "Sending…";
       try {
-        const r = await fetch("/api/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, website: $("#website", v).value }) });
+        const r = await fetch("/api/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, resorts: picked(v, "email-resort"), website: $("#website", v).value }) });
         const j = await r.json().catch(() => ({}));
         msg.textContent = j.message || (r.ok ? "Check your inbox for a confirmation link." : "Sign-up didn't work. Please try again.");
         if (r.ok) input.value = "";
@@ -591,7 +608,23 @@
     if (!reg) { state.textContent = "Notifications aren't available here."; return; }
     // The public key comes from the server, derived from VAPID_PRIVATE_KEY, so the two can never drift apart.
     const appKey = async () => (await (await fetch("/api/push")).json()).publicKey;
-    const save = (sub) => fetch("/api/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub.toJSON()) });
+    const pushPicks = () => {
+      const boxes = [...v.querySelectorAll('input[name="push-resort"]')];
+      if (!boxes.length) return [R.slug];
+      const a = boxes.filter((b) => b.checked).map((b) => b.value);
+      try { localStorage.setItem("pushResorts", JSON.stringify(a)); } catch (e) {}
+      return a.length ? a : [R.slug];
+    };
+    try { // show what this device chose last time
+      const had = JSON.parse(localStorage.getItem("pushResorts") || "null");
+      if (Array.isArray(had) && had.length) v.querySelectorAll('input[name="push-resort"]').forEach((b) => { b.checked = had.includes(b.value); });
+    } catch (e) {}
+    const save = (sub) => fetch("/api/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...sub.toJSON(), resorts: pushPicks() }) });
+    v.querySelectorAll('input[name="push-resort"]').forEach((b) => b.addEventListener("change", async () => {
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) { const r = await save(sub).catch(() => null); hint.textContent = r?.ok ? "Saved." : "Couldn't save. Please try again."; }
+      else pushPicks();
+    }));
     // If the app's key changed since this browser subscribed, move the subscription to the new key quietly.
     const refresh = async () => {
       const sub = await reg.pushManager.getSubscription();
@@ -633,25 +666,10 @@
   }
 
   /* ---------------- HELP ---------------- */
-  function viewHelp() {
-    const v = document.createElement("div");
-    v.className = "view";
-    const c = S.cfg || {};
-    const q = new URLSearchParams(location.search).get("email");
-    const notice = q === "confirmed" ? `<p class="offline" role="status">You're subscribed. The report arrives at 7:00 each morning.</p>`
-      : q === "invalid" ? `<p class="offline" role="status">That confirmation link didn't work. Sign up again below.</p>` : "";
-    v.innerHTML = `
-      <section class="card patrol" aria-labelledby="h-patrol">
-        <h2 id="h-patrol">Call Beaver Creek Ski Patrol</h2>
-        <p style="margin:0">For an injury or emergency on the mountain:</p>
-        <span class="number">(970) 754-6911</span>
-        <div class="call-grid">
-          <a class="btn block" href="tel:+19707546911">Call Ski Patrol now</a>
-          <button class="btn secondary block" type="button" data-copy="970-754-6911">Copy number</button>
-        </div>
-        <p class="small muted" style="margin:0">For a life-threatening emergency, call 911.</p>
-      </section>
-
+  const tel = (n) => "tel:+1" + String(n).replace(/\D/g, "");
+  function patrolCards() {
+    const r = resortInfo(), p = r.patrol;
+    const tell = `
       <section class="card">
         <h2>When you call, tell them</h2>
         <ol class="say">
@@ -660,21 +678,60 @@
           <li>Your phone number, and stay where patrol can find you.</li>
         </ol>
         <p class="small muted" style="margin:0">Cross your skis or board upright in the snow above the injured person so others can see you.</p>
+      </section>`;
+    if (!p) return `
+      <section class="card patrol" aria-labelledby="h-patrol">
+        <h2 id="h-patrol">${esc(r.name)} Ski Patrol</h2>
+        <p style="margin:0">For a life-threatening emergency, call 911. Tell any lift operator or employee, and they will radio patrol.</p>
+        <div class="call-grid"><a class="btn block" href="tel:911">Call 911</a>
+          <a class="btn secondary block" href="${esc(r.site)}" target="_blank" rel="noopener">Resort safety info</a></div>
+        <p class="small muted" style="margin:0">Snow Desk doesn't list ${esc(r.name)}'s patrol numbers yet.</p>
+      </section>${tell}`;
+    return `
+      <section class="card patrol" aria-labelledby="h-patrol">
+        <h2 id="h-patrol">Call ${esc(r.name)} Ski Patrol</h2>
+        <p style="margin:0">For an injury or emergency on the mountain:</p>
+        <span class="number">${esc(p.emergency)}</span>
+        <div class="call-grid">
+          <a class="btn block" href="${tel(p.emergency)}">Call Ski Patrol now</a>
+          <button class="btn secondary block" type="button" data-copy="${esc(p.emergency.replace(/[()]/g, "").replace(" ", "-"))}">Copy number</button>
+        </div>
+        <p class="small muted" style="margin:0">For a life-threatening emergency, call 911.</p>
       </section>
-
+${tell}
       <section class="card">
         <h2>Other numbers</h2>
-        <div class="contact"><span>Ski Patrol, non-emergency</span><a class="n" href="tel:+19707546610">(970) 754-6610</a></div>
-        <div class="contact"><span>Beaver Creek Security</span><a class="n" href="tel:+19707545848">(970) 754-5848</a></div>
+        ${p.non_emergency ? `<div class="contact"><span>Ski Patrol, non-emergency</span><a class="n" href="${tel(p.non_emergency)}">${esc(p.non_emergency)}</a></div>` : ""}
+        ${p.security ? `<div class="contact"><span>${esc(r.name)} Security</span><a class="n" href="${tel(p.security)}">${esc(p.security)}</a></div>` : ""}
         <div class="contact"><span>Emergency</span><a class="n" href="tel:911">911</a></div>
-        <p class="small muted" style="margin:0">Numbers from Beaver Creek's Safety on the Mountain page, checked Nov 15, 2026. Save them in your phone before you ski.</p>
-      </section>
+        <p class="small muted" style="margin:0">Numbers from ${esc(r.name)}'s Safety on the Mountain page${p.checked ? `, checked ${esc(p.checked)}` : ""}. Save them in your phone before you ski.</p>
+      </section>`;
+  }
+
+  // Which resorts' reports to get (email and app notifications). Starts with the one on screen.
+  function resortPicks(name) {
+    if (R.list.length < 2) return "";
+    return `<fieldset class="resort-picks"><legend class="label">Resorts</legend>${R.list.map((r) =>
+      `<label><input type="checkbox" name="${name}" value="${r.slug}"${r.slug === R.slug ? " checked" : ""}> ${esc(r.name)}</label>`).join("")}</fieldset>`;
+  }
+  const picked = (v, name) => { const a = [...v.querySelectorAll(`input[name="${name}"]:checked`)].map((i) => i.value); return a.length ? a : [R.slug]; };
+
+  function viewHelp() {
+    const v = document.createElement("div");
+    v.className = "view";
+    const c = S.cfg || {};
+    const q = new URLSearchParams(location.search).get("email");
+    const notice = q === "confirmed" ? `<p class="offline" role="status">You're subscribed. The report arrives at 7:00 each morning.</p>`
+      : q === "invalid" ? `<p class="offline" role="status">That confirmation link didn't work. Sign up again below.</p>` : "";
+    v.innerHTML = `
+      ${patrolCards()}
 
       <section class="card">
         <h2 id="alerts">Get the 7:00 report</h2>
         ${notice}
         <form id="email-form" class="signup" novalidate>
           <label for="email-input" class="label">Email, every morning</label>
+          ${resortPicks("email-resort")}
           <div class="signup-row">
             <input id="email-input" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
             <input type="text" name="website" id="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
@@ -684,6 +741,7 @@
         </form>
         <div class="signup">
           <span class="label">App notifications</span>
+          ${resortPicks("push-resort")}
           <div class="signup-row"><span class="small" id="push-state" style="flex:1">Checking…</span><button class="btn secondary" type="button" id="push-btn" hidden>Turn on</button></div>
           <p class="small muted" id="push-hint" style="margin:0"></p>
         </div>
@@ -691,7 +749,7 @@
 
       <section class="card">
         <h2>About the numbers</h2>
-        <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the Vail Mountain SNOTEL station when the resort hasn't reported. The forecast blends seven public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own.</p>
+        <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends seven public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own.</p>
       </section>`;
     wireEmailForm(v);
     wirePush(v);
@@ -738,19 +796,49 @@
     if (S.goto) { const t = document.getElementById(S.goto); S.goto = null; if (t) t.closest(".card").scrollIntoView({ block: "start" }); }
   }
 
-  async function boot() {
-    applyTheme(currentTheme());
-    applyMaterial(currentMaterial());
-    const [latest, cfg] = await Promise.all([getJSON("/data/latest.json", { fresh: true }), getJSON("/config.json")]);
-    S.latest = latest; S.cfg = cfg;
+  async function loadResortData() {
+    S.latest = null; S.verification = null; S.months = {}; S.offline = false;
+    S.cal = { mode: "month", month: null, sel: null };
+    const latest = await getJSON("/data/latest.json", { fresh: true });
+    S.latest = latest;
     if (!latest) {
       // Offline: the service worker may still have the last report.
       S.latest = await getJSON("/data/latest.json");
       S.offline = !!S.latest;
     }
+    const slug = R.slug;
+    getJSON("/data/verification.json").then((v) => { if (slug !== R.slug) return; S.verification = v; if ((location.hash || "#today") === "#forecast") route(); });
+  }
+
+  function wireResortSelect() {
+    const sel = $("#resort-select"), h1 = $(".brand h1");
+    if (!sel || R.list.length < 2) { if (h1) h1.textContent = resortInfo().name; return; }
+    sel.innerHTML = R.list.map((r) => `<option value="${r.slug}">${esc(r.name)}</option>`).join("");
+    sel.value = R.slug;
+    sel.hidden = false; h1.hidden = true;
+    sel.addEventListener("change", async () => {
+      pickResort(sel.value);
+      const u = new URL(location.href); u.searchParams.delete("resort"); history.replaceState(null, "", u);
+      $("#main").innerHTML = `<div class="skeleton"></div><div class="skeleton"></div>`;
+      await loadResortData();
+      route();
+    });
+  }
+
+  async function boot() {
+    applyTheme(currentTheme());
+    applyMaterial(currentMaterial());
+    const [list, cfg] = await Promise.all([getJSON("/resorts.json"), getJSON("/config.json")]);
+    S.cfg = cfg;
+    if (list?.resorts?.length) R.list = list.resorts;
+    let saved = null;
+    try { saved = localStorage.getItem("resort"); } catch (e) {}
+    const linked = new URLSearchParams(location.search).get("resort");
+    pickResort(linked || saved || DEFAULT_RESORT, !!linked);
+    wireResortSelect();
+    await loadResortData();
     route();
     window.addEventListener("hashchange", () => { window.scrollTo({ top: 0 }); route(); });
-    getJSON("/data/verification.json").then((v) => { S.verification = v; if ((location.hash || "#today") === "#forecast") route(); });
     if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("/sw.js").catch(() => {});
   }
   boot();

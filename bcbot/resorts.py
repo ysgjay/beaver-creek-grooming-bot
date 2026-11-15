@@ -31,7 +31,9 @@ RESORTS = {
         "snotel_label": "Vail Mountain",
         "cams": _cams([("bcsnowstake2", "Snow stake"), ("bcspruce", "Spruce Saddle"), ("bctalons", "Talons"),
                        ("bcmccoy", "McCoy Park"), ("bcredbuffalo", "Red Buffalo"), ("bcvillage", "Village")]),
-        "patrol": {"emergency": "(970) 754-6911", "security": "(970) 754-5848"},
+        # From Beaver Creek's Safety on the Mountain page, checked Nov 15, 2026.
+        "patrol": {"emergency": "(970) 754-6911", "non_emergency": "(970) 754-6610",
+                   "security": "(970) 754-5848", "checked": "11/15/2026"},
         "tz": "America/Denver",
         "opening_day": "2026-11-25",
         "enabled": True,

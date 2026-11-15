@@ -603,3 +603,105 @@ def test_real_beaver_creek_report_timestamp():
     r = resort.parse(html)
     assert r["updated_time"] == "5:34 AM"
     assert resort.is_fresh(r, D(2026, 11, 15)) is True and resort.is_fresh(r, D(2026, 11, 16)) is False
+
+
+# ---------- several resorts ----------
+
+def test_resort_store_keeps_beaver_creek_paths_and_nests_the_others(tmp_path):
+    from bcbot.store import resort_store
+    base = LocalStore(tmp_path)
+    assert resort_store("beaver-creek", base).path("data/latest.json") == "data/latest.json"
+    vail = resort_store("vail", base)
+    assert vail.path("data/latest.json") == "data/vail/latest.json"
+    assert vail.path("maps/2026-11-15.jpg") == "maps/vail/2026-11-15.jpg"
+    vail.put_json("data/state.json", {"x": 1})
+    assert (tmp_path / "data/vail/state.json").exists() and not (tmp_path / "data/state.json").exists()
+
+
+def test_use_switches_every_per_resort_setting():
+    try:
+        r = config.use("vail")
+        assert config.RESORT_NAME == "Vail" and config.GROOMING_PDF_URL.endswith("vail-mountain-grooming-map.pdf")
+        assert config.RESORT_SNOW_REPORT_URL.startswith("https://www.vail.com/") and config.LAT == r["lat"]
+        assert config.TZ.key == "America/Denver"
+    finally:
+        config.use("beaver-creek")
+    assert config.RESORT_NAME == "Beaver Creek" and "beaver-creek" in config.GROOMING_PDF_URL
+
+
+def test_each_resort_has_its_own_archive_state_and_send(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    monkeypatch.setitem(resorts.RESORTS["vail"], "opening_day", "2026-11-01")
+    slugs = []
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None:
+                        slugs.append((slug, report.subject(day), map_url)) or {"email": "ok"})
+    main.run(store=store, send=True, now=at(7), slug="beaver-creek")
+    main.run(store=store, send=True, now=at(7), slug="vail")
+    main.run(store=store, send=True, now=at(8), slug="vail")          # once a day per resort
+    assert [s for s, _, _ in slugs] == ["beaver-creek", "vail"]
+    assert slugs[1][1].startswith("Vail 11/15") and "/maps/vail/2026-11-15.jpg" in slugs[1][2]
+    vail_day = json.loads((root / "data/vail/latest.json").read_text())
+    assert vail_day["resort_slug"] == "vail" and vail_day["grooming"]["image"] == "maps/vail/2026-11-15.jpg"
+    assert (root / "maps/vail/2026-11-15.jpg").exists() and (root / "maps/2026-11-15.jpg").exists()
+    assert json.loads((root / "data/state.json").read_text())["last_sent_date"] == "2026-11-15"
+    assert json.loads((root / "data/vail/state.json").read_text())["last_sent_date"] == "2026-11-15"
+
+
+def test_resort_opening_days_are_independent(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    monkeypatch.setitem(resorts.RESORTS["vail"], "opening_day", "2026-11-25")   # Vail pre-season, BC open
+    main.run(store=store, send=True, now=at(7), slug="vail")
+    main.run(store=store, send=True, now=at(7), slug="beaver-creek")
+    assert json.loads((root / "data/vail/latest.json").read_text())["delivery"]["reason"] == "preseason"
+    assert json.loads((root / "data/latest.json").read_text())["delivery"]["reason"] == "ready (map; report has no date)"
+
+
+def test_run_all_covers_enabled_resorts(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    monkeypatch.setenv("RESORTS", "beaver-creek,vail,nope")
+    assert resorts.enabled() == ["beaver-creek", "vail"]
+    out = main.run_all(store=store, send=False, now=at(6))
+    assert set(out) == {"beaver-creek", "vail"} and all(r["status"] == "ok" for r in out.values())
+
+
+def test_signup_input_only_keeps_enabled_resorts(monkeypatch):
+    monkeypatch.setenv("RESORTS", "beaver-creek,vail")
+    assert resorts.valid(["vail", "vail", "keystone", "x", "beaver-creek"]) == ["vail", "beaver-creek"]
+    assert resorts.valid(None) == []
+
+
+def test_resort_link_and_names_in_messages():
+    day = {"date": "2026-11-15", "resort_slug": "vail", "resort_name": "Vail", "grooming": {"new_map": True}}
+    assert report.app_url(day).endswith("/?resort=vail")
+    assert report.push_payload(day, None)["url"].endswith("?resort=vail")
+    assert report.push_payload(day, None)["tag"] == "report-vail-2026-11-15"
+    assert report.app_url({"date": "2026-11-15", "resort_slug": "beaver-creek"}) == config.DASHBOARD_URL
+
+
+def test_daily_email_has_a_choose_resorts_link(monkeypatch):
+    from bcbot import mailer
+    posted = []
+    monkeypatch.setattr(mailer, "_post", lambda path, payload: posted.append(payload))
+    mailer.send_daily([("a@example.com", "tok")], "s", "<p>x</p>", "x")
+    assert "/api/resorts?t=tok" in posted[0][0]["html"] and "/api/resorts?t=tok" in posted[0][0]["text"]
+
+
+def test_public_resorts_json_matches_resorts_py(monkeypatch):
+    monkeypatch.delenv("RESORTS", raising=False)
+    assert json.loads((config.ROOT / "public/resorts.json").read_text()) == resorts.public_list()
+
+
+def test_claim_is_per_day_and_resort():
+    from bcbot import db
+    calls = []
+
+    class Cur:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def execute(self, sql, args): calls.append((sql, args))
+        def fetchone(self): return ("2026-11-15",)
+
+    class Conn:
+        def cursor(self): return Cur()
+    assert db.claim_send(Conn(), "2026-11-15", "ready", "vail")
+    assert "ON CONFLICT (day, resort)" in calls[0][0] and calls[0][1] == ("2026-11-15", "vail", "ready")

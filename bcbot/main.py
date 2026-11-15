@@ -10,6 +10,7 @@ subscribers. /api/run fans out one function call per resort.
 CLI:
   python -m bcbot run [--resort vail] [--force] [--send]   # local run into public/ (no sending unless --send)
   python -m bcbot discover [--resort vail]                 # list the resort's cam ids
+  python -m bcbot resorts-json                             # refresh public/resorts.json (the app's list)
 """
 import argparse
 import logging
@@ -335,11 +336,15 @@ def discover(slug=resorts.DEFAULT):
 def main(argv=None):
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     ap = argparse.ArgumentParser(prog="bcbot")
-    ap.add_argument("command", choices=["run", "discover"])
+    ap.add_argument("command", choices=["run", "discover", "resorts-json"])
     ap.add_argument("--resort", choices=sorted(resorts.RESORTS), help="one resort (default: every enabled one)")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--send", action="store_true")
     a = ap.parse_args(argv)
+    if a.command == "resorts-json":  # rewrite public/resorts.json after editing resorts.py
+        import json
+        (config.ROOT / "public" / "resorts.json").write_text(json.dumps(resorts.public_list(), indent=1) + "\n")
+        return 0
     if a.command == "discover":
         discover(a.resort or resorts.DEFAULT)
         return 0
