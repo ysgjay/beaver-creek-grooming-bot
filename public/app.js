@@ -553,7 +553,7 @@
   /* ---------------- RADAR ---------------- */
   // No map library: a fixed grid of 256px map tiles, placed so the resort sits in the middle of the card.
   // Past frames are NEXRAD composites and future frames are HRRR simulated radar, both from Iowa State's Mesonet tile cache.
-  const RADAR = { z: 7, cols: 4, rows: 3, src: "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", base: "https://tile.openstreetmap.org" };
+  const RADAR = { z: 7, cols: 4, rows: 3, src: "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", base: "https://a.basemaps.cartocdn.com/light_all", fallback: "https://tile.openstreetmap.org" };
   const worldPx = (lat, lon, z) => { const n = 256 * 2 ** z, sn = Math.sin(lat * Math.PI / 180); return [(lon + 180) / 360 * n, (0.5 - Math.log((1 + sn) / (1 - sn)) / (4 * Math.PI)) * n]; };
   function radarFrames(now) {
     const p2 = (n) => String(n).padStart(2, "0");
@@ -577,7 +577,8 @@
     const tx = Math.floor(px / 256), ty = Math.floor(py / 256);
     const x0 = tx - (px / 256 - tx >= 0.5 ? 1 : 2), y0 = ty - 1;
     const pos = `left:calc(50% - ${(px - x0 * 256).toFixed(1)}px);top:calc(50% - ${(py - y0 * 256).toFixed(1)}px)`;
-    const tiles = (url) => { let s = ""; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) s += `<img src="${url}/${z}/${x0 + i}/${y0 + j}.png" alt="" decoding="async" draggable="false">`; return s; };
+    // `hd` asks for double-resolution tiles (512px shown at 256), which is what keeps the map sharp on phone screens.
+    const tiles = (url, hd) => { let s = ""; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) s += `<img src="${url}/${z}/${x0 + i}/${y0 + j}${hd ? "@2x" : ""}.png" data-xy="${z}/${x0 + i}/${y0 + j}" alt="" decoding="async" draggable="false">`; return s; };
     const frames = radarFrames(Date.now()), nowIdx = frames.findIndex((f) => f.layer === "nexrad-n0q");
     const fmt = new Intl.DateTimeFormat("en-US", { timeZone: r.timezone || S.cfg?.timezone || RESORT_TZ, month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" });
     // Every resort gets a marker and a name. Resorts sit close together, so each label takes the first
@@ -601,11 +602,11 @@
     card.innerHTML = `
       <div class="card-head"><h2>Radar</h2><span class="muted small" id="radar-when" aria-live="polite"></span></div>
       <div class="radar-map" id="radar-map">
-        <div class="radar-tiles radar-base" style="${pos}">${tiles(RADAR.base)}</div>
+        <div class="radar-tiles radar-base" style="${pos}">${tiles(RADAR.base, true)}</div>
         <div class="radar-tint"></div>
         <svg class="radar-defs" aria-hidden="true"><filter id="radar-soft" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="2.4"/><feComponentTransfer><feFuncA type="linear" slope="2.6"/></feComponentTransfer></filter></svg>
         ${dots}
-        <span class="radar-attr">© OpenStreetMap · NOAA, Iowa State Mesonet</span>
+        <span class="radar-attr">© OpenStreetMap · CARTO · NOAA, Iowa State Mesonet</span>
         <p class="radar-none muted small" id="radar-none" hidden>No radar image for this time.</p>
       </div>
       <div class="radar-ctl">
@@ -615,7 +616,11 @@
       </div>
       <p class="muted small radar-note">Slide left for the past hour of radar and right for the next 12 hours from the HRRR model. Mountains block the radar beam, so light snow on the hill can be missing.</p>`;
     const map = $("#radar-map", card), slider = $("#radar-time", card), play = $("#radar-play", card), when = $("#radar-when", card), none = $("#radar-none", card);
-    map.querySelectorAll(".radar-base img").forEach((im) => im.addEventListener("error", () => { im.style.visibility = "hidden"; }));
+    // If a sharp tile won't load, fall back once to the standard street map tile before giving up on it.
+    map.querySelectorAll(".radar-base img").forEach((im) => im.addEventListener("error", () => {
+      if (im.dataset.fell) { im.style.visibility = "hidden"; return; }
+      im.dataset.fell = "1"; im.src = `${RADAR.fallback}/${im.dataset.xy}.png`;
+    }));
     const layers = new Map();
     let cur = -1, timer = null;
     const layerFor = (i) => {
