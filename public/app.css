@@ -38,14 +38,38 @@ h3 { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; font-fam
 /* Header */
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
 .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in oklab, var(--bg) 88%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 8px 6px; }
-.brand { display: flex; flex-direction: column; min-width: 0; }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; padding-block: 8px 6px; }
+.brand { display: flex; flex-direction: column; align-items: flex-start; flex: 1 1 0; min-width: 0; }
 .brand h1 { font-size: 22px; }
-/* Resort switcher: looks like the title, with a small chevron. */
-.resort-select { appearance: none; -webkit-appearance: none; font: var(--display-weight) 22px/1.1 var(--font-display); color: var(--ink);
-  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23888' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 2px center / 12px 8px;
-  border: 0; padding: 0 20px 0 0; margin: 0; max-width: 100%; field-sizing: content; cursor: pointer; border-radius: 6px; }
-.resort-select:focus-visible { outline: 2px solid var(--accent, #0a5bd3); outline-offset: 2px; }
+/* Home button, resort menu and favorite tiles. */
+.home-btn { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; }
+.home-btn img { display: block; width: 36px; height: 36px; border-radius: 9px; }
+.home-btn:focus-visible, .resort-btn:focus-visible, .fav-tile:focus-visible, .rm-pick:focus-visible, .rm-star:focus-visible { outline: 2px solid var(--accent, #0a5bd3); outline-offset: 2px; }
+.resort-btn { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; border: 0; background: none; padding: 0; margin: 0; cursor: pointer; border-radius: 6px;
+  font: var(--display-weight) 22px/1.1 var(--font-display); color: var(--ink); text-align: left; }
+.resort-btn span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.resort-btn svg { flex: none; width: 12px; height: 8px; color: var(--ink-2); transition: transform .15s; }
+.resort-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.resort-menu { position: fixed; z-index: 40; max-height: calc(100dvh - 90px); overflow-y: auto; width: min(300px, calc(100vw - 32px)); padding: 6px;
+  background: color-mix(in oklab, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid color-mix(in oklab, var(--surface) 70%, var(--line)); border-radius: 18px; box-shadow: 0 18px 44px rgba(12, 42, 74, .22); }
+.rm-row { display: flex; align-items: center; gap: 2px; }
+.rm-pick { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 12px;
+  background: none; color: var(--ink); font: inherit; font-weight: 600; font-size: 16px; line-height: 1.2; text-align: left; cursor: pointer; }
+.rm-pick:hover, .rm-star:hover { background: color-mix(in oklab, var(--accent) 10%, transparent); }
+.rm-pick[aria-current="true"] { background: color-mix(in oklab, var(--accent) 14%, transparent); color: var(--accent); }
+.rm-pick strong, .fav-tile strong { font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.rm-star { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 12px; background: none; color: var(--ink-2); cursor: pointer; }
+.rm-star svg { width: 21px; height: 21px; fill: none; }
+.rm-star[aria-pressed="true"] { color: var(--accent); }
+.rm-star[aria-pressed="true"] svg { fill: currentColor; }
+.resort-menu p { margin: 6px 12px 8px; }
+.favs { order: 9; flex: 1 0 100%; display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.favs::-webkit-scrollbar { display: none; }
+.fav-tile { flex: none; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+  border: 1px solid color-mix(in oklab, var(--surface) 60%, var(--line)); background: color-mix(in oklab, var(--surface) 62%, transparent); color: var(--ink); font: inherit; font-weight: 600; font-size: 14px; line-height: 1; }
+.fav-tile:hover { background: var(--surface); }
+.fav-tile strong:empty, .rm-pick strong:empty { display: none; }
 .resort-picks { border: 0; padding: 0; margin: 4px 0 8px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .resort-picks legend { padding: 0; margin-bottom: 2px; }
 .resort-picks label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; min-height: 32px; }
@@ -465,6 +489,10 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   /* Top bar: resort switcher, status line, sign-up button, tabs. */
   .top .wrap { min-height: var(--top-h); padding-block: 6px; justify-content: flex-start; gap: 14px; }
   .brand { flex-direction: row; align-items: baseline; gap: 12px; flex: none; }
+  .top .wrap { flex-wrap: nowrap; }
+  .favs { order: 0; flex: 0 1 auto; padding: 0; }
+  .fav-tile { min-height: 36px; }
+  html:has(.favs:not([hidden])) .brand .sub { display: none; }
   .top-status { display: flex; flex: 1; min-width: 0; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
   .top-status > * { flex: none; }
   .top-cta { margin-left: 0; min-height: 40px; }
