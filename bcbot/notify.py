@@ -1,4 +1,4 @@
-"""Delivery: email (Resend, opt-in list) and app notifications (Web Push from the Snow Desk app).
+"""Delivery: email (Resend, opt-in list) and app notifications (Web Push from the Chair 0 app).
 
 Each channel is independent: a failure in one never blocks the other. Every send is for one
 resort and reaches only the people who picked that resort.
