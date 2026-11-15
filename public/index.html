@@ -12,11 +12,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>
-  // Apply the saved theme before first paint so there's no flash.
-  // Bluebird is the starting theme; "auto" follows the phone (Corduroy / Night Cat).
-  (function () { var t = "bluebird", m = "frost";
-    try { t = localStorage.getItem("theme") || t; m = localStorage.getItem("material") || m; } catch (e) {}
-    if (t !== "auto") document.documentElement.dataset.theme = t;
+  // Set the colors and saved finish before first paint so there's no flash.
+  // Bluebird by day, Night Cat when the phone is in dark mode.
+  (function () { var m = "frost";
+    try { m = localStorage.getItem("material") || m; } catch (e) {}
+    var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.dataset.theme = dark ? "nightcat" : "bluebird";
     if (m !== "flat") document.documentElement.dataset.material = m; })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
