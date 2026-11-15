@@ -48,24 +48,17 @@
   }
 
   /* ---------------- themes ---------------- */
-  const THEMES = [
-    { id: "auto", name: "Match phone", mood: "Corduroy by day, Night Cat in dark mode", bg: "#eef2f5", ac: "#0e1a2b" },
-    { id: "corduroy", name: "Corduroy", mood: "Fresh-groomed at first chair", bg: "#eef2f5", ac: "#2f6fa8", font: "Barlow+Condensed:wght@700" },
-    { id: "trailsign", name: "Trail Sign", mood: "Enamel signage, blunt and legible", bg: "#f4f4f0", ac: "#1b7a3e", font: "Overpass:wght@800" },
-    { id: "patrol", name: "Patrol", mood: "Red jacket, white cross", bg: "#f3f5f6", ac: "#c8102e", font: "Archivo:wght@800" },
-    { id: "alpenglow", name: "Alpenglow", mood: "Last pink light on the Gore Range", bg: "#2b1f2a", ac: "#ff8e72", font: "Bricolage+Grotesque:wght@700" },
-    { id: "beacon", name: "Beacon", mood: "Transceiver yellow, glove-proof", bg: "#f6c915", ac: "#0b4f9e", font: "Chakra+Petch:wght@700" },
-    { id: "liftticket", name: "Lift Ticket", mood: "Thermal print with a day-glow stripe", bg: "#ffffff", ac: "#d6006e", font: null },
-    { id: "nightcat", name: "Night Cat", mood: "Snowcat headlights at 3 a.m.", bg: "#0e1a2b", ac: "#ffb52e", font: "Saira+Condensed:wght@700" },
-    { id: "amberlens", name: "Amber Lens", mood: "Flat-light goggle tint", bg: "#3a2410", ac: "#ff9a1f", font: "Barlow:wght@700" },
-    { id: "bluebird", name: "Bluebird", mood: "Cloudless morning after a storm", bg: "#dcebfa", ac: "#0a5bd3", font: "Outfit:wght@700" },
-    { id: "glade", name: "Glade", mood: "Spruce shade and low sun", bg: "#12261e", ac: "#f2c14e", font: "Bitter:wght@700" },
-  ];
+  // One look: Bluebird, switching to Night Cat when the phone is in dark mode.
+  const THEMES = {
+    bluebird: { font: "Outfit:wght@700" },
+    nightcat: { font: "Saira+Condensed:wght@700" },
+  };
   const loadedFonts = new Set(["Outfit:wght@700"]);
+  const darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  function currentTheme() { return darkQuery && darkQuery.matches ? "nightcat" : "bluebird"; }
   function applyTheme(id) {
-    const t = THEMES.find((x) => x.id === id) || THEMES[0];
-    if (t.id === "auto") delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = t.id;
+    const t = THEMES[id] || THEMES.bluebird;
+    document.documentElement.dataset.theme = THEMES[id] ? id : "bluebird";
     if (t.font && !loadedFonts.has(t.font)) {
       loadedFonts.add(t.font);
       const l = document.createElement("link");
@@ -74,10 +67,13 @@
       document.head.appendChild(l);
     }
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#eef2f5";
-    try { localStorage.setItem("theme", t.id); } catch (e) {}
+    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#dcebfa";
   }
-  function currentTheme() { try { return localStorage.getItem("theme") || "bluebird"; } catch (e) { return "bluebird"; } }
+  try { localStorage.removeItem("theme"); } catch (e) {}   // the old colour picker's choice
+  if (darkQuery) {
+    const onScheme = () => applyTheme(currentTheme());
+    darkQuery.addEventListener ? darkQuery.addEventListener("change", onScheme) : darkQuery.addListener(onScheme);
+  }
   const MATERIALS = [
     { id: "flat", name: "Flat", mood: "Solid cards, the fastest" },
     { id: "glass", name: "Glass", mood: "Clear panes over an alpenglow ridge" },
@@ -1082,16 +1078,11 @@ ${tell}
 
   /* ---------------- theme sheet ---------------- */
   function showThemes() {
-    const cur = currentTheme(), curM = currentMaterial();
+    const curM = currentMaterial();
     openSheet("Look", `<h3>Finish</h3><div class="seg" style="grid-template-columns:repeat(5,1fr)">${MATERIALS.map((m) =>
       `<button type="button" data-material-id="${m.id}" aria-pressed="${m.id === curM}" title="${m.mood}">${m.name}</button>`).join("")}</div>
-      <h3>Colors</h3><div class="theme-grid">${THEMES.map((t) =>
-      `<button class="theme-opt" type="button" data-theme-id="${t.id}" aria-pressed="${t.id === cur}"><span class="swatch" style="--sw-bg:${t.bg};--sw-ac:${t.ac}"></span><span><strong>${t.name}</strong><br><span class="small muted">${t.mood}</span></span></button>`).join("")}</div>`,
+      <p class="small muted">Colors follow your phone: light by day, dark in dark mode.</p>`,
     (ov) => {
-      ov.querySelectorAll("[data-theme-id]").forEach((b) => b.addEventListener("click", () => {
-        applyTheme(b.dataset.themeId);
-        ov.querySelectorAll("[data-theme-id]").forEach((x) => x.setAttribute("aria-pressed", x === b));
-      }));
       ov.querySelectorAll("[data-material-id]").forEach((b) => b.addEventListener("click", () => {
         applyMaterial(b.dataset.materialId);
         ov.querySelectorAll("[data-material-id]").forEach((x) => x.setAttribute("aria-pressed", x === b));

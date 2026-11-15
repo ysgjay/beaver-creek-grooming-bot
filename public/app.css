@@ -220,10 +220,6 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .sheet-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
 .sheet { width: 100%; max-width: 640px; max-height: 88vh; overflow-y: auto; background: var(--surface); color: var(--ink); border-radius: 18px 18px 0 0; padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 14px; }
 .sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.theme-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.theme-opt { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; text-align: left; min-height: 56px; }
-.theme-opt[aria-pressed="true"] { outline: 2px solid var(--accent); }
-.swatch { flex: none; width: 34px; height: 34px; border-radius: 9px; border: 1px solid rgba(0,0,0,.15); background: linear-gradient(135deg, var(--sw-bg) 0 50%, var(--sw-ac) 50% 100%); }
 .lightbox { position: fixed; inset: 0; z-index: 60; background: rgba(5,10,16,.95); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); }
 .lightbox .close { align-self: flex-end; margin: 10px max(12px, env(safe-area-inset-right, 0px)) 10px 0; padding: 8px 16px; min-height: 40px; border-radius: 999px; border: 0; background: #ffffff; color: #0f1c2a; font-weight: 600; cursor: pointer; }
 .lightbox .scrollbox { flex: 1; overflow: auto; touch-action: pan-x pan-y pinch-zoom; }
