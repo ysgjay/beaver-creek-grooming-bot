@@ -83,3 +83,16 @@ def fetch(days_back=21):
         except Exception as e:  # station offline -> try the next one
             log.warning("SNOTEL %s failed: %s", triplet, e)
     return {}
+
+
+def fetch_daily_precip(begin, end):
+    """{date: inches of liquid} from the first station that answers, plus its id."""
+    for triplet in config.SNOTEL_STATIONS:
+        try:
+            obs = daily_observations(_fetch(triplet, "DAILY", begin.isoformat(), end.isoformat(), elements="PREC"))
+            days = {d: row["precip_in"] for d, row in obs.items() if row.get("precip_in") is not None}
+            if days:
+                return {"station": triplet, "daily": days}
+        except Exception as e:
+            log.warning("SNOTEL %s history failed: %s", triplet, e)
+    return {}

@@ -24,17 +24,24 @@ ELEVATION_BANDS = []
 MODELS = {
     "ncep_nbm_conus": {"label": "NBM (NOAA blend)", "w": (3.0, 3.0)},
     "gfs_hrrr": {"label": "HRRR 3 km", "w": (3.0, 0.0)},
-    "ecmwf_ifs025": {"label": "ECMWF", "w": (2.0, 2.5)},
+    # ECMWF at 25 km flattens the mountain; it only votes on days the 9 km run is missing.
+    "ecmwf_ifs025": {"label": "ECMWF 25 km", "w": (2.0, 2.5), "unless": "ecmwf_ifs"},
     "gfs_seamless": {"label": "GFS", "w": (1.0, 1.0)},
     "icon_seamless": {"label": "ICON (German)", "w": (1.5, 1.5)},
     "gem_seamless": {"label": "GEM (Canadian)", "w": (1.0, 1.0)},
     "ukmo_seamless": {"label": "UKMO", "w": (1.0, 1.0)},
+    # Higher-resolution runs that see more of the terrain. `extra` models are fetched in
+    # their own request, so one being unavailable never costs the core models.
+    "ecmwf_ifs": {"label": "ECMWF 9 km", "w": (2.5, 3.0), "extra": True},
+    "ncep_nam_conus": {"label": "NAM 3 km", "w": (2.0, 0.0), "extra": True},
 }
 # NWS forecaster-edited gridded snowfall (2.5 km, days 1-7) joins the blend as its own "model".
 NWS_MODEL = "nws"
 NWS_WEIGHT = (2.5, 2.0)
 
 ENSEMBLE_MODELS = ["ecmwf_ifs025", "gfs025"]
+# Which scored model's bias correction each ensemble's members inherit.
+ENSEMBLE_PARENT = {"ecmwf_ifs025": "ecmwf_ifs025", "gfs025": "gfs_seamless"}
 
 FORECAST_DAYS = 10
 

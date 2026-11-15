@@ -5,12 +5,15 @@ Pipeline (the open-data version of what OpenSnow does):
      temperature lapse-rate corrected to 10,476 ft (Open-Meteo `elevation`).
   2. Our own snow-to-liquid ratio from temperature. Open-Meteo's `snowfall` uses a
      fixed ~7:1 ratio, which badly under-forecasts dry Colorado snow (~12-18:1).
-  3. Per-model bias correction learned from SNOTEL observations (verify.py).
+  3. Per-model bias correction learned from SNOTEL observations (verify.py), starting
+     from each model's bias over last winter, then a snow calibration against the
+     resort's own reported snowfall.
   4. Skill-weighted blend: short range leans on HRRR/NBM/NWS, longer range on
      ECMWF/NBM, each scaled by its recent accuracy at this spot.
   5. Forecast range from ensemble members (GFS 31 + ECMWF 51), and odds of a
      powder day.
 """
+import math
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
@@ -36,10 +39,27 @@ def slr(temp_f):
     return 12.0
 
 
-def snow_fraction(temp_f):
-    """Share of precip falling as snow: all snow at <=31°F, all rain at >=36°F."""
+def wet_bulb_f(temp_f, rh):
+    """Wet-bulb temperature (Stull 2011). Falling snow cools toward this in dry air,
+    which is why it can snow at 36°F in Colorado and rain at 33°F in a soaked airmass."""
+    t = (temp_f - 32) / 1.8
+    rh = max(5.0, min(99.0, rh))
+    tw = (t * math.atan(0.151977 * math.sqrt(rh + 8.313659)) + math.atan(t + rh) - math.atan(rh - 1.676331)
+          + 0.00391838 * rh ** 1.5 * math.atan(0.023101 * rh) - 4.686035)
+    return min(temp_f, tw * 1.8 + 32)
+
+
+def snow_fraction(temp_f, rh=None):
+    """Share of precip falling as snow.
+
+    With humidity: by wet-bulb temperature, all snow at <=32°F and all rain at >=35.6°F
+    (half and half near 34°F). Without it: all snow at <=31°F air temperature, rain at >=36°F.
+    """
     if temp_f is None:
         return 1.0
+    if rh is not None:
+        tw = wet_bulb_f(temp_f, rh)
+        return max(0.0, min(1.0, (35.6 - tw) / 3.6))
     if temp_f <= 31:
         return 1.0
     if temp_f >= 36:
@@ -47,10 +67,10 @@ def snow_fraction(temp_f):
     return (36 - temp_f) / 5
 
 
-def hourly_snow(precip_in, temp_f):
+def hourly_snow(precip_in, temp_f, rh=None):
     if not precip_in:
         return 0.0
-    return precip_in * snow_fraction(temp_f) * slr(temp_f)
+    return precip_in * snow_fraction(temp_f, rh) * slr(temp_f)
 
 
 def daily_totals(rows):
@@ -62,7 +82,7 @@ def daily_totals(rows):
             continue
         d = days[r["time"][:10]]
         d["liquid"] += p
-        d["snow"] += hourly_snow(p, r.get("temperature_2m"))
+        d["snow"] += hourly_snow(p, r.get("temperature_2m"), r.get("relative_humidity_2m"))
         d["hours"] += 1
     # Drop partial trailing days (a model whose run ends mid-day would look artificially dry).
     return {k: {"snow": v["snow"], "liquid": v["liquid"]} for k, v in days.items() if v["hours"] >= 20}
@@ -74,6 +94,14 @@ def _weight(model, lead):
     else:
         w = config.MODELS.get(model, {}).get("w", (1.0, 1.0))
     return w[0] if lead < 2 else w[1]
+
+
+def _ensemble_parent(member):
+    """'member03_gfs025' -> the scored model whose bias correction it inherits."""
+    for suffix, parent in config.ENSEMBLE_PARENT.items():
+        if member.endswith(suffix):
+            return parent
+    return None
 
 
 def _percentile(values, q):
@@ -96,7 +124,16 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
     if nws_daily:
         per_model[config.NWS_MODEL] = {d: {"snow": s, "liquid": None} for d, s in nws_daily.items()}
 
-    ens_daily = {k: daily_totals(rows) for k, rows in (ensemble_rows or {}).items()}
+    # Calibration of the finished snow number against the resort's own reports.
+    snow_cal = (verification.get("snow_cal") or {}).get("ratio", 1.0)
+
+    # Ensemble members get the same corrections as the headline number, so the range
+    # sits around it instead of around the uncorrected models.
+    ens_daily = {}
+    for k, rows in (ensemble_rows or {}).items():
+        scale = vstats.get(_ensemble_parent(k), {}).get("bias_ratio", 1.0) * snow_cal
+        ens_daily[k] = {d: {"snow": v["snow"] * scale, "liquid": v["liquid"]}
+                        for d, v in daily_totals(rows).items()}
 
     days = []
     for lead, d in enumerate(dates):
@@ -108,8 +145,10 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
             w = _weight(m, lead)
             if w <= 0:
                 continue
+            if d in per_model.get(config.MODELS.get(m, {}).get("unless"), {}):
+                continue  # its higher-resolution version covers this day
             st = vstats.get(m, {})
-            corrected = daily[d]["snow"] * st.get("bias_ratio", 1.0)
+            corrected = daily[d]["snow"] * st.get("bias_ratio", 1.0) * snow_cal
             values[m] = r1(corrected)
             w *= st.get("skill", 1.0)
             num += w * corrected
@@ -155,6 +194,7 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
     return {
         "issued": today.isoformat(),
         "point": {"lat": config.LAT, "lon": config.LON, "elevation_ft": config.ELEVATION_FT},
+        "snow_cal": snow_cal,
         "days": days,
         "next_1_5": total(slice(0, 5)),
         "next_1_5_range": rng(slice(0, 5)),
@@ -190,7 +230,8 @@ def hourly_outlook(model_rows, now=None, hours=12):
                     "gust": _round(r.get("wind_gusts_10m")),
                     "dir": compass(r.get("wind_direction_10m")),
                     "cloud": _round(r.get("cloud_cover")),
-                    "snow": r1(hourly_snow(r.get("precipitation") or 0, r.get("temperature_2m"))),
+                    "snow": r1(hourly_snow(r.get("precipitation") or 0, r.get("temperature_2m"),
+                                           r.get("relative_humidity_2m"))),
                 } for r in rows[:hours]],
             }
     return {"model": None, "hours": []}
@@ -226,7 +267,8 @@ def band_outlook(band_rows, now=None, bands=None, hours=12):
             if len(hrs) < 20:  # partial day: its high or low would be wrong
                 continue
             liquid = sum(r.get("precipitation") or 0 for r in hrs)
-            frozen = sum((r.get("precipitation") or 0) * snow_fraction(r["temperature_2m"]) for r in hrs)
+            frozen = sum((r.get("precipitation") or 0)
+                         * snow_fraction(r["temperature_2m"], r.get("relative_humidity_2m")) for r in hrs)
             days.append({
                 "date": d,
                 "high": round(max(r["temperature_2m"] for r in hrs)),
