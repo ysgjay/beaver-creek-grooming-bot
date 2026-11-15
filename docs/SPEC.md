@@ -4,15 +4,15 @@
 Each morning, send one report with three things in it: the Beaver Creek grooming map, today's weather, and a snow forecast we build ourselves from public data. Send it through channels that don't depend on carrier SMS gateways or Instagram, and keep a public dashboard with the full history.
 
 ## What changed from v1
-| v1 | v2 |
+| v1 | now |
 |---|---|
 | Scraped OpenSnow's page with Playwright for 2 numbers | Our own multi-model forecast from public data (no scraping, no browser) |
 | Telegram + Instagram (instagrapi, private API, session expiry) | Telegram + ntfy push + email; Instagram removed |
 | Posted the map daily even when it hadn't changed (off-season spam) | Sends once per *new* map (PDF hash), up to 3 checks each morning |
 | One channel's failure stopped the others | Every source and channel is isolated; failures are listed in the data and the job fails only if the core is missing |
-| No history | Every day archived in `data/` and browsable on the dashboard |
+| No history | Every day archived in Vercel Blob and browsable in the app's calendar and feed |
 | Map image only | Groomed run names parsed from the PDF and included in the message |
-| Cron turned off by hand at season end (Mar 30) and must be turned back on each season | Can stay enabled all year: off-season, the map doesn't change, so nothing is sent. The daily data commits also keep GitHub's 60-day inactivity shut-off from triggering. |
+| GitHub Actions cron, turned off by hand at season end (Mar 30) | A Cloudflare Worker cron that can stay on all year: off-season, the map doesn't change, so nothing is sent |
 | Facebook app secret committed in `get_facebook_token.py` | File removed. **The secret is still in git history, so reset it in the Meta developer console.** |
 
 ## How OpenSnow makes its forecasts, and what we copy
@@ -38,41 +38,45 @@ Possible upgrades once a season of archive exists:
 - Learn the weights by lead time.
 - Add CAIC stations and the resort's reported 24-hour totals as extra truth.
 
-## Architecture
+## Architecture (v3: Vercel + Cloudflare)
 ```
-GitHub Actions (cron 5:40 / 6:40 / 7:40 MST, plus manual runs)
-  └─ python -m bcbot run
-       sources/  openmeteo · nws · snotel · grooming (Lumiplan PDF) · resort (best effort)
-       verify    score archived forecasts vs SNOTEL → data/verification.json
-       forecast  ratio → bias → blend → range → data/forecasts/<date>.json
-       archive   data/days/<date>.json, data/maps/<date>.jpg, data/index.json, data/latest.json
-       notify    Telegram · ntfy · email   (only when the map hash is new; DRY_RUN on branches)
-  └─ commit data/ → build _site/ (web/ + data/) → deploy to GitHub Pages
+Cloudflare Worker cron (free)  every 30 min 3:00-9:30 a.m. MT, and 2 p.m.
+  └─ POST https://snow.0xm.studio/api/run   (Bearer CRON_SECRET)
+       Vercel Python function (bcbot)
+         1. cheap check: grooming PDF hash vs last run. If the map is unchanged, the forecast
+            is under 6 h old and it's the same day, exit with no writes.
+         2. sources: open-meteo, ensemble, NWS, SNOTEL, resort report, stake snapshot
+         3. verify -> forecast -> archive to Vercel Blob -> notify (if SEND_ENABLED=1)
+Vercel static app (public/) on snow.0xm.studio
+  /data/*, /maps/*, /cams/*  rewritten to the Blob CDN (same origin, cached)
+Vercel cron: daily backup trigger at 5:35 a.m. MT
 ```
-Data files are plain JSON in the repo, so the history is versioned and needs no database. A map is about 0.5 MB per day, roughly 70 MB per season.
+Why this shape:
+- **It scales.** Every page view is static files and CDN-cached JSON. No database or function runs per visitor, so 10 or 10,000 skiers cost the same.
+- **It stays inside free tiers.** About 2 full runs a day, roughly 15 Blob writes, and around 25 tiny Worker invocations.
+- **It doesn't depend on GitHub at runtime.** GitHub only holds the code. Vercel builds from it.
+- **No database.** Month files (`data/months/YYYY-MM.json`) hold one compact row per day, which is everything the calendar, week/month stats and grooming feed need. SNOTEL back-fills snowfall for days the bot never ran.
+
+## Blob layout
+`data/latest.json`, `data/days/<date>.json`, `data/months/<yyyy-mm>.json`, `data/forecasts/<date>.json`, `data/verification.json`, `data/state.json`, `maps/<date>.jpg`, `cams/<date>.jpg`
+
+## App (public/)
+- **Today** (the default): status, snow (24h, base, season), the grooming report (map with zoom, plus the named runs), weather now and the next 12 hours, a 5-day forecast chart with a Full forecast button, and the snow stake with the other resort cams.
+- **Calendar**: Day, Week and Month views. Month is a heat-map calendar of new snow each morning with grooming-report dots, and tiles for snowfall in the month, snowiest day, report count and season to date. Week shows daily bars, the weekly total and the week's reports. Day shows that day's map, runs and stake photo. Below all three is a feed of every grooming report, newest first, with "Show earlier reports".
+- **Forecast**: a 10-day chart with ensemble ranges, day-by-day range bars, hourly table, a table of every model, how the forecast is built, and forecast vs. what fell.
+- **Help**: Ski Patrol emergency (970) 754-6911 as text with Call and Copy buttons, what to tell patrol, the non-emergency line (970) 754-6610, Security, 911, and how to subscribe. Numbers are from Beaver Creek's Safety on the Mountain page.
+- **Themes**: 10 (Corduroy, Trail Sign, Patrol, Alpenglow, Beacon, Lift Ticket, Night Cat, Amber Lens, Bluebird, Glade), each passing WCAG AA. Until someone picks one, the app follows the phone's light or dark setting.
+- **Offline**: a service worker keeps the app and the last report, so it opens on a chairlift with no signal.
 
 ## Delivery channels
 | Channel | Cost | Setup | Notes |
 |---|---|---|---|
 | Telegram `@bcskireport` | free | existing `BOT_TOKEN` | Photo plus caption (≤1024 characters, enforced) |
-| **ntfy** push | free | secret `NTFY_TOPIC` (pick a hard-to-guess name) | Replaces SMS. People install the ntfy app and subscribe to the topic. The map comes as an attachment, and tapping opens the dashboard. Powder alerts go here too. |
+| **ntfy** push | free | Vercel env `NTFY_TOPIC` (pick a hard-to-guess name) | Replaces SMS. People install the ntfy app and subscribe to the topic. The map comes as an attachment, and tapping opens the app. Powder alerts go here too. |
 | Email | free | existing `GMAIL_USER` / `GMAIL_APP_PASSWORD`, plus `EMAIL_TO` and/or `GOOGLE_SHEET_ID` | HTML email with the map inline, recipients in BCC. Any email address found in the sign-up sheet is added. |
-| Dashboard | free | Settings → Pages → Source: **GitHub Actions** | `https://ysgjay.github.io/beaver-creek-grooming-bot/`, mobile-first, installable to the home screen |
+| App | free | live | `https://snow.0xm.studio`, phone-first, installable to the home screen, works offline |
 
 Real SMS was left out on purpose. Email-to-SMS gateways are shutting down, and Twilio now requires toll-free or 10DLC registration. If SMS is ever needed, a Twilio toll-free number would be one more function in `notify.py`.
 
-## Dashboard
-- **Summary**: last 24 hours (resort report, else SNOTEL), next 1–5 days, days 6–10 (each with a range), and the odds of a 6"+ day.
-- **10-day bar chart** of the blend, with range whiskers and a tooltip listing each model's number. An expandable table shows every model, day by day, with its learned weight and bias.
-- **Grooming map** with tap-to-zoom, plus the named runs read from the PDF's text layer (groomers of the day, last night's grooming, morning grooming). A **most-groomed runs** tally covers the last 30 reports. **Next 12 hours**: temperature, feels-like, wind, gust, snow, cloud.
-- **Forecast vs. what fell**: the day-before forecast against SNOTEL for the last 14 days.
-- **Archive** of every day. `#day-YYYY-MM-DD` deep links open that day's map and forecast.
-- **Cams**: the resort's own Brown Rice cams. Six show by default (snow stake, Spruce Saddle, Talons, McCoy Park, Red Buffalo, Village), as still snapshots that refresh each minute; tapping one opens the live stream. Each morning's stake snapshot is archived with that day's report. `python -m bcbot discover` lists the cam ids on the resort's page, and the `CAM_IDS` variable overrides the set.
-
-## Configuration
-Secrets: `BOT_TOKEN`, `NTFY_TOPIC`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `EMAIL_TO`, `GOOGLE_SHEET_ID`.
-Variables: `CAM_IDS`, `SIGNUP_FORM_URL`, `STAKE_SNAPSHOT_URL`. Tunables are in `bcbot/config.py` (forecast point, models and weights, SNOTEL stations, powder threshold).
-
-## Testing
-- `python -m pytest tests`: 19 tests with API-shaped fixtures. They cover the snow ratio, model parsing, the blend, bias and skill, ensemble odds, NWS interval splitting, SNOTEL differencing, verification, resort parsing, PDF rendering, message length, and the full pipeline (sends once per map, dry run, a source outage).
-- `ci.yml`: pushing to any non-`main` branch runs the tests and the real pipeline against the live APIs in dry-run mode, then commits the resulting data. Nothing is sent.
+## Configuration and testing
+See README.md for environment variables. `python -m pytest tests`: 23 tests cover the forecast math, parsers, verification, Blob protocol headers, and the pipeline's skip, refresh, send-once and outage behavior.

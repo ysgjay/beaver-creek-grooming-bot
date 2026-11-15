@@ -1,29 +1,37 @@
-# Beaver Creek Snow Desk
+# Snow Desk: Beaver Creek
 
-Every morning this bot sends the Beaver Creek grooming map with today's weather and a multi-model snow forecast. It sends to Telegram, to ntfy push notifications and by email, and keeps a mobile dashboard with the full history.
+Every morning it gets the Beaver Creek grooming report, weather, a multi-model snow forecast and the snow stake cam, then sends it out and keeps the history.
 
-- Dashboard: https://ysgjay.github.io/beaver-creek-grooming-bot/
+- App: **https://snow.0xm.studio** (Today · Calendar · Forecast · Help)
 - Telegram: https://t.me/bcskireport
-- Design, data sources and how the forecast works: [docs/SPEC.md](docs/SPEC.md)
+- How it works and why: [docs/SPEC.md](docs/SPEC.md)
 
-## Run locally
+## Where it runs (all free tiers, no GitHub at runtime)
+| Piece | Service | What it does |
+|---|---|---|
+| Scheduler | Cloudflare Worker `snow-desk-cron` | Cron every 30 min, 3:00–9:30 a.m. MT, plus 2 p.m.; calls `/api/run` |
+| Pipeline | Vercel Python function `api/run.py` | Fetches sources, builds the forecast, saves the archive, sends notifications |
+| Archive | Vercel Blob `snow-desk-archive` | JSON and images on a CDN; the app reads them same-origin via rewrites |
+| App | Vercel static (`public/`) on `snow.0xm.studio` | Phone-first app, 10 themes, works offline |
+| Backup trigger | Vercel cron (daily 5:35 a.m. MT) | In case the Worker is down |
+
+GitHub only stores the code and runs the unit tests. Vercel deploys from it.
+
+## Settings (Vercel project `snow-desk` → Environment Variables)
+| Variable | Status |
+|---|---|
+| `BLOB_READ_WRITE_TOKEN`, `BLOB_PUBLIC_BASE`, `CRON_SECRET` | Set |
+| `SEND_ENABLED` | Set to `1` to start sending notifications. Off until then, so the bot can't double-post. |
+| `BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Telegram (copy `BOT_TOKEN` from the old GitHub secret) |
+| `NTFY_TOPIC` | Free push notifications through the ntfy app. Also add the topic to `public/config.json` so it shows in Help. |
+| `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `EMAIL_TO`, `GOOGLE_SHEET_ID` | Email |
+
+To run it by hand: `https://snow-desk-cron.jay-52b.workers.dev/?key=<CRON_SECRET>&force=1`
+
+## Local development
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 python -m pytest -q tests
-DRY_RUN=1 python -m bcbot run     # fetch everything and print the message; sends nothing
-python -m bcbot site              # build the dashboard into _site/
-python -m http.server -d _site    # then open http://localhost:8000
+python -m bcbot run --force       # writes into public/data, public/maps (git-ignored)
+python -m http.server -d public   # open http://localhost:8000
 ```
-
-## One-time setup
-1. **Reset the Facebook app secret** that was committed in the old `get_facebook_token.py` (it's still in git history).
-2. Settings → Pages → Build and deployment → Source: **GitHub Actions**.
-3. Actions tab: turn the workflow back on (it was turned off by hand on Mar 30). It can stay on all year, because it only sends when the grooming map changes.
-4. Secrets (Settings → Secrets and variables → Actions):
-   - `BOT_TOKEN`: already set.
-   - `NTFY_TOPIC`: a hard-to-guess topic name, e.g. `bc-groom-7h2k`.
-   - `GMAIL_USER` and `GMAIL_APP_PASSWORD`: already set.
-   - `EMAIL_TO` and/or `GOOGLE_SHEET_ID`: who gets the email.
-5. Optional variables: `SIGNUP_FORM_URL`, and `CAM_IDS` to change which resort cams appear.
-
-The report goes out once per new grooming map. To send one on demand, open Actions → Daily grooming report → Run workflow and tick "force send".
