@@ -284,6 +284,7 @@
       <div class="status-line">
         <span class="pill ${g.new_map ? "" : "quiet"}">${g.new_map ? "New grooming report" : "No new grooming report yet"}</span>
         <span>${sentAt ? `Sent ${sentAt}` : `Updated ${isToday ? "" : fmtDay(L.date) + " "}${(L.generated || "").slice(11, 16)}`}</span>
+        ${rs.updated_time ? `<span>· Snow report ${esc(rs.updated_time)}</span>` : ""}
       </div>
 
       <section class="card" aria-label="Conditions">

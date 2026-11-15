@@ -47,15 +47,17 @@ def parse(html):
             val = _inches(v)
             if val is not None:
                 out[key] = val
-    # When was the report published? Keep every date/time-looking field (and the key list)
-    # so the freshness rule can be built on the resort's real field names.
+    # When was the report published? Beaver Creek's is LastUpdatedText,
+    # e.g. "Updated November 15, 2026 at 5:34 AM MST". Any date/time field is kept.
     stamps = {}
     for k, v in blob.items():
         if isinstance(v, (str, int, float)) and re.search(r"date|time|updated|asof|report", k, re.I):
             stamps[k] = v
     if stamps:
         out["stamps"] = stamps
-    out["keys"] = sorted(blob.keys())[:60]
+        t = re.search(r"(\d{1,2}:\d{2}\s?[AP]M)", " ".join(str(v) for v in stamps.values()))
+        if t:
+            out["updated_time"] = t.group(1)
     return out
 
 

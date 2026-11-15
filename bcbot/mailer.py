@@ -100,7 +100,7 @@ def daily_html(day, map_url):
     weather = f"{now['temp']}°F, feels {now['feels']}°, {now['dir']} {now['wind']} mph" if now else ""
     return f"""
       <h1 style="margin:0;font-size:22px">Beaver Creek · {_d.fromisoformat(day['date']).strftime('%a, %b ') + str(_d.fromisoformat(day['date']).day)}</h1>
-      <p style="margin:2px 0 14px;color:#4a6382">New snow {inch(r24)} · Base {inch(rs.get('base_in'))} · {escape(weather)}</p>
+      <p style="margin:2px 0 14px;color:#4a6382">New snow {inch(r24)} · Base {inch(rs.get('base_in'))} · {escape(weather)}{f" · Snow report {escape(rs['updated_time'])}" if rs.get('updated_time') else ""}</p>
       {f'<a href="{config.DASHBOARD_URL}"><img src="{map_url}" alt="Grooming map" width="520" style="width:100%;max-width:520px;border-radius:12px;display:block"></a>' if map_url else ''}
       {f'<p style="margin:6px 0 0;color:#4a6382;font-size:13px">Map dated {escape(runs["map_date"])}{"" if (day.get("grooming") or {}).get("new_map") else " · no new map posted today"}</p>' if runs.get("map_date") else ''}
       {chips("Groomers of the day", runs.get("groomers_of_the_day"))}{chips("Groomed overnight", runs.get("overnight"))}{chips("Morning grooming", runs.get("morning"))}

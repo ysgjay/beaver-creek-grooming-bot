@@ -173,7 +173,7 @@ def test_verification_learns_dry_model(tmp_path):
 def test_resort_parse():
     html = 'x FR.snowReportData = {"TwentyFourHourSnowfall":{"Inches":"3"},"BaseDepth":{"Inches":"18"},"Other":1}; y'
     r = resort.parse(html)
-    assert r["last_24h_in"] == 3.0 and r["base_in"] == 18.0 and r["keys"] == ["BaseDepth", "Other", "TwentyFourHourSnowfall"]
+    assert r["last_24h_in"] == 3.0 and r["base_in"] == 18.0
     assert resort.parse("<html></html>") == {}
 
 
@@ -530,3 +530,11 @@ def test_resort_stamp_dates():
     assert resort.is_fresh({"stamps": {"a": "/Date(1794749400000)/"}}, D(2026, 11, 15)) is True
     assert resort.is_fresh({"stamps": {"Report": "Daily"}}, D(2026, 11, 15)) is None
     assert resort.is_fresh({}, D(2026, 11, 15)) is None
+
+
+def test_real_beaver_creek_report_timestamp():
+    from datetime import date as D
+    html = 'FR.snowReportData = {"TwentyFourHourSnowfall":{"Inches":"1"},"LastUpdatedText":"Updated November 15, 2026 at 5:34 AM MST"};'
+    r = resort.parse(html)
+    assert r["updated_time"] == "5:34 AM"
+    assert resort.is_fresh(r, D(2026, 11, 15)) is True and resort.is_fresh(r, D(2026, 11, 16)) is False
