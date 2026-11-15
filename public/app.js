@@ -580,14 +580,29 @@
     const tiles = (url) => { let s = ""; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) s += `<img src="${url}/${z}/${x0 + i}/${y0 + j}.png" alt="" decoding="async" draggable="false">`; return s; };
     const frames = radarFrames(Date.now()), nowIdx = frames.findIndex((f) => f.layer === "nexrad-n0q");
     const fmt = new Intl.DateTimeFormat("en-US", { timeZone: r.timezone || S.cfg?.timezone || RESORT_TZ, month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" });
-    const dots = R.list.filter((o) => o.lat != null && o.lon != null).map((o) => {
-      const [ox, oy] = worldPx(o.lat, o.lon, z), me = o.slug === r.slug;
-      return `<span class="radar-dot${me ? " me" : ""}" style="left:calc(50% + ${(ox - px).toFixed(1)}px);top:calc(50% + ${(oy - py).toFixed(1)}px)">${me ? `<b>${esc(o.name)}</b>` : ""}</span>`;
+    // Every resort gets a marker and a name. Resorts sit close together, so each label takes the first
+    // side (above, below, right, left) where it doesn't cover a label or marker already placed.
+    const placed = [], hit = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+    const spots = R.list.filter((o) => o.lat != null && o.lon != null).map((o) => {
+      const [ox, oy] = worldPx(o.lat, o.lon, z);
+      return { o, x: ox - px, y: oy - py, me: o.slug === r.slug };
+    }).sort((a, b) => b.me - a.me);
+    spots.forEach((s) => placed.push([s.x - 7, s.y - 7, s.x + 7, s.y + 7]));
+    const dots = spots.map((s) => {
+      const w = s.o.name.length * 6.2 + 10, h = w / 2, boxes = {
+        n: [s.x - h, s.y - 26, s.x + h, s.y - 11], s: [s.x - h, s.y + 11, s.x + h, s.y + 26],
+        e: [s.x + 11, s.y - 8, s.x + 11 + w, s.y + 8], w: [s.x - 11 - w, s.y - 8, s.x - 11, s.y + 8],
+        s2: [s.x - h, s.y + 27, s.x + h, s.y + 42], n2: [s.x - h, s.y - 42, s.x + h, s.y - 27],
+      };
+      const side = Object.keys(boxes).find((k) => !placed.some((p) => hit(boxes[k], p))) || "n";
+      placed.push(boxes[side]);
+      return `<span class="radar-dot${s.me ? " me" : ""}" style="left:calc(50% + ${s.x.toFixed(1)}px);top:calc(50% + ${s.y.toFixed(1)}px)"><b class="${side}">${esc(s.o.name)}</b></span>`;
     }).join("");
     card.innerHTML = `
       <div class="card-head"><h2>Radar</h2><span class="muted small" id="radar-when" aria-live="polite"></span></div>
       <div class="radar-map" id="radar-map">
         <div class="radar-tiles radar-base" style="${pos}">${tiles(RADAR.base)}</div>
+        <div class="radar-tint"></div>
         ${dots}
         <span class="radar-attr">© OpenStreetMap · NOAA, Iowa State Mesonet</span>
         <p class="radar-none muted small" id="radar-none" hidden>No radar image for this time.</p>

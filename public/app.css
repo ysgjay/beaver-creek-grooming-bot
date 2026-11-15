@@ -172,15 +172,25 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .contact .n { font-family: var(--font-data); white-space: nowrap; }
 
 /* Radar card on the Forecast tab: a fixed tile grid centred on the resort. */
-.radar-map { position: relative; width: 100%; height: 260px; max-width: 768px; margin-inline: auto; overflow: hidden; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); }
+.radar-map { position: relative; width: 100%; height: 260px; max-width: 768px; margin-inline: auto; overflow: hidden; border-radius: 10px; border: 1px solid var(--line); background: #e6eff8; }
+/* Frost base map: the street map drained to one pale blue tone, so only the radar and the resorts carry colour. */
+.radar-base { filter: grayscale(1) contrast(.82) brightness(1.1); }
+.radar-tint { position: absolute; inset: 0; background: #cfe2f6; mix-blend-mode: multiply; pointer-events: none; }
 .radar-tiles { position: absolute; display: grid; grid-template-columns: repeat(4, 256px); width: 1024px; height: 768px; }
 .radar-tiles img { display: block; width: 256px; height: 256px; }
 .radar-frame { opacity: 0; pointer-events: none; }
-.radar-frame.on { opacity: .75; }
-.radar-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #1b2733; border: 1.5px solid #fff; }
-.radar-dot.me { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--accent); border-width: 2px; }
-.radar-dot.me { z-index: 1; }
-.radar-dot b { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 1px 5px; border-radius: 5px; background: rgba(255,255,255,.88); color: #1b2733; font-size: 11px; line-height: 1.4; white-space: nowrap; }
+.radar-frame.on { opacity: .85; }
+/* Every resort is a maroon ring, open in the middle so the radar under it stays visible. The selected one is filled. */
+.radar-dot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; border: 2.5px solid #7b1e2e; background: rgba(255,255,255,.35); box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
+.radar-dot.me { z-index: 1; background: #7b1e2e; box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgba(123,30,46,.22); }
+.radar-dot b { position: absolute; padding: 0 5px; border-radius: 5px; background: rgba(255,255,255,.9); color: #7b1e2e; font-size: 11px; font-weight: 600; line-height: 15px; white-space: nowrap; }
+.radar-dot.me b { background: #7b1e2e; color: #fff; }
+.radar-dot b.n { left: 50%; bottom: 11px; transform: translateX(-50%); }
+.radar-dot b.s { left: 50%; top: 11px; transform: translateX(-50%); }
+.radar-dot b.e { left: 11px; top: 50%; transform: translateY(-50%); }
+.radar-dot b.w { right: 11px; top: 50%; transform: translateY(-50%); }
+.radar-dot b.s2 { left: 50%; top: 27px; transform: translateX(-50%); }
+.radar-dot b.n2 { left: 50%; bottom: 27px; transform: translateX(-50%); }
 .radar-attr { position: absolute; right: 0; bottom: 0; padding: 1px 5px; border-top-left-radius: 5px; background: rgba(255,255,255,.8); color: #1b2733; font-size: 10px; line-height: 1.5; }
 .radar-none { position: absolute; inset: auto 0 22px 0; margin: 0; text-align: center; }
 .radar-none[hidden] { display: none; }
