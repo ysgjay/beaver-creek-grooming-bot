@@ -63,13 +63,3 @@
   --font-display: "Bitter", Georgia, serif; --display-weight: 700;
   --texture: none; color-scheme: dark;
 }
-
-/* The app uses Bluebird by day and Night Cat in dark mode (see index.html); this is the fallback before that runs. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --radius: 12px; --card-border: 1px solid color-mix(in oklab, var(--accent) 22%, transparent);
-    --bg: #0e1a2b; --surface: #18283f; --ink: #eaf1f8; --accent: #ffb52e; --on-accent: #17120a;
-    --font-display: "Saira Condensed", "Arial Narrow", sans-serif; --display-weight: 700;
-    --texture: radial-gradient(120% 60% at 50% -10%, rgba(255,181,46,.10), transparent 60%); color-scheme: dark;
-  }
-}

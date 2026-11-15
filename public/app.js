@@ -48,32 +48,14 @@
   }
 
   /* ---------------- themes ---------------- */
-  // One look: Bluebird, switching to Night Cat when the phone is in dark mode.
-  const THEMES = {
-    bluebird: { font: "Outfit:wght@700" },
-    nightcat: { font: "Saira+Condensed:wght@700" },
-  };
-  const loadedFonts = new Set(["Outfit:wght@700"]);
-  const darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
-  function currentTheme() { return darkQuery && darkQuery.matches ? "nightcat" : "bluebird"; }
-  function applyTheme(id) {
-    const t = THEMES[id] || THEMES.bluebird;
-    document.documentElement.dataset.theme = THEMES[id] ? id : "bluebird";
-    if (t.font && !loadedFonts.has(t.font)) {
-      loadedFonts.add(t.font);
-      const l = document.createElement("link");
-      l.rel = "stylesheet";
-      l.href = `https://fonts.googleapis.com/css2?family=${t.font}&display=swap`;
-      document.head.appendChild(l);
-    }
+  // One look, light only: Bluebird, even when the phone is in dark mode.
+  function currentTheme() { return "bluebird"; }
+  function applyTheme() {
+    document.documentElement.dataset.theme = "bluebird";
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#dcebfa";
   }
   try { localStorage.removeItem("theme"); } catch (e) {}   // the old colour picker's choice
-  if (darkQuery) {
-    const onScheme = () => applyTheme(currentTheme());
-    darkQuery.addEventListener ? darkQuery.addEventListener("change", onScheme) : darkQuery.addListener(onScheme);
-  }
   const MATERIALS = [
     { id: "flat", name: "Flat", mood: "Solid cards, the fastest" },
     { id: "glass", name: "Glass", mood: "Clear panes over an alpenglow ridge" },
@@ -1148,8 +1130,7 @@ ${tell}
   function showThemes() {
     const curM = currentMaterial();
     openSheet("Look", `<h3>Finish</h3><div class="seg" style="grid-template-columns:repeat(5,1fr)">${MATERIALS.map((m) =>
-      `<button type="button" data-material-id="${m.id}" aria-pressed="${m.id === curM}" title="${m.mood}">${m.name}</button>`).join("")}</div>
-      <p class="small muted">Colors follow your phone: light by day, dark in dark mode.</p>`,
+      `<button type="button" data-material-id="${m.id}" aria-pressed="${m.id === curM}" title="${m.mood}">${m.name}</button>`).join("")}</div>`,
     (ov) => {
       ov.querySelectorAll("[data-material-id]").forEach((b) => b.addEventListener("click", () => {
         applyMaterial(b.dataset.materialId);
