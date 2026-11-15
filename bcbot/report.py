@@ -21,6 +21,14 @@ def mmdd(d):
     return f"{d.month}/{d.day}"
 
 
+def map_date(text):
+    """The grooming PDF's "November 15, 2026" as 11/15 (unchanged if it doesn't parse)."""
+    try:
+        return mmdd(datetime.strptime(text.strip(), "%B %d, %Y").date())
+    except (AttributeError, ValueError):
+        return text
+
+
 def pretty_date(d):
     d = date.fromisoformat(d) if isinstance(d, str) else d
     return f"{d.strftime('%a')} {mmdd(d)}"

@@ -12,6 +12,8 @@
   const addDays = (s, n) => { const d = pd(s); d.setDate(d.getDate() + n); return iso(d); };
   const fmtDay = (s) => { const d = pd(s); return `${WD[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
   const inch = (x) => (x == null ? "–" : (x >= 1 || x === 0 ? Math.round(x) : x.toFixed(1)) + '"');
+  // The PDF says "November 15, 2026"; show it as 11/15 like every other date.
+  const mapDate = (t) => { const m = /^([A-Za-z]+) (\d{1,2}), \d{4}$/.exec(t || ""); const i = m ? MONTH_FULL.indexOf(m[1]) : -1; return i < 0 ? t : `Map ${i + 1}/${m[2]}`; };
   const hourLabel = (t) => { const h = Number(t.slice(11, 13)); return `${h % 12 || 12}${h < 12 ? "a" : "p"}`; };
   // "Today" is the resort's calendar day, not the viewer's: someone checking from another
   // time zone sees the same day the mountain is on. Report times are already resort-local text.
@@ -323,7 +325,7 @@
       </section>
 
       <section class="card" aria-labelledby="h-groom">
-        <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="muted small">${g.runs?.map_date ? esc(g.runs.map_date) : ""}</span></div>
+        <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="muted small">${g.runs?.map_date ? esc(mapDate(g.runs.map_date)) : ""}</span></div>
         <div class="groom">
           ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="${esc(resortInfo().name)} grooming map" decoding="async"></button>` : `<p class="muted">No grooming map yet.</p>`}
           ${runsBlock(g.runs)}
