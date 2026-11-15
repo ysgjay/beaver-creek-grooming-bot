@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta
 import pymupdf
 import pytest
 
-from bcbot import config, forecast, main, notify, report, verify
+from bcbot import config, forecast, main, notify, report, resorts, verify
 from bcbot.store import BlobStore, LocalStore
 from bcbot.sources import grooming, nws, openmeteo, resort, snotel
 
@@ -204,11 +204,11 @@ def test_compose_subject_and_push_payload():
                               "wind": 12, "gust": 25, "snow": 0} for h in range(6, 18)]},
     }
     text = report.compose(day)
-    assert "Sun Nov 15th" in text and "Snowiest day: Sat 21" in text and "6a: 18°" in text
+    assert "Sun 11/15" in text and "Snowiest day: 11/21" in text and "6a: 18°" in text
     assert len(text) < 1500
-    assert report.subject(day) == 'Beaver Creek Sun 15: Grooming map, 3" next 5 days'
+    assert report.subject(day) == 'Beaver Creek 11/15: Grooming map, 3" next 5 days'
     payload = report.push_payload(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
-    assert payload["title"] == "Beaver Creek · Sun 15" and "New snow 3\"" in payload["body"]
+    assert payload["title"] == "Beaver Creek · 11/15" and "New snow 3\"" in payload["body"]
     assert payload["image"].endswith(".jpg") and payload["url"].startswith("https://")
 
 
@@ -230,8 +230,8 @@ def sandbox(tmp_path, monkeypatch):
         "daily": {"2026-11-13": {"precip_in": 0.4, "depth_change_in": 5, "depth_in": 8},
                   "2026-11-14": {"precip_in": 0.0, "depth_change_in": -1, "depth_in": 7}}})
     monkeypatch.setattr(resort, "fetch", lambda: {"last_24h_in": 0.0, "base_in": 4.0, "season_in": 10.0})
-    monkeypatch.setattr(config, "STAKE_SNAPSHOT_URL", "")
-    monkeypatch.setattr(config, "OPENING_DAY", date(2026, 11, 1))   # these tests are in season
+    monkeypatch.setitem(resorts.RESORTS["beaver-creek"], "cams", [])  # no stake snapshot fetch
+    monkeypatch.setitem(resorts.RESORTS["beaver-creek"], "opening_day", date(2026, 11, 1).isoformat())   # these tests are in season
     pdf = {"bytes": make_pdf()}
 
     def fake_groom():
@@ -242,7 +242,7 @@ def sandbox(tmp_path, monkeypatch):
                 "text_lines": text.splitlines(), "last_modified": None}
     monkeypatch.setattr(grooming, "fetch", fake_groom)
     sent = []
-    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: sent.append((report.compose(day), channels)) or {"email": "ok"})
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None: sent.append((report.compose(day), channels)) or {"email": "ok"})
     return store, tmp_path, pdf, sent
 
 
@@ -452,7 +452,7 @@ def test_daily_email_is_personal_with_one_click_unsubscribe(monkeypatch):
     day = {"date": "2026-11-15", "grooming": {"new_map": True, "runs": {"overnight": ["Flint"], "morning": []}},
            "forecast": {"days": [{"date": "2026-11-15", "snow": 3.0, "low": 1, "high": 6}], "next_1_5": 3, "next_6_10": 1}}
     html = mailer.daily_html(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
-    assert "Flint" in html and "maps/2026-11-15.jpg" in html and "Beaver Creek · Sun, Nov 15" in html
+    assert "Flint" in html and "maps/2026-11-15.jpg" in html and "Beaver Creek · Sun 11/15" in html
     assert mailer.send_daily(recipients, "Subject", html, "text") == 150
     assert [len(b) for _, b in calls] == [100, 50] and all(u.endswith("/emails/batch") for u, _ in calls)
     first = calls[0][1][0]
@@ -474,18 +474,18 @@ def test_send_test_labels_and_leaves_schedule_alone(sandbox, monkeypatch):
     main.run(store=store, send=False, now=at(5, 45))
     state_before = store.get_json("data/state.json")
     monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
-    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("a@example.com", "t")])
-    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn: [{"endpoint": "https://push.example/1"}])
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn, resort=None: [("a@example.com", "t")])
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn, resort=None: [{"endpoint": "https://push.example/1"}])
     captured = []
-    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: captured.append(day) or {"email": "sent to 1"})
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None: captured.append(day) or {"email": "sent to 1"})
     r = main.send_test(store)
     assert r["status"] == "ok" and captured[0]["test"] is True
     assert report.subject(captured[0]).startswith("Test · Beaver Creek")
     assert store.get_json("data/state.json") == state_before          # schedule untouched
-    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("x@example.com", "t")] * 6)
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn, resort=None: [("x@example.com", "t")] * 6)
     assert main.send_test(store)["status"] == "refused"
-    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("a@example.com", "t")])
-    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn: [{"endpoint": "https://push.example/1"}] * 6)
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn, resort=None: [("a@example.com", "t")])
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn, resort=None: [{"endpoint": "https://push.example/1"}] * 6)
     assert main.send_test(store)["status"] == "refused"                 # app subscribers are protected too
     assert len(captured) == 1
 
@@ -495,7 +495,7 @@ def test_send_test_labels_and_leaves_schedule_alone(sandbox, monkeypatch):
 def test_push_needs_the_vercel_key(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "postgres://test")
     monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
-    assert notify.push({"date": "2026-11-15"}, None) == "skipped (push not configured)"
+    assert notify.push({"date": "2026-11-15"}, None, "beaver-creek") == "skipped (push not configured)"
 
 
 def test_public_key_is_derived_from_the_private_key(monkeypatch):
@@ -527,12 +527,12 @@ def test_daily_push_is_one_encrypted_notification_with_the_powder_alert(monkeypa
             return R(201 if url.endswith("/0") else 410)
     monkeypatch.setattr(notify, "http", lambda: FakeHTTP())
     monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
-    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn: subs)
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn, resort=None: subs)
     monkeypatch.setattr("bcbot.db.record_push_result", lambda conn, endpoint, status: results.append((endpoint, status)))
 
     day = {"date": "2026-11-15", "grooming": {"runs": {"overnight": ["Flint"]}}, "forecast": {"next_1_5": 8},
            "powder": report.powder_alert({"days": [{"snow": 5}, {"snow": 4}]})}
-    assert notify.push(day, None) == "1 delivered, 1 expired, 0 failed"
+    assert notify.push(day, None, "beaver-creek") == "1 delivered, 1 expired, 0 failed"
     assert len(posts) == 2 and results == [("https://push.example/0", 201), ("https://push.example/1", 410)]
     url, body, headers = posts[0]
     assert headers["Content-Encoding"] == "aes128gcm" and headers["Authorization"].endswith("k=" + pub)
@@ -543,8 +543,8 @@ def test_daily_push_is_one_encrypted_notification_with_the_powder_alert(monkeypa
 def test_powder_alert_never_adds_a_second_notification(sandbox, monkeypatch):
     store, root, pdf, sent = sandbox
     days = []
-    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: days.append(day) or {"push": "ok"})
-    monkeypatch.setattr(report, "powder_alert", lambda fc: "❄️ Powder alert")
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None: days.append(day) or {"push": "ok"})
+    monkeypatch.setattr(report, "powder_alert", lambda fc, name=None: "❄️ Powder alert")
     main.run(store=store, send=True, now=at(7))
     main.run(store=store, send=True, now=at(8))
     assert len(days) == 1 and days[0]["powder"] == "❄️ Powder alert"
@@ -555,7 +555,7 @@ def test_powder_alert_never_adds_a_second_notification(sandbox, monkeypatch):
 
 def test_preseason_sends_daily_at_seven_without_a_new_map(sandbox, monkeypatch):
     store, root, pdf, sent = sandbox
-    monkeypatch.setattr(config, "OPENING_DAY", date(2026, 11, 25))
+    monkeypatch.setitem(resorts.RESORTS["beaver-creek"], "opening_day", date(2026, 11, 25).isoformat())
     main.run(store=store, send=True, now=at(6, 0, day=14))
     main.run(store=store, send=True, now=at(7, 0, day=14))
     assert len(reports(sent)) == 1                               # Nov 14 at 7:00
@@ -564,7 +564,7 @@ def test_preseason_sends_daily_at_seven_without_a_new_map(sandbox, monkeypatch):
     main.run(store=store, send=True, now=at(7, 0))
     main.run(store=store, send=True, now=at(7, 15))
     assert len(reports(sent)) == 2                               # Nov 15 at 7:00, once
-    assert report.subject({"date": "2026-11-15", "preseason": True, "grooming": {}}).startswith("Beaver Creek Sun 15: Opens Nov 25")
+    assert report.subject({"date": "2026-11-15", "preseason": True, "grooming": {}}).startswith("Beaver Creek 11/15: Opens 11/25")
 
 
 def test_sends_as_soon_as_map_and_todays_snow_report_are_confirmed(sandbox, monkeypatch):

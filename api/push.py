@@ -1,13 +1,14 @@
 """App notifications.
 
 GET    /api/push                                     -> {publicKey} for PushManager.subscribe
-POST   /api/push  {endpoint, keys: {p256dh, auth}}  -> save this browser's push subscription
+POST   /api/push  {endpoint, keys: {p256dh, auth}, resorts: [slug]} -> save this browser's push subscription
+                                                       (posting again with new resorts updates the choice)
 DELETE /api/push  {endpoint}                         -> remove it
 """
 import logging
 
 from bcbot.web import Handler
-from bcbot import db, webpush
+from bcbot import db, resorts, webpush
 
 
 class handler(Handler):
@@ -27,7 +28,9 @@ class handler(Handler):
             return self.reply(400, {"ok": False})
         try:
             with db.connect() as conn:
-                db.save_push(conn, {"endpoint": endpoint, "p256dh": keys["p256dh"], "auth": keys["auth"]})
+                picked = sub.get("resorts")
+                picked = resorts.valid(picked if isinstance(picked, list) else []) or [resorts.DEFAULT]
+                db.save_push(conn, {"endpoint": endpoint, "p256dh": keys["p256dh"], "auth": keys["auth"]}, picked)
         except Exception:
             logging.exception("push subscribe failed")
             return self.reply(500, {"ok": False})

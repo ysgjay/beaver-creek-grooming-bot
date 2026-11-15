@@ -1,4 +1,8 @@
-"""All tunable settings in one place. Secrets come from environment variables."""
+"""All tunable settings in one place. Secrets come from environment variables.
+
+Per-resort settings (forecast point, grooming PDF, snow report, SNOTEL, cams) start as
+Beaver Creek's and are switched with `use(slug)` before a run (see resorts.py).
+"""
 import os
 from datetime import date
 from pathlib import Path
@@ -8,17 +12,9 @@ ROOT = Path(__file__).resolve().parent.parent
 
 TZ = ZoneInfo("America/Denver")
 
-# Forecast point: Beaver Creek upper mountain, same elevation OpenSnow uses (10,476 ft).
-# Open-Meteo applies a lapse-rate correction from the model's terrain height to this elevation.
-LAT = 39.5893
-LON = -106.5214
-ELEVATION_M = 3193  # 10,476 ft
-ELEVATION_FT = 10476
-
-GROOMING_PDF_URL = "https://grooming.lumiplan.pro/beaver-creek-grooming-map.pdf"
-RESORT_SNOW_REPORT_URL = (
-    "https://www.beavercreek.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx"
-)
+# Forecast point, grooming PDF and snow report: set per resort by use() at the bottom.
+RESORT = RESORT_NAME = GROOMING_PDF_URL = RESORT_SNOW_REPORT_URL = None
+LAT = LON = ELEVATION_M = ELEVATION_FT = None
 
 # Deterministic models pulled from Open-Meteo. Key = Open-Meteo model id.
 # base weights: (days 1-2, days 3+). The weights are the "prior"; verification
@@ -40,23 +36,21 @@ ENSEMBLE_MODELS = ["ecmwf_ifs025", "gfs025"]
 
 FORECAST_DAYS = 10
 
-# SNOTEL ground truth. Vail Mountain (10,300 ft) is ~6 miles from Beaver Creek's upper mountain.
-SNOTEL_STATIONS = ["842:CO:SNTL", "415:CO:SNTL"]  # Vail Mountain, Copper Mountain (fallback)
+# SNOTEL ground truth: per resort (resorts.py), nearest station first.
+SNOTEL_STATIONS = []
 
-# Beaver Creek's cams are Brown Rice streams. Each has a live player page and a
-# still JPEG at /snapshot/<id> (found by `python -m bcbot discover`). First = snow stake.
+# Cams are Brown Rice streams: /snapshot/<id> is a still, /embed/<id> the live player.
+# CAM_IDS ("id:Label,...") overrides Beaver Creek's list; first = snow stake.
 BROWNRICE = "https://player.brownrice.com"
-CAM_IDS = [c.strip() for c in os.environ.get("CAM_IDS", "").split(",") if c.strip()] or [
-    "bcsnowstake2:Snow stake",
-    "bcspruce:Spruce Saddle",
-    "bctalons:Talons",
-    "bcmccoy:McCoy Park",
-    "bcredbuffalo:Red Buffalo",
-    "bcvillage:Village",
-]
-CAMS = [{"label": label, "image": f"{BROWNRICE}/snapshot/{cid}", "live": f"{BROWNRICE}/embed/{cid}"}
-        for cid, _, label in (c.partition(":") for c in CAM_IDS)]
-STAKE_SNAPSHOT_URL = os.environ.get("STAKE_SNAPSHOT_URL", CAMS[0]["image"] if CAMS else "")
+_CAMS_ENV = [c.strip() for c in os.environ.get("CAM_IDS", "").split(",") if c.strip()]
+
+
+def _cams_from_ids(ids):
+    return [{"label": label, "image": f"{BROWNRICE}/snapshot/{cid}", "live": f"{BROWNRICE}/embed/{cid}"}
+            for cid, _, label in (c.partition(":") for c in ids)]
+
+
+CAMS, STAKE_SNAPSHOT_URL = [], ""
 
 # Notifications
 DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "https://snow.0xm.studio/")
@@ -68,6 +62,7 @@ REFRESH_HOURS = float(os.environ.get("REFRESH_HOURS", "6"))
 #   before OPENING_DAY: every morning at SEND_TIME, grooming map or not;
 #   in season: as soon as a new map AND today's resort snow report are confirmed, from
 #   SEND_EARLIEST; at SEND_LATEST whatever is available goes out.
+# Beaver Creek's; other resorts have their own in resorts.py (env OPENING_DAY_<SLUG> overrides).
 OPENING_DAY = date.fromisoformat(os.environ.get("OPENING_DAY", "2026-11-25"))
 SEND_TIME = os.environ.get("SEND_TIME", "07:00")
 SEND_EARLIEST = os.environ.get("SEND_EARLIEST", "05:00")
@@ -86,3 +81,28 @@ VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "https://snow.0xm.studio")
 POWDER_ALERT_INCHES = float(os.environ.get("POWDER_ALERT_INCHES", "6"))
 
 USER_AGENT = "beaver-creek-grooming-bot (github.com/ysgjay/beaver-creek-grooming-bot)"
+
+
+def use(slug):
+    """Point every per-resort setting at `slug`. Returns the resort dict."""
+    from . import resorts
+    global RESORT, RESORT_NAME, LAT, LON, ELEVATION_M, ELEVATION_FT, GROOMING_PDF_URL
+    global RESORT_SNOW_REPORT_URL, SNOTEL_STATIONS, CAMS, STAKE_SNAPSHOT_URL, TZ, OPENING_DAY
+    r = resorts.get(slug)
+    TZ = ZoneInfo(r["tz"])  # send times, "today" and every date are in the resort's own zone
+    OPENING_DAY = r["opening_day"]
+    RESORT, RESORT_NAME = slug, r["name"]
+    LAT, LON, ELEVATION_FT, ELEVATION_M = r["lat"], r["lon"], r["elevation_ft"], r["elevation_m"]
+    GROOMING_PDF_URL = r["grooming_pdf"]
+    RESORT_SNOW_REPORT_URL = r["snow_report"]
+    SNOTEL_STATIONS = r["snotel"]
+    if slug == resorts.DEFAULT and _CAMS_ENV:
+        CAMS = _cams_from_ids(_CAMS_ENV)
+    else:
+        CAMS = r["cams"]
+    STAKE_SNAPSHOT_URL = (os.environ.get("STAKE_SNAPSHOT_URL") if slug == resorts.DEFAULT else None) or (
+        CAMS[0]["image"] if CAMS and "stake" in CAMS[0]["label"].lower() else "")
+    return r
+
+
+use("beaver-creek")

@@ -19,7 +19,7 @@ class handler(Handler):
     def do_GET(self):
         token = escape(self.query("t"))
         body = (f'<h1 style="margin:0 0 8px;font-size:22px">Stop the morning email?</h1>'
-                f'<p style="margin:0 0 18px">You won\'t get the Beaver Creek report by email anymore. You can sign up again any time in the app.</p>'
+                f'<p style="margin:0 0 18px">You won\'t get Snow Desk reports by email anymore, for any resort. You can sign up again any time in the app.</p>'
                 f'<form method="post" action="/api/unsubscribe?t={token}"><button style="font:600 16px inherit;background:#0a5bd3;color:#fff;border:0;border-radius:12px;padding:12px 18px;cursor:pointer">Unsubscribe</button></form>')
         self.reply(200, PAGE.format(body=body), "text/html")
 
