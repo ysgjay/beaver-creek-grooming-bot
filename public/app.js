@@ -185,12 +185,15 @@
       const L = W < 340 ? 20 : 24, T = 20, ph = 168, base = T + ph, valY = base + 16, dateY = base + 32, H = dateY + 4;
       const slot = (W - L) / days.length, sw = Math.max(12, Math.min(30, slot * 0.5)), small = slot < 40;
       const max = niceMax(Math.max(4, ...days.map((d) => d.high ?? d.snow))), y = (v) => T + ph - (v / max) * ph, step = max / 4;
-      let s = `<defs><pattern id="over" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="var(--accent-soft)"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--accent)" stroke-width="1.4" opacity=".45"/></pattern></defs>`;
+      let s = `<defs><pattern id="over" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="var(--accent-soft)"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--accent)" stroke-width="1.4" opacity=".45"/></pattern>`
+        // Powder: bright white on top settling to a cool blue-white, with a few faint flakes for texture.
+        + `<linearGradient id="powder" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--powder-top)"/><stop offset=".35" style="stop-color:var(--powder)"/><stop offset="1" style="stop-color:var(--powder-base)"/></linearGradient>`
+        + `<pattern id="flakes" width="13" height="11" patternUnits="userSpaceOnUse" style="fill:var(--powder-fleck)"><circle cx="2" cy="2.5" r=".75"/><circle cx="8.5" cy="1.5" r=".45"/><circle cx="5.5" cy="7" r=".6"/><circle cx="11" cy="8.5" r=".8"/><circle cx="1" cy="9.5" r=".4"/></pattern></defs>`;
       for (let v = 0; v <= max; v += step) s += `<line class="grid" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" opacity="${v ? 0.6 : 1}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" style="font-size:11px">${v}"</text>`;
       days.forEach((d, i) => {
         const cx = L + slot * i + slot / 2, x0 = cx - sw / 2, hi = d.high ?? d.snow, lo = d.low ?? d.snow;
         // The stake: an empty tube with ruler ticks every inch, longer at each gridline.
-        s += `<rect x="${x0}" y="${T}" width="${sw}" height="${ph}" rx="3" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1"/>`;
+        s += `<rect x="${x0}" y="${T}" width="${sw}" height="${ph}" rx="3" fill="var(--stake-tube)" stroke="var(--line)" stroke-width="1"/>`;
         for (let v = 1; v < max; v++) { const major = v % step === 0; if (max > 24 && !major && v % 2) continue;
           s += `<line x1="${x0}" x2="${x0 + (major ? sw * 0.5 : sw * 0.28)}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ink-2)" stroke-width="${major ? 1 : 0.7}" opacity="${major ? 0.45 : 0.3}"/>`; }
         // Drift amplitude: shrinks for shallow days so it never pokes above the value.
@@ -203,7 +206,9 @@
         }
         // Snow in the tube, with a gentle drift on top.
         if (a) { const top = y(d.snow) + a;
-          s += `<path d="M${x0 + 0.5},${y(0)}V${top}q${sw / 4},${-a * 1.6} ${sw / 2 - 0.5},0q${sw / 4},${a * 1.6} ${sw / 2},0V${y(0)}Z" fill="var(--snow-fill)" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"/>`; }
+          const pd = `M${x0 + 0.5},${y(0)}V${top}q${sw / 4},${-a * 1.6} ${sw / 2 - 0.5},0q${sw / 4},${a * 1.6} ${sw / 2},0V${y(0)}Z`;
+          s += `<path d="${pd}" fill="url(#powder)"/><path d="${pd}" fill="url(#flakes)"/>`
+            + `<path d="${pd}" fill="none" stroke="var(--powder-edge)" stroke-width="1" stroke-linejoin="round"/>`; }
         // Low end: a small notch on the stake's right edge, kept inside the plot.
         if (lo < d.snow - 0.2) { const ly = Math.min(y(0) - 3, y(lo)); s += `<path d="M${x0 + sw + 1},${ly}l4.5,-3v6Z" fill="var(--ink)" opacity=".8"/>`; }
         s += d.snow >= 0.1 ? `<text class="val" x="${cx}" y="${valY}" text-anchor="middle">${val(d.snow)}</text>`
@@ -549,7 +554,7 @@
           <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">next 5 days</span></div>
         </div>
         <div id="fc-chart"></div>
-        <div class="legend stake-legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span></div>
+        <div class="legend stake-legend"><span><i class="powder"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span></div>
       </section>
 
       <section class="card">

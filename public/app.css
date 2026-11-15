@@ -295,6 +295,21 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
 .chart .stakes.small text.up { font-size: 10px; letter-spacing: -.02em; }
 .stake-legend { margin-top: 8px; gap: 6px 14px; }
 .stake-legend span { white-space: nowrap; }
+/* Powder snow in the stakes (Chair 0 brand): powder-white snow in a sky-tinted tube.
+   --powder is the brand snow white; the tube and edge derive from each theme, with
+   brand values pinned for Bluebird and Night Cat. */
+:root, [data-theme] {
+  --powder: #f7fbff;
+  --powder-top: #ffffff;
+  --powder-base: color-mix(in oklab, var(--powder) 88%, #c9d9ea);
+  --powder-fleck: color-mix(in oklab, var(--accent) 30%, #c9d6e4);
+  --powder-edge: color-mix(in oklab, var(--ink) 45%, var(--surface));
+  --stake-tube: color-mix(in oklab, var(--accent) 12%, var(--surface));
+}
+[data-theme="bluebird"] { --stake-tube: #dcebfa; --powder-edge: #6f88a3; }
+[data-theme="nightcat"] { --stake-tube: #18283f; --powder-edge: #8aa3be; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme]) { --stake-tube: #18283f; --powder-edge: #8aa3be; } }
+.legend i.powder { background: linear-gradient(180deg, var(--powder-top), var(--powder-base)); border: 1px solid var(--powder-edge); }
 .legend i.notch { width: 0; height: 0; border-radius: 0; background: none; border-right: 5px solid var(--ink); border-top: 4px solid transparent; border-bottom: 4px solid transparent; opacity: .8; vertical-align: 0; }
 
 /* Sign-up */
