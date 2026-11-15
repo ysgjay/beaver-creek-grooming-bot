@@ -397,7 +397,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
    Full-width, map-led layout. Tabs move from the bottom bar into the top bar. */
 @media (min-width: 1200px) {
   :root, [data-theme] { --top-h: 56px; --tabs-w: 430px; }
-  body { padding-bottom: 12px; }
+  body { padding-bottom: 3px; }
   .wrap { max-width: 1760px; padding-left: 20px; padding-right: 20px; }
 
   /* Top bar: resort switcher, status line, tabs, theme button. */
@@ -414,7 +414,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .tabbar a[aria-current="page"], .tabbar a.help-tab[aria-current="page"] { background: var(--surface); color: var(--accent); }
   .tabbar a.help-tab { color: var(--ink); }
 
-  main { padding-block: 2px 0; }
+  main { padding-block: 12px 0; }   /* a little air between the top bar and the first card */
 
   /* Today: the grooming map takes the left 62%; conditions, forecast and cams stack on the right. */
   .v-today { grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); grid-template-areas: "groom cond" "groom fc" "groom cam" "groom cta"; grid-template-rows: auto auto auto 1fr; }
@@ -423,7 +423,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .v-today.is-offline.no-groom { grid-template-areas: "off off off" "cond fc cam" "cta . cam"; grid-template-rows: auto auto 1fr; }
   .v-today .a-groom { align-self: stretch; }
   .v-today .groom { grid-template-columns: minmax(0, 1fr); }
-  .v-today .map-btn img { max-height: max(340px, calc(100vh - 415px)); object-fit: contain; }
+  .v-today .map-btn img { max-height: max(340px, calc(100vh - 425px)); object-fit: contain; }
   .v-today .chips { gap: 5px; margin-top: 3px; }
   .v-today .chips li { font-size: 13px; padding: 1px 8px; }
   .v-today .runs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px 16px; align-items: start; }
@@ -433,7 +433,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
 
   /* Forecast: stakes and hours on the left, votes, radar and the model tables on the right. */
   .v-fc { grid-template-columns: minmax(0, 1.38fr) minmax(0, 1fr); grid-template-areas: "ten votes" "ten radar" "hours radar" "hours more"; grid-template-rows: auto auto 1fr auto; }
-  .v-fc .radar-map { height: clamp(200px, calc(100vh - 615px), 420px); }
+  .v-fc .radar-map { height: clamp(200px, calc(100vh - 625px), 420px); }
   .v-fc .radar-note { display: none; }
   .v-fc th, .v-fc td { padding-block: 3px; }
   .a-more th, .a-more td { padding-inline: 5px; font-size: 12px; }
@@ -443,7 +443,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .v-cal > .seg { grid-area: seg; }
   .v-cal > .card:last-child { grid-area: feed; }
   .v-cal > .card:not(:last-child) { grid-area: cal; }
-  .v-cal #feed { max-height: calc(100vh - 250px); min-height: 240px; overflow-y: auto; }
+  .v-cal #feed { max-height: calc(100vh - 260px); min-height: 240px; overflow-y: auto; }
   #cal-card.month .cal button { aspect-ratio: 1 / 0.95; }
   .v-cal .feed-item { grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 8px; }
   .v-cal .feed-item img, .v-cal .feed-item .noimg { width: 64px; height: 50px; }
