@@ -13,8 +13,6 @@ on:
         description: "Send even if the grooming map hasn't changed"
         type: boolean
         default: false
-  push:
-    branches-ignore: [main]   # feature branches: tests + live dry run, never sends
 
 permissions:
   contents: write
@@ -30,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # Anything other than main is a dry run: real data, no notifications.
+      # Manual runs from another branch are dry runs: real data, no notifications.
       DRY_RUN: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
       FORCE_SEND: ${{ inputs.force_send && '1' || '0' }}
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -53,10 +51,6 @@ jobs:
 
       - name: Unit tests
         run: python -m pytest -q tests
-
-      - name: Discover cam URLs (branch runs only)
-        if: github.ref != 'refs/heads/main'
-        run: python -m bcbot discover || true
 
       - name: Fetch, forecast, archive, notify
         run: python -m bcbot run

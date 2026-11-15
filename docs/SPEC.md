@@ -11,7 +11,7 @@ Each morning, send one report with three things in it: the Beaver Creek grooming
 | Posted the map daily even when it hadn't changed (off-season spam) | Sends once per *new* map (PDF hash), up to 3 checks each morning |
 | One channel's failure stopped the others | Every source and channel is isolated; failures are listed in the data and the job fails only if the core is missing |
 | No history | Every day archived in `data/` and browsable on the dashboard |
-| Cron silently disabled after 60 days without commits (last ran Mar 30) | Daily data commits keep the repo active |
+| Cron turned off by hand at season end (Mar 30) and must be turned back on each season | Can stay enabled all year: off-season, the map doesn't change, so nothing is sent. The daily data commits also keep GitHub's 60-day inactivity shut-off from triggering. |
 | Facebook app secret committed in `get_facebook_token.py` | File removed. **The secret is still in git history, so reset it in the Meta developer console.** |
 
 ## How OpenSnow makes its forecasts, and what we copy
@@ -74,4 +74,4 @@ Variables: `CAM_URLS`, `SIGNUP_FORM_URL`. Tunables are in `bcbot/config.py` (for
 
 ## Testing
 - `python -m pytest tests`: 19 tests with API-shaped fixtures. They cover the snow ratio, model parsing, the blend, bias and skill, ensemble odds, NWS interval splitting, SNOTEL differencing, verification, resort parsing, PDF rendering, message length, and the full pipeline (sends once per map, dry run, a source outage).
-- Pushing to any non-`main` branch runs the real pipeline against the live APIs in dry-run mode and commits the resulting data, without sending anything.
+- `ci.yml`: pushing to any non-`main` branch runs the tests and the real pipeline against the live APIs in dry-run mode, then commits the resulting data. Nothing is sent.

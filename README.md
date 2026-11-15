@@ -18,7 +18,7 @@ python -m http.server -d _site    # then open http://localhost:8000
 ## One-time setup
 1. **Reset the Facebook app secret** that was committed in the old `get_facebook_token.py` (it's still in git history).
 2. Settings → Pages → Build and deployment → Source: **GitHub Actions**.
-3. Actions tab: make sure the "Daily grooming report" workflow is enabled. GitHub disabled the old one after 60 days with no commits.
+3. Actions tab: turn the workflow back on (it was turned off by hand on Mar 30). It can stay on all year, because it only sends when the grooming map changes.
 4. Secrets (Settings → Secrets and variables → Actions):
    - `BOT_TOKEN`: already set.
    - `NTFY_TOPIC`: a hard-to-guess topic name, e.g. `bc-groom-7h2k`.
