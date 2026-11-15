@@ -172,7 +172,8 @@ def test_verification_learns_dry_model(tmp_path):
 
 def test_resort_parse():
     html = 'x FR.snowReportData = {"TwentyFourHourSnowfall":{"Inches":"3"},"BaseDepth":{"Inches":"18"},"Other":1}; y'
-    assert resort.parse(html) == {"last_24h_in": 3.0, "base_in": 18.0}
+    r = resort.parse(html)
+    assert r["last_24h_in"] == 3.0 and r["base_in"] == 18.0 and r["keys"] == ["BaseDepth", "Other", "TwentyFourHourSnowfall"]
     assert resort.parse("<html></html>") == {}
 
 

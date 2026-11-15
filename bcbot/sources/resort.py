@@ -47,6 +47,15 @@ def parse(html):
             val = _inches(v)
             if val is not None:
                 out[key] = val
+    # When was the report published? Keep every date/time-looking field (and the key list)
+    # so the freshness rule can be built on the resort's real field names.
+    stamps = {}
+    for k, v in blob.items():
+        if isinstance(v, (str, int, float)) and re.search(r"date|time|updated|asof|report", k, re.I):
+            stamps[k] = v
+    if stamps:
+        out["stamps"] = stamps
+    out["keys"] = sorted(blob.keys())[:60]
     return out
 
 
