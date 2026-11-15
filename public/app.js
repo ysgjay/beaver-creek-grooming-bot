@@ -56,18 +56,10 @@
     if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#dcebfa";
   }
   try { localStorage.removeItem("theme"); } catch (e) {}   // the old colour picker's choice
-  const MATERIALS = [
-    { id: "flat", name: "Flat", mood: "Solid cards, the fastest" },
-    { id: "glass", name: "Glass", mood: "Clear panes over an alpenglow ridge" },
-    { id: "frost", name: "Frost", mood: "Frosted, grainy, like a cold window" },
-    { id: "ice", name: "Ice", mood: "Crisp edges with a blue sheen" },
-    { id: "powder", name: "Powder", mood: "Falling flakes, snow-capped cards" },
-  ];
-  function currentMaterial() { try { return localStorage.getItem("material") || "frost"; } catch (e) { return "frost"; } }
-  function applyMaterial(id) {
-    if (id === "flat") delete document.documentElement.dataset.material;
-    else document.documentElement.dataset.material = id;
-    try { localStorage.setItem("material", id); } catch (e) {}
+  // One finish: Frost. Clear the old Look sheet's saved choice.
+  function applyMaterial() {
+    document.documentElement.dataset.material = "frost";
+    try { localStorage.removeItem("material"); } catch (e) {}
   }
 
   /* ---------------- state ---------------- */
@@ -1183,19 +1175,6 @@ ${tell}
     return v;
   }
 
-  /* ---------------- theme sheet ---------------- */
-  function showThemes() {
-    const curM = currentMaterial();
-    openSheet("Look", `<h3>Finish</h3><div class="seg" style="grid-template-columns:repeat(5,1fr)">${MATERIALS.map((m) =>
-      `<button type="button" data-material-id="${m.id}" aria-pressed="${m.id === curM}" title="${m.mood}">${m.name}</button>`).join("")}</div>`,
-    (ov) => {
-      ov.querySelectorAll("[data-material-id]").forEach((b) => b.addEventListener("click", () => {
-        applyMaterial(b.dataset.materialId);
-        ov.querySelectorAll("[data-material-id]").forEach((x) => x.setAttribute("aria-pressed", x === b));
-      }));
-    });
-  }
-  $("#theme-btn").addEventListener("click", showThemes);
   $("#signup-btn").addEventListener("click", openSignup);
   if (new URLSearchParams(location.search).get("email") === "confirmed") cta.email = true, setSignedUp("email", true);
   setSignedUp("push", false);
@@ -1253,7 +1232,7 @@ ${tell}
 
   async function boot() {
     applyTheme(currentTheme());
-    applyMaterial(currentMaterial());
+    applyMaterial();
     const [list, cfg] = await Promise.all([getJSON("/resorts.json"), getJSON("/config.json")]);
     S.cfg = cfg;
     if (list?.resorts?.length) R.list = list.resorts;
