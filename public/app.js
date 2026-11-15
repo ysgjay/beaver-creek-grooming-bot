@@ -136,7 +136,7 @@
   const niceMax = (v) => [2, 4, 6, 8, 12, 16, 24, 36, 48].find((n) => n >= v) || 60;
   // Day labels read month/day ("11/15"); weekends are bold. Narrow slots (phones) get a smaller size so ten fit.
   const dayTick = (d) => { const dt = pd(d); return { wk: dt.getDay() === 0 || dt.getDay() === 6, label: `${dt.getMonth() + 1}/${dt.getDate()}` }; };
-  const tickSize = (slot) => (slot < 36 ? ' style="font-size:10px"' : "");
+  const tickSize = (slot) => (slot < 30 ? ' style="font-size:9px;letter-spacing:-.03em"' : slot < 36 ? ' style="font-size:10px"' : "");
   const val = (x) => (x >= 1 ? Math.round(x) : x >= 0.1 ? x.toFixed(1) : "0");
   const dayLabels = (dates, x, y) => { const size = tickSize(dates.length > 1 ? x(1) - x(0) : 99); return dates.map((d, i) => { const t = dayTick(d); return `<text class="${t.wk ? "wk" : ""}" x="${x(i)}" y="${y}" text-anchor="middle"${size}>${t.label}</text>`; }).join(""); };
 
@@ -157,29 +157,38 @@
   }
 
   // Forecast: each day is a snow stake. Solid = expected; hatched = how much more it could
-  // reach (the upper estimate), capped by a dashed line and labeled; notch = low end.
+  // reach (the upper estimate), capped by a dashed line with its number above; notch = low end.
+  // Labels never sit on the bars: the upper number rides above its cap, and the expected
+  // number gets its own row under the baseline, so short and tall days read the same way.
   function stakeChart(days) {
     return mountChart((W) => {
-      const H = 220, L = 24, T = 18, B = 24, ph = H - T - B, slot = (W - L) / days.length, sw = Math.min(24, slot * 0.58);
+      const L = W < 340 ? 20 : 24, T = 20, ph = 168, base = T + ph, valY = base + 16, dateY = base + 32, H = dateY + 4;
+      const slot = (W - L) / days.length, sw = Math.max(12, Math.min(30, slot * 0.5)), small = slot < 40;
       const max = niceMax(Math.max(4, ...days.map((d) => d.high ?? d.snow))), y = (v) => T + ph - (v / max) * ph, step = max / 4;
-      let s = `<defs><pattern id="over" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--accent-soft)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--accent)" stroke-width="2" opacity=".55"/></pattern></defs>`;
-      for (let v = 0; v <= max; v += step) s += `<line class="grid" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" opacity=".6"/><text x="${L - 5}" y="${y(v) + 4}" text-anchor="end">${v}"</text>`;
+      let s = `<defs><pattern id="over" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="var(--accent-soft)"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--accent)" stroke-width="1.4" opacity=".45"/></pattern></defs>`;
+      for (let v = 0; v <= max; v += step) s += `<line class="grid" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" opacity="${v ? 0.6 : 1}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" style="font-size:11px">${v}"</text>`;
       days.forEach((d, i) => {
         const cx = L + slot * i + slot / 2, x0 = cx - sw / 2, hi = d.high ?? d.snow, lo = d.low ?? d.snow;
-        s += `<rect x="${x0}" y="${T}" width="${sw}" height="${ph}" rx="3" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.2"/>`;
+        // The stake: an empty tube with ruler ticks every inch, longer at each gridline.
+        s += `<rect x="${x0}" y="${T}" width="${sw}" height="${ph}" rx="3" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1"/>`;
         for (let v = 1; v < max; v++) { const major = v % step === 0; if (max > 24 && !major && v % 2) continue;
-          s += `<line x1="${x0}" x2="${x0 + (major ? sw : sw * 0.32)}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ink-2)" stroke-width="${major ? 1 : 0.7}" opacity="${major ? 0.55 : 0.4}"/>`; }
+          s += `<line x1="${x0}" x2="${x0 + (major ? sw * 0.5 : sw * 0.28)}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ink-2)" stroke-width="${major ? 1 : 0.7}" opacity="${major ? 0.45 : 0.3}"/>`; }
         if (hi - d.snow >= 0.2) {
-          s += `<rect x="${x0 + 1}" y="${y(hi)}" width="${sw - 2}" height="${y(d.snow) - y(hi)}" fill="url(#over)"/>`;
-          s += `<line x1="${x0 - 2}" x2="${x0 + sw + 2}" y1="${y(hi)}" y2="${y(hi)}" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="3 2"/>`;
-          s += `<text x="${cx}" y="${y(hi) - 4}" text-anchor="middle" style="fill:var(--accent);font-weight:600">${val(hi)}</text>`;
+          s += `<rect x="${x0 + 0.5}" y="${y(hi)}" width="${sw - 1}" height="${y(d.snow) - y(hi)}" fill="url(#over)"/>`;
+          s += `<line x1="${x0}" x2="${x0 + sw}" y1="${y(hi)}" y2="${y(hi)}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 2"/>`;
+          s += `<text class="up" x="${cx}" y="${y(hi) - 5}" text-anchor="middle">${val(hi)}</text>`;
         }
-        if (d.snow > 0.05) s += `<path d="M${x0 + 1},${y(0)}V${y(d.snow) + 3}q${sw / 4},-4 ${sw / 2 - 1},-1q${sw / 4},3 ${sw / 2 - 1},-1V${y(0)}Z" fill="var(--snow-fill)" stroke="var(--accent)" stroke-width="1.2"/>`;
-        if (lo < d.snow - 0.2) s += `<path d="M${x0 + sw},${y(lo)}l5,-3.5v7Z" fill="var(--ink)"/>`;
-        s += `<text class="val" x="${cx}" y="${Math.min(y(0) - 4, y(d.snow) + 13)}" text-anchor="middle" style="font-weight:600">${d.snow >= 0.1 ? val(d.snow) : ""}</text>`;
+        // Snow in the tube, with a gentle drift on top that shrinks for shallow days so it never pokes above the value.
+        const depth = y(0) - y(d.snow);
+        if (depth >= 1.5) { const a = Math.min(2.5, depth / 3), top = y(d.snow) + a;
+          s += `<path d="M${x0 + 0.5},${y(0)}V${top}q${sw / 4},${-a * 1.6} ${sw / 2 - 0.5},0q${sw / 4},${a * 1.6} ${sw / 2},0V${y(0)}Z" fill="var(--snow-fill)" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"/>`; }
+        // Low end: a small notch on the stake's right edge, kept inside the plot.
+        if (lo < d.snow - 0.2) { const ly = Math.min(y(0) - 3, y(lo)); s += `<path d="M${x0 + sw + 1},${ly}l4.5,-3v6Z" fill="var(--ink)" opacity=".8"/>`; }
+        s += d.snow >= 0.1 ? `<text class="val" x="${cx}" y="${valY}" text-anchor="middle">${val(d.snow)}</text>`
+                           : `<text x="${cx}" y="${valY}" text-anchor="middle" opacity=".55">–</text>`;
         s += `<rect x="${cx - slot / 2}" y="0" width="${slot}" height="${H}" fill="transparent" tabindex="0" data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected. Low end ${inch(lo)}, could reach ${inch(hi)}"/>`;
       });
-      return [H, s + dayLabels(days.map((d) => d.date), (i) => L + slot * i + slot / 2, H - 5)];
+      return [H, `<g class="stakes${small ? " small" : ""}">` + s + dayLabels(days.map((d) => d.date), (i) => L + slot * i + slot / 2, dateY) + "</g>"];
     }, "Snow stakes: expected snow per day with its upper estimate");
   }
 
@@ -518,7 +527,7 @@
           <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">next 5 days</span></div>
         </div>
         <div id="fc-chart"></div>
-        <div class="legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach (upper estimate)</span><span><i style="background:none;border-left:6px solid var(--ink);border-top:4px solid transparent;border-bottom:4px solid transparent;width:0;height:0;border-radius:0"></i>Low end</span></div>
+        <div class="legend stake-legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span></div>
       </section>
 
       <section class="card">
