@@ -196,6 +196,54 @@ def hourly_outlook(model_rows, now=None, hours=12):
     return {"model": None, "hours": []}
 
 
+def band_outlook(band_rows, now=None, bands=None, hours=12):
+    """Weather by elevation: [{key, label, elevation_ft, now, hours, days}] for base / mid / peak.
+
+    `hours` is the next N hours (same clock hours as `hourly_outlook`) and `now` is the
+    first of them. Each day has the high, the low and `snow_pct`:
+    the share of that day's precipitation falling as snow at that elevation (None when dry),
+    which is what separates rain at the base from snow up top.
+    """
+    now = now or datetime.now(config.TZ)
+    hour = now.replace(minute=0, second=0, microsecond=0, tzinfo=None).isoformat(timespec="minutes")
+    out = []
+    for band in (bands or config.ELEVATION_BANDS):
+        rows = [r for r in band_rows.get(band["key"], []) if r.get("temperature_2m") is not None]
+        if not rows:
+            continue
+        ahead = [{
+            "time": r["time"],
+            "temp": _round(r.get("temperature_2m")),
+            "feels": _round(r.get("apparent_temperature")),
+            "wind": _round(r.get("wind_speed_10m")),
+            "gust": _round(r.get("wind_gusts_10m")),
+        } for r in rows if r["time"] >= hour][:hours]
+        by_day = defaultdict(list)
+        for r in rows:
+            by_day[r["time"][:10]].append(r)
+        days = []
+        for d, hrs in sorted(by_day.items()):
+            if len(hrs) < 20:  # partial day: its high or low would be wrong
+                continue
+            liquid = sum(r.get("precipitation") or 0 for r in hrs)
+            frozen = sum((r.get("precipitation") or 0) * snow_fraction(r["temperature_2m"]) for r in hrs)
+            days.append({
+                "date": d,
+                "high": round(max(r["temperature_2m"] for r in hrs)),
+                "low": round(min(r["temperature_2m"] for r in hrs)),
+                "snow_pct": round(100 * frozen / liquid) if liquid >= 0.01 else None,
+            })
+        out.append({
+            "key": band["key"],
+            "label": band["label"],
+            "elevation_ft": band["elevation_ft"],
+            "now": ahead[0] if ahead and ahead[0]["time"] == hour else None,
+            "hours": ahead,
+            "days": days,
+        })
+    return out
+
+
 def _round(x):
     return None if x is None else round(x)
 
