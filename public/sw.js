@@ -1,6 +1,6 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v2";
+const SHELL = "shell-v3";
 const DATA = "data-v1";
 const SHELL_FILES = ["/", "/index.html", "/app.js", "/app.css", "/themes.css", "/config.json", "/icon.svg", "/manifest.webmanifest"];
 
@@ -21,10 +21,11 @@ self.addEventListener("fetch", (e) => {
     }).catch(() => caches.match(e.request, { ignoreSearch: true })));
     return;
   }
-  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((hit) => {
-    const net = fetch(e.request).then((res) => { if (res.ok) { const copy = res.clone(); caches.open(SHELL).then((c) => c.put(e.request, copy)); } return res; });
-    return hit || net;
-  }));
+  // App shell: network first so a new deploy shows on the next open; cache only when offline.
+  e.respondWith(fetch(e.request).then((res) => {
+    if (res.ok) { const copy = res.clone(); caches.open(SHELL).then((c) => c.put(e.request, copy)); }
+    return res;
+  }).catch(() => caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || caches.match("/index.html"))));
 });
 
 // App notifications: the 7:00 report and powder alerts.
