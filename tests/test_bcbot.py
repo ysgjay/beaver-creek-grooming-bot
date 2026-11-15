@@ -919,3 +919,21 @@ def test_every_resort_is_complete():
         assert fts[0] < r["elevation_ft"] <= fts[2], slug          # forecast point is on the mountain
         assert r["snotel"] and r["tz"] == "America/Denver" and r["opening_day"], slug
         assert r["snow_report"].startswith(r["site"] + "/the-mountain/mountain-conditions/"), slug
+
+
+def test_resorts_running_at_once_never_share_settings():
+    """Vercel runs concurrent requests in one process: each must keep its own resort's config."""
+    import threading
+    barrier, seen = threading.Barrier(5), {}
+
+    def work(slug):
+        config.use(slug)
+        barrier.wait()                      # every thread has switched before anyone reads
+        seen[slug] = (config.RESORT, config.GROOMING_PDF_URL, config.LAT, tuple(config.SNOTEL_STATIONS))
+
+    threads = [threading.Thread(target=work, args=(s,)) for s in resorts.RESORTS]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
+    for slug, (got, pdf, lat, snotel) in seen.items():
+        r = resorts.get(slug)
+        assert got == slug and pdf == r["grooming_pdf"] and lat == r["lat"] and list(snotel) == r["snotel"]

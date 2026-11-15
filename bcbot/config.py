@@ -1,8 +1,12 @@
 """All tunable settings in one place. Secrets come from environment variables.
 
-Per-resort settings (forecast point, grooming PDF, snow report, SNOTEL, cams) start as
-Beaver Creek's and are switched with `use(slug)` before a run (see resorts.py).
+Per-resort settings (forecast point, bands, grooming PDF, snow report, SNOTEL, cams, time
+zone, opening day) start as Beaver Creek's and are switched with `use(slug)` before a run
+(see resorts.py). They live in a context variable, not module globals, so two resorts
+running at once in one process (Vercel serves concurrent requests in one instance) never
+see each other's settings: `config.LAT` reads the current request's resort.
 """
+import contextvars
 import os
 from datetime import date
 from pathlib import Path
@@ -10,13 +14,9 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 
-TZ = ZoneInfo("America/Denver")
 
 # Forecast point, grooming PDF and snow report: set per resort by use() at the bottom.
-RESORT = RESORT_NAME = GROOMING_PDF_URL = RESORT_SNOW_REPORT_URL = None
-LAT = LON = ELEVATION_M = ELEVATION_FT = None
 # Elevation bands (base / mid / peak) shown beside the forecast: per resort, in resorts.py.
-ELEVATION_BANDS = []
 
 # Deterministic models pulled from Open-Meteo. Key = Open-Meteo model id.
 # base weights: (days 1-2, days 3+). The weights are the "prior"; verification
@@ -46,7 +46,6 @@ ENSEMBLE_PARENT = {"ecmwf_ifs025": "ecmwf_ifs025", "gfs025": "gfs_seamless"}
 FORECAST_DAYS = 10
 
 # SNOTEL ground truth: per resort (resorts.py), nearest station first.
-SNOTEL_STATIONS = []
 
 # Cams are Brown Rice streams: /snapshot/<id> is a still, /embed/<id> the live player.
 # CAM_IDS ("id:Label,...") overrides Beaver Creek's list; first = snow stake.
@@ -59,7 +58,6 @@ def _cams_from_ids(ids):
             for cid, _, label in (c.partition(":") for c in ids)]
 
 
-CAMS, STAKE_SNAPSHOT_URL = [], ""
 
 # Notifications
 DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "https://snow.0xm.studio/")
@@ -72,7 +70,6 @@ REFRESH_HOURS = float(os.environ.get("REFRESH_HOURS", "6"))
 #   in season: as soon as a new map AND today's resort snow report are confirmed, from
 #   SEND_EARLIEST; at SEND_LATEST whatever is available goes out.
 # Beaver Creek's; other resorts have their own in resorts.py (env OPENING_DAY_<SLUG> overrides).
-OPENING_DAY = date.fromisoformat(os.environ.get("OPENING_DAY", "2026-11-25"))
 SEND_TIME = os.environ.get("SEND_TIME", "07:00")
 SEND_EARLIEST = os.environ.get("SEND_EARLIEST", "05:00")
 SEND_LATEST = os.environ.get("SEND_LATEST", "09:00")
@@ -92,27 +89,42 @@ POWDER_ALERT_INCHES = float(os.environ.get("POWDER_ALERT_INCHES", "6"))
 USER_AGENT = "beaver-creek-grooming-bot (github.com/ysgjay/beaver-creek-grooming-bot)"
 
 
-def use(slug):
-    """Point every per-resort setting at `slug`. Returns the resort dict."""
+_PER_RESORT = ("RESORT", "RESORT_NAME", "TZ", "OPENING_DAY", "LAT", "LON", "ELEVATION_FT", "ELEVATION_M",
+               "GROOMING_PDF_URL", "RESORT_SNOW_REPORT_URL", "SNOTEL_STATIONS", "ELEVATION_BANDS", "CAMS",
+               "STAKE_SNAPSHOT_URL")
+_current = contextvars.ContextVar("snow_desk_resort", default=None)
+_defaults = {}
+
+
+def _settings(slug):
     from . import resorts
-    global RESORT, RESORT_NAME, LAT, LON, ELEVATION_M, ELEVATION_FT, GROOMING_PDF_URL
-    global RESORT_SNOW_REPORT_URL, SNOTEL_STATIONS, CAMS, STAKE_SNAPSHOT_URL, TZ, OPENING_DAY, ELEVATION_BANDS
     r = resorts.get(slug)
-    TZ = ZoneInfo(r["tz"])  # send times, "today" and every date are in the resort's own zone
-    OPENING_DAY = r["opening_day"]
-    RESORT, RESORT_NAME = slug, r["name"]
-    LAT, LON, ELEVATION_FT, ELEVATION_M = r["lat"], r["lon"], r["elevation_ft"], r["elevation_m"]
-    GROOMING_PDF_URL = r["grooming_pdf"]
-    RESORT_SNOW_REPORT_URL = r["snow_report"]
-    SNOTEL_STATIONS = r["snotel"]
-    ELEVATION_BANDS = r["bands"]
-    if slug == resorts.DEFAULT and _CAMS_ENV:
-        CAMS = _cams_from_ids(_CAMS_ENV)
-    else:
-        CAMS = r["cams"]
-    STAKE_SNAPSHOT_URL = (os.environ.get("STAKE_SNAPSHOT_URL") if slug == resorts.DEFAULT else None) or (
-        CAMS[0]["image"] if CAMS and "stake" in CAMS[0]["label"].lower() else "")
+    cams = _cams_from_ids(_CAMS_ENV) if slug == resorts.DEFAULT and _CAMS_ENV else r["cams"]
+    stake = (os.environ.get("STAKE_SNAPSHOT_URL") if slug == resorts.DEFAULT else None) or (
+        cams[0]["image"] if cams and "stake" in cams[0]["label"].lower() else "")
+    return r, {
+        "RESORT": slug, "RESORT_NAME": r["name"],
+        "TZ": ZoneInfo(r["tz"]),  # send times, "today" and every date are in the resort's own zone
+        "OPENING_DAY": r["opening_day"],
+        "LAT": r["lat"], "LON": r["lon"], "ELEVATION_FT": r["elevation_ft"], "ELEVATION_M": r["elevation_m"],
+        "GROOMING_PDF_URL": r["grooming_pdf"], "RESORT_SNOW_REPORT_URL": r["snow_report"],
+        "SNOTEL_STATIONS": r["snotel"], "ELEVATION_BANDS": r["bands"],
+        "CAMS": cams, "STAKE_SNAPSHOT_URL": stake,
+    }
+
+
+def use(slug):
+    """Point every per-resort setting at `slug` for the current thread/request. Returns the resort dict."""
+    r, values = _settings(slug)
+    _current.set(values)
     return r
 
 
-use("beaver-creek")
+def __getattr__(name):
+    if name in _PER_RESORT:
+        values = _current.get()
+        if values is None:  # a thread or request that hasn't picked a resort: Beaver Creek
+            from . import resorts
+            values = _defaults.get("v") or _defaults.setdefault("v", _settings(resorts.DEFAULT)[1])
+        return values[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
