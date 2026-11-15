@@ -3,7 +3,7 @@ import os
 from datetime import date as _d
 from html import escape
 
-from . import config
+from . import config, report
 from .util import http
 
 API = "https://api.resend.com"
@@ -29,16 +29,28 @@ def unsubscribe_url(token):
     return f"{config.DASHBOARD_URL.rstrip('/')}/api/unsubscribe?t={token}"
 
 
-def send_confirmation(email, token):
+def resorts_url(token):
+    return f"{config.DASHBOARD_URL.rstrip('/')}/api/resorts?t={token}"
+
+
+def _names(slugs):
+    from . import resorts
+    names = [resorts.get(s)["name"] for s in slugs if s in resorts.RESORTS] or ["Beaver Creek"]
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def send_confirmation(email, token, slugs=("beaver-creek",)):
     link = f"{config.DASHBOARD_URL.rstrip('/')}/api/confirm?t={token}"
+    names = escape(_names(slugs))
+    many = len(slugs) > 1
     html = _shell(f"""
-      <h1 style="margin:0 0 8px;font-size:22px">Confirm your Beaver Creek report</h1>
-      <p style="margin:0 0 16px">Tap the button to get the grooming report, snow forecast and stake cam by email every morning at 7:00.</p>
+      <h1 style="margin:0 0 8px;font-size:22px">Confirm your {names} report{"s" if many else ""}</h1>
+      <p style="margin:0 0 16px">Tap the button to get the grooming report, snow forecast and cams by email every morning{", one email per resort" if many else ""}.</p>
       <p style="margin:0 0 20px"><a href="{link}" style="background:#0a5bd3;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600;display:inline-block">Confirm my email</a></p>
       <p style="margin:0;color:#4a6382;font-size:13px">If you didn't ask for this, ignore this email and nothing will be sent.</p>""")
     return _post("/emails", {
-        "from": _from(), "to": [email], "subject": "Confirm your Beaver Creek morning report",
-        "html": html, "text": f"Confirm your Beaver Creek morning report: {link}\n\nIf you didn't ask for this, ignore this email.",
+        "from": _from(), "to": [email], "subject": f"Confirm your {_names(slugs)} morning report{'s' if many else ''}",
+        "html": html, "text": f"Confirm your {_names(slugs)} morning report{'s' if many else ''}: {link}\n\nIf you didn't ask for this, ignore this email.",
     })
 
 
@@ -51,10 +63,11 @@ def send_daily(recipients, subject, html_body, text_body):
             unsub = unsubscribe_url(token)
             footer = (f'<p style="margin:20px 0 0;color:#4a6382;font-size:12px">You get this because you signed up at '
                       f'<a href="{config.DASHBOARD_URL}" style="color:#0a5bd3">snow.0xm.studio</a>. '
-                      f'<a href="{unsub}" style="color:#0a5bd3">Unsubscribe</a> with one tap.</p>')
+                      f'<a href="{resorts_url(token)}" style="color:#0a5bd3">Choose resorts</a> or '
+                      f'<a href="{unsub}" style="color:#0a5bd3">unsubscribe</a> with one tap.</p>')
             batch.append({
                 "from": _from(), "to": [email], "subject": subject,
-                "html": _shell(html_body + footer), "text": f"{text_body}\n\nUnsubscribe: {unsub}",
+                "html": _shell(html_body + footer), "text": f"{text_body}\n\nChoose resorts: {resorts_url(token)}\nUnsubscribe: {unsub}",
                 "headers": {"List-Unsubscribe": f"<{unsub}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"},
             })
         _post("/emails/batch", batch)
@@ -94,16 +107,16 @@ def daily_html(day, map_url):
         dd = _d.fromisoformat(d["date"])
         cells += (f'<td style="padding:2px;text-align:center"><div style="background:{bg};color:{ink};border-radius:7px;padding:8px 0;font-weight:600;font-family:Menlo,monospace;font-size:13px">'
                   f'{"–" if d["snow"] < 0.1 else (round(d["snow"]) if d["snow"] >= 1 else round(d["snow"], 1))}</div>'
-                  f'<div style="font-size:11px;color:#4a6382;margin-top:3px">{dd.strftime("%a")[0]}{dd.day}</div></td>')
+                  f'<div style="font-size:10px;color:#4a6382;margin-top:3px">{dd.month}/{dd.day}</div></td>')
     hours = (day.get("hourly") or {}).get("hours", [])
     now = hours[0] if hours else None
     weather = f"{now['temp']}°F, feels {now['feels']}°, {now['dir']} {now['wind']} mph" if now else ""
     return f"""
-      <h1 style="margin:0;font-size:22px">Beaver Creek · {_d.fromisoformat(day['date']).strftime('%a, %b ') + str(_d.fromisoformat(day['date']).day)}</h1>
+      <h1 style="margin:0;font-size:22px">{escape(report.resort_name(day))} · {report.pretty_date(day['date'])}</h1>
       <p style="margin:2px 0 14px;color:#4a6382">New snow {inch(r24)} · Base {inch(rs.get('base_in'))} · {escape(weather)}{f" · Snow report {escape(rs['updated_time'])}" if rs.get('updated_time') else ""}</p>
-      {f'<a href="{config.DASHBOARD_URL}"><img src="{map_url}" alt="Grooming map" width="520" style="width:100%;max-width:520px;border-radius:12px;display:block"></a>' if map_url else ''}
-      {f'<p style="margin:6px 0 0;color:#4a6382;font-size:13px">Map dated {escape(runs["map_date"])}{"" if (day.get("grooming") or {}).get("new_map") else " · no new map posted today"}</p>' if runs.get("map_date") else ''}
-      {chips("Groomers of the day", runs.get("groomers_of_the_day"))}{chips("Groomed overnight", runs.get("overnight"))}{chips("Morning grooming", runs.get("morning"))}
+      {f'<a href="{report.app_url(day)}"><img src="{map_url}" alt="Grooming map" width="520" style="width:100%;max-width:520px;border-radius:12px;display:block"></a>' if map_url else ''}
+      {f'<p style="margin:6px 0 0;color:#4a6382;font-size:13px">Map dated {escape(report.map_date(runs["map_date"]))}{"" if (day.get("grooming") or {}).get("new_map") else " · no new map posted today"}</p>' if runs.get("map_date") else ''}
+      {chips("Groomers of the day", runs.get("groomers_of_the_day"))}{chips("Groomed overnight", runs.get("overnight"))}{chips("Morning grooming", runs.get("morning"))}{"".join(chips(escape(a), l) for a, l in (runs.get("areas") or {"Groomed": runs.get("groomed")}).items())}
       <p style="margin:16px 0 6px;font-weight:600">Snow forecast: {inch(fc.get('next_1_5'))} next 5 days, {inch(fc.get('next_6_10'))} days 6–10</p>
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed"><tr>{cells}</tr></table>
-      <p style="margin:18px 0 0"><a href="{config.DASHBOARD_URL}" style="background:#0a5bd3;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:12px;font-weight:600;display:inline-block">Open Snow Desk</a></p>"""
+      <p style="margin:18px 0 0"><a href="{report.app_url(day)}" style="background:#0a5bd3;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:12px;font-weight:600;display:inline-block">Open Snow Desk</a></p>"""

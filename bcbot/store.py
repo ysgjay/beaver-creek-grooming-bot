@@ -11,6 +11,10 @@ Layout (same paths in both):
   data/verification.json        model scores
   data/state.json               bot bookkeeping (last map hash, last send)
   maps/<date>.jpg, cams/<date>.jpg
+
+Beaver Creek, the first resort, keeps these paths. Every other resort gets the same
+layout one folder down: data/<slug>/latest.json, maps/<slug>/<date>.jpg, cams/<slug>/...
+(see ResortStore). The existing /data, /maps and /cams rewrites cover both.
 """
 import json
 import os
@@ -103,6 +107,44 @@ class BlobStore:
         if not r.ok:
             raise RuntimeError(f"Blob put {path} failed: {r.status_code} {r.text[:200]}")
         return r.json().get("url")
+
+
+class ResortStore:
+    """One resort's view of a store: data/x -> data/<slug>/x (identity for the default resort)."""
+    TOP = ("data/", "maps/", "cams/")
+
+    def __init__(self, inner, slug):
+        from .resorts import DEFAULT
+        self.inner, self.slug = inner, slug
+        self.prefixed = slug != DEFAULT
+
+    def path(self, path):
+        if self.prefixed:
+            for top in self.TOP:
+                if path.startswith(top):
+                    return f"{top}{self.slug}/{path[len(top):]}"
+        return path
+
+    def get_json(self, path, default=None):
+        return self.inner.get_json(self.path(path), default)
+
+    def put_json(self, path, obj):
+        return self.inner.put_json(self.path(path), obj)
+
+    def put_bytes(self, path, data, content_type, max_age=None):
+        return self.inner.put_bytes(self.path(path), data, content_type, max_age)
+
+    def exists(self, path):
+        return self.inner.exists(self.path(path))
+
+    def get_bytes(self, path):
+        return self.inner.get_bytes(self.path(path))
+
+
+def resort_store(slug, store=None):
+    store = store or get_store()
+    return store if isinstance(store, ResortStore) and store.slug == slug else ResortStore(
+        store.inner if isinstance(store, ResortStore) else store, slug)
 
 
 def get_store():
