@@ -1,6 +1,6 @@
 # Resorts
 
-Snow Desk covers Vail Resorts' five Colorado mountains. Everything per resort lives in
+Chair 0 covers Vail Resorts' five Colorado mountains. Everything per resort lives in
 `bcbot/resorts.py`; after editing it, run `python -m bcbot resorts-json` to refresh the
 app's list (`public/resorts.json`, checked by a test).
 

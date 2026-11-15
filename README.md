@@ -1,4 +1,4 @@
-# Snow Desk: Colorado Vail resorts
+# Chair 0 (formerly Snow Desk): Colorado Vail resorts
 
 Every morning it sends the grooming report, weather, a multi-model snow forecast and the snow stake cam for Beaver Creek, Vail, Breckenridge, Keystone and Crested Butte to people who opted in (each picks their resorts), by email and app notification, and keeps the history. Resort details: [docs/RESORTS.md](docs/RESORTS.md).
 
