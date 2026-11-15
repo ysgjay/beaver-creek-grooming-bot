@@ -7,18 +7,17 @@ DELETE /api/push  {endpoint}                         -> remove it
 import logging
 
 from bcbot.web import Handler
-from bcbot import db
+from bcbot import db, webpush
 
 
 class handler(Handler):
     def do_GET(self):
-        try:
-            with db.connect() as conn:
-                public = db.vapid_keys(conn)[1]
-        except Exception:
-            logging.exception("vapid key lookup failed")
+        # Derived from the private key in Vercel, so it always matches what the server signs with.
+        key = webpush.app_key()
+        if not key:
+            logging.error("VAPID_PRIVATE_KEY is not set")
             return self.reply(503, {"ok": False})
-        self.reply(200, {"publicKey": public})
+        self.reply(200, {"publicKey": webpush.vapid_public_b64(key)})
 
     def do_POST(self):
         sub = self.body_json()

@@ -28,7 +28,7 @@ self.addEventListener("fetch", (e) => {
   }).catch(() => caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || caches.match("/index.html"))));
 });
 
-// App notifications: the 7:00 report and powder alerts.
+// App notifications: the morning report (at most one a day; powder alerts ride along).
 self.addEventListener("push", (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: "Snow Desk", body: e.data ? e.data.text() : "" }; }

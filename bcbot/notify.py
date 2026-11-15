@@ -24,16 +24,16 @@ def email(day, map_url):
 
 
 def push(day, map_url):
-    if not os.environ.get("DATABASE_URL"):
+    """One notification per send. The powder alert, if any, rides along in it (never a second push)."""
+    key = webpush.app_key()
+    if not (os.environ.get("DATABASE_URL") and key):
         return "skipped (push not configured)"
-    payload = report.push_payload(day, map_url)
-    return _push_all(payload)
+    return _push_all(report.push_payload(day, map_url), key)
 
 
-def _push_all(payload):
+def _push_all(payload, key):
     ok = gone = failed = 0
     with db.connect() as conn:
-        key = webpush.load_vapid_key(db.vapid_keys(conn)[0])
         for sub in db.push_subscriptions(conn):
             try:
                 status = webpush.send(http(), sub, payload, key, config.VAPID_SUBJECT)
@@ -73,13 +73,3 @@ def send_all(day, map_url, channels=None):
             results[name] = f"FAILED: {e}"
     return results
 
-
-def alert(text):
-    """Powder alerts go to app notifications only (no extra email)."""
-    if not os.environ.get("DATABASE_URL"):
-        return {}
-    try:
-        return {"push": _push_all({"title": "Powder alert", "body": text, "url": config.DASHBOARD_URL, "tag": "powder"})}
-    except Exception as e:
-        log.exception("powder alert failed")
-        return {"push": f"FAILED: {e}"}

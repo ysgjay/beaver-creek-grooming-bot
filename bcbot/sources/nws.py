@@ -22,9 +22,18 @@ def _parse_interval(valid_time):
     return start, timedelta(days=d, hours=h, minutes=mi)
 
 
-def daily_from_intervals(values, to_inches=1 / 25.4):
-    """Spread each interval's amount evenly over its hours and sum by local date."""
+MIN_HOURS = 20  # same rule as the models: a partly covered day would look artificially dry
+
+
+def daily_from_intervals(values, to_inches=1 / 25.4, min_hours=0):
+    """Spread each interval's amount evenly over its hours and sum by local date.
+
+    With `min_hours`, days the grid covers for fewer hours are left out. The NWS grid starts
+    at the current hour, so "today" holds only the snow still to come, while every model
+    counts the whole day; blending the two dragged today's number down.
+    """
     days = defaultdict(float)
+    covered = defaultdict(int)
     for v in values:
         amount = v.get("value")
         if amount is None:
@@ -35,7 +44,8 @@ def daily_from_intervals(values, to_inches=1 / 25.4):
         for i in range(hours):
             local = (start + timedelta(hours=i)).astimezone(config.TZ)
             days[local.date().isoformat()] += per_hour
-    return dict(days)
+            covered[local.date().isoformat()] += 1
+    return {d: v for d, v in days.items() if covered[d] >= min_hours}
 
 
 def fetch_snowfall():
@@ -49,4 +59,4 @@ def fetch_snowfall():
     snow = g.json()["properties"].get("snowfallAmount", {})
     uom = snow.get("uom", "wmoUnit:mm")
     factor = 1 / 25.4 if uom.endswith("mm") else (1 / 2.54 if uom.endswith("cm") else 1.0)
-    return daily_from_intervals(snow.get("values", []), to_inches=factor)
+    return daily_from_intervals(snow.get("values", []), to_inches=factor, min_hours=MIN_HOURS)

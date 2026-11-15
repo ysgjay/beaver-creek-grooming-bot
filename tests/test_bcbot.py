@@ -130,6 +130,50 @@ def test_nws_intervals_split_across_local_days():
     assert out["2026-11-16"] == pytest.approx(1.0)
 
 
+def test_nws_leaves_out_partly_covered_days():
+    # The grid starts mid-afternoon: today has 8 hours left, tomorrow is complete.
+    vals = [{"validTime": "2026-11-15T23:00:00+00:00/PT8H", "value": 25.4},   # 16:00-24:00 MST
+            {"validTime": "2026-11-16T07:00:00+00:00/P1D", "value": 50.8}]    # all of 11/16 MST
+    out = nws.daily_from_intervals(vals, min_hours=nws.MIN_HOURS)
+    assert "2026-11-15" not in out
+    assert out["2026-11-16"] == pytest.approx(2.0)
+
+
+# ---------- elevation bands ----------
+
+def bands_payload(temps=(38.0, 30.0, 24.0), precip=0.02):
+    times = _hours()
+    return [{"hourly": {"time": times, "temperature_2m": [t] * len(times),
+                        "apparent_temperature": [t - 8] * len(times), "precipitation": [precip] * len(times),
+                        "wind_speed_10m": [10] * len(times), "wind_gusts_10m": [20] * len(times)}}
+            for t in temps]
+
+
+def test_bands_are_on_the_mountain_and_ordered_by_elevation():
+    fts = [b["elevation_ft"] for b in config.ELEVATION_BANDS]
+    assert fts == sorted(fts) and fts[0] >= 8000        # Avon, the town below, is 7,430 ft
+    assert [b["key"] for b in config.ELEVATION_BANDS] == ["base", "mid", "peak"]
+
+
+def test_band_outlook_temps_and_rain_snow_split():
+    rows = openmeteo.split_bands(bands_payload(), config.ELEVATION_BANDS)
+    out = forecast.band_outlook(rows, now=datetime(2026, 11, 15, 6, 20, tzinfo=config.TZ))
+    base, mid, peak = out
+    assert (base["label"], base["elevation_ft"]) == ("Base", 8100)
+    assert [b["now"]["temp"] for b in out] == [38, 30, 24]
+    assert len(mid["hours"]) == 12 and mid["hours"][0]["time"] == "2026-11-15T06:00"
+    assert peak["days"][0] == {"date": "2026-11-15", "high": 24, "low": 24, "snow_pct": 100}
+    assert base["days"][0]["snow_pct"] == 0             # rain in the village, snow up top
+    assert len(base["days"]) == 10
+
+
+def test_band_outlook_skips_missing_band_and_dry_days():
+    rows = openmeteo.split_bands(bands_payload(precip=0.0)[:2], config.ELEVATION_BANDS)
+    out = forecast.band_outlook(rows, now=datetime(2026, 11, 15, 6, 0, tzinfo=config.TZ))
+    assert [b["key"] for b in out] == ["base", "mid"]
+    assert out[0]["days"][0]["snow_pct"] is None
+
+
 # ---------- SNOTEL ----------
 
 def test_snotel_daily_differences():
@@ -225,6 +269,8 @@ def sandbox(tmp_path, monkeypatch):
                         lambda: openmeteo._split_models(openmeteo_payload(models), models))
     monkeypatch.setattr(openmeteo, "fetch_ensemble", lambda: {})
     monkeypatch.setattr(nws, "fetch_snowfall", lambda: {"2026-11-15": 1.0})
+    monkeypatch.setattr(openmeteo, "fetch_bands",
+                        lambda: openmeteo.split_bands(bands_payload(), config.ELEVATION_BANDS))
     monkeypatch.setattr(snotel, "fetch", lambda: {
         "station": "842:CO:SNTL", "last_24h": {"snow_in": 0},
         "daily": {"2026-11-13": {"precip_in": 0.4, "depth_change_in": 5, "depth_in": 8},
@@ -243,7 +289,6 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(grooming, "fetch", fake_groom)
     sent = []
     monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: sent.append((report.compose(day), channels)) or {"email": "ok"})
-    monkeypatch.setattr(notify, "alert", lambda text: sent.append((text, ["alert"])) or {})
     return store, tmp_path, pdf, sent
 
 
@@ -476,6 +521,7 @@ def test_send_test_labels_and_leaves_schedule_alone(sandbox, monkeypatch):
     state_before = store.get_json("data/state.json")
     monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
     monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("a@example.com", "t")])
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn: [{"endpoint": "https://push.example/1"}])
     captured = []
     monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: captured.append(day) or {"email": "sent to 1"})
     r = main.send_test(store)
@@ -484,6 +530,71 @@ def test_send_test_labels_and_leaves_schedule_alone(sandbox, monkeypatch):
     assert store.get_json("data/state.json") == state_before          # schedule untouched
     monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("x@example.com", "t")] * 6)
     assert main.send_test(store)["status"] == "refused"
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("a@example.com", "t")])
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn: [{"endpoint": "https://push.example/1"}] * 6)
+    assert main.send_test(store)["status"] == "refused"                 # app subscribers are protected too
+    assert len(captured) == 1
+
+
+# ---------- app notifications end to end (fake push service, fake database) ----------
+
+def test_push_needs_the_vercel_key(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "postgres://test")
+    monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
+    assert notify.push({"date": "2026-11-15"}, None) == "skipped (push not configured)"
+
+
+def test_public_key_is_derived_from_the_private_key(monkeypatch):
+    from bcbot import webpush as w
+    priv, pub = w.generate_vapid_keys()
+    monkeypatch.setenv("VAPID_PRIVATE_KEY", priv)
+    assert w.vapid_public_b64(w.app_key()) == pub
+    monkeypatch.delenv("VAPID_PRIVATE_KEY")
+    assert w.app_key() is None
+
+
+def test_daily_push_is_one_encrypted_notification_with_the_powder_alert(monkeypatch):
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from bcbot import webpush as w
+    priv, pub = w.generate_vapid_keys()
+    monkeypatch.setenv("VAPID_PRIVATE_KEY", priv)
+    monkeypatch.setenv("DATABASE_URL", "postgres://test")
+    browsers = [ec.generate_private_key(ec.SECP256R1()) for _ in range(2)]
+    subs = [{"endpoint": f"https://push.example/{i}", "p256dh": w.b64u(w._public_bytes(b)), "auth": w.b64u(bytes([i]) * 16)}
+            for i, b in enumerate(browsers)]
+    results, posts = [], []
+
+    class R:
+        def __init__(self, code): self.status_code = code
+
+    class FakeHTTP:
+        def post(self, url, data=None, timeout=None, headers=None):
+            posts.append((url, data, headers))
+            return R(201 if url.endswith("/0") else 410)
+    monkeypatch.setattr(notify, "http", lambda: FakeHTTP())
+    monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn: subs)
+    monkeypatch.setattr("bcbot.db.record_push_result", lambda conn, endpoint, status: results.append((endpoint, status)))
+
+    day = {"date": "2026-11-15", "grooming": {"runs": {"overnight": ["Flint"]}}, "forecast": {"next_1_5": 8},
+           "powder": report.powder_alert({"days": [{"snow": 5}, {"snow": 4}]})}
+    assert notify.push(day, None) == "1 delivered, 1 expired, 0 failed"
+    assert len(posts) == 2 and results == [("https://push.example/0", 201), ("https://push.example/1", 410)]
+    url, body, headers = posts[0]
+    assert headers["Content-Encoding"] == "aes128gcm" and headers["Authorization"].endswith("k=" + pub)
+    payload = json.loads(w.decrypt(body, browsers[0], subs[0]["auth"]))
+    assert payload["body"].startswith("❄️ Powder alert: 9\"") and "Flint" in payload["body"]
+
+
+def test_powder_alert_never_adds_a_second_notification(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    days = []
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: days.append(day) or {"push": "ok"})
+    monkeypatch.setattr(report, "powder_alert", lambda fc: "❄️ Powder alert")
+    main.run(store=store, send=True, now=at(7))
+    main.run(store=store, send=True, now=at(8))
+    assert len(days) == 1 and days[0]["powder"] == "❄️ Powder alert"
+
 
 
 # ---------- pre-season and "send as soon as confirmed" ----------

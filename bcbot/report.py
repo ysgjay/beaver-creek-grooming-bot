@@ -96,6 +96,8 @@ def push_payload(day, map_url):
     rs = day.get("resort") or {}
     r24 = rs.get("last_24h_in", (day.get("observed") or {}).get("snow_in"))
     body = []
+    if day.get("powder"):
+        body.append(day["powder"])
     if groomed:
         body.append("Groomed: " + ", ".join(groomed[:6]) + ("…" if len(groomed) > 6 else ""))
     body.append(f"New snow {_in(r24)} · Next 5 days {_in(fc.get('next_1_5'))}")

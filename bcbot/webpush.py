@@ -75,6 +75,12 @@ def load_vapid_key(private_b64: str):
     return ec.derive_private_key(int.from_bytes(unb64u(private_b64), "big"), ec.SECP256R1())
 
 
+def app_key():
+    """The app's VAPID key from the VAPID_PRIVATE_KEY env var, or None when it isn't set."""
+    priv = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
+    return load_vapid_key(priv) if priv else None
+
+
 def vapid_public_b64(key) -> str:
     return b64u(_public_bytes(key))
 
