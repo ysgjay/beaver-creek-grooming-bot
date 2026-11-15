@@ -33,8 +33,16 @@ def compose(day):
     obs = day.get("observed") or {}
     resort = day.get("resort") or {}
     lines = [f"🎿 Beaver Creek Grooming — {pretty_date(day['date'])}"]
-    if not day.get("grooming", {}).get("new_map", True):
+    g = day.get("grooming", {})
+    if not g.get("new_map", True):
         lines.append("(No new grooming map posted yet today)")
+    runs = g.get("runs") or {}
+    if runs.get("groomers_of_the_day"):
+        lines.append("⭐ Groomers of the day: " + ", ".join(runs["groomers_of_the_day"]))
+    if runs.get("overnight"):
+        lines.append("🚜 Groomed overnight: " + ", ".join(runs["overnight"]))
+    if runs.get("morning"):
+        lines.append("☀️ Morning grooming: " + ", ".join(runs["morning"]))
 
     snow = []
     if resort.get("last_24h_in") is not None:

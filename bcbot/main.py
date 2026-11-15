@@ -54,6 +54,9 @@ def _update_index(day):
         "snow_24h": (day.get("observed") or {}).get("snow_in"),
         "resort_24h": (day.get("resort") or {}).get("last_24h_in"),
     }
+    runs = day["grooming"].get("runs") or {}
+    if day["grooming"].get("new_map") and runs:
+        entry["groomed"] = sorted(set(runs.get("overnight", []) + runs.get("morning", [])))
     days = [d for d in index["days"] if d["date"] != day["date"]] + [entry]
     index["days"] = sorted(days, key=lambda d: d["date"], reverse=True)
     index["updated"] = now_local().isoformat(timespec="minutes")
@@ -97,7 +100,7 @@ def run(dry_run=False, force_send=False):
             path = D / "maps" / f"{day_str}.jpg"
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(groom["jpeg"])
-            g.update(new_map=True, image=f"data/maps/{day_str}.jpg", text=groom["text_lines"][:200])
+            g.update(new_map=True, image=f"data/maps/{day_str}.jpg", runs=groom.get("runs"))
             state["last_map_hash"] = groom["hash"]
             state["last_map_image"] = g["image"]
     elif not g["image"]:
@@ -157,11 +160,15 @@ def discover():
         except Exception as e:
             print(url, "->", e)
             continue
-        found = set(re.findall(r'https?://[^"\'\s>]+?\.(?:jpe?g|png)(?:\?[^"\'\s>]*)?', html, re.I))
-        found |= set(re.findall(r'https?://[^"\'\s>]*(?:cam|stake)[^"\'\s>]*', html, re.I))
+        flat = html.replace("\\/", "/")
+        found = set(re.findall(r'https?://[^"\'\s>]+?\.(?:jpe?g|png|m3u8|mp4)(?:\?[^"\'\s>]*)?', flat, re.I))
+        found |= set(re.findall(r'(?:https?:)?//[^"\'\s>]*(?:cam|stake|roundshot|youtube|ipcam|panomax)[^"\'\s>]*', flat, re.I))
         print(f"{url}: {len(html)} bytes")
         for f in sorted(found):
-            print("  ", f)
+            print("   url:", f)
+        # Cams are often configured in embedded JSON with relative paths: show context.
+        for m in list(re.finditer(r'(?i)(?:webcam|snowstake|snow stake|camera)', flat))[:25]:
+            print("   ctx:", re.sub(r"\s+", " ", flat[max(0, m.start() - 150):m.end() + 150]))
 
 
 def main(argv=None):

@@ -265,3 +265,31 @@ def test_pipeline_survives_source_outage(sandbox, monkeypatch):
     latest = json.loads((data / "latest.json").read_text())
     assert any("nws" in e for e in latest["errors"])
     assert len([1 for _, ch in sent if ch is None]) == 1
+
+
+def test_parse_runs_from_real_lumiplan_text():
+    # Text layer of the live PDF fetched by CI on 2026-11-14
+    lines = ['OFFICIAL PARTNERS OF BEAVER CREEK RESORT', 'November 13, 2026', 'GROOMERS OF THE DAY',
+             'Hand-picked by our snow surface experts.', 'No trails reported.', "LAST NIGHT'S GROOMING",
+             '1', 'Little Brave Lower', '2', 'Flint', 'MORNING GROOMING', '3', 'Intertwine - Upper', '4',
+             'Maverick', 'DA', 'KOTA S', 'K', 'I', 'W', 'A', 'Y', 'LITTLE', 'BR']
+    runs = grooming.parse_runs(lines)
+    assert runs["map_date"] == "November 13, 2026"
+    assert runs["groomers_of_the_day"] == []
+    assert runs["overnight"] == ["Little Brave Lower", "Flint"]
+    assert runs["morning"] == ["Intertwine - Upper", "Maverick"]
+
+
+def test_bucket_range_uses_member_totals():
+    rows = openmeteo._split_models(openmeteo_payload(["ecmwf_ifs025"], precip=0.0), ["ecmwf_ifs025"])
+    ens = {}
+    for i in range(20):
+        # each member puts its one storm on a different day: daily p90 is 0 but every 5-day total is big
+        day = i % 5
+        ens[f"m{i}"] = [{"time": t, "precipitation": 0.03 if int(t[8:10]) - 15 == day else 0.0,
+                         "temperature_2m": 15} for t in _hours()]
+    fc = forecast.build(rows, ensemble_rows=ens, today=TODAY)
+    lo, hi = fc["next_1_5_range"]
+    storm = 24 * 0.03 * forecast.slr(15)
+    assert hi == pytest.approx(storm, abs=0.2)  # every member's 5-day total is one storm
+    assert lo == 0.0  # range always includes the blend (dry deterministic model here)

@@ -134,6 +134,13 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
         return r1(sum(x["snow"] for x in days[sl]))
 
     def rng(sl):
+        """Range of the bucket total. Summing daily percentiles overstates the spread,
+        so use each ensemble member's own total when there are enough members."""
+        bucket = [x["date"] for x in days[sl]]
+        tot = total(sl)
+        if len(ens_daily) >= 10 and bucket:
+            sums = [sum(e.get(d, {}).get("snow", 0) for d in bucket) for e in ens_daily.values()]
+            return [r1(min(tot, _percentile(sums, 0.1))), r1(max(tot, _percentile(sums, 0.9)))]
         return [r1(sum(x["low"] for x in days[sl])), r1(sum(x["high"] for x in days[sl]))]
 
     # Odds of a powder day: share of ensemble members with >= threshold in any one day of days 1-5.
