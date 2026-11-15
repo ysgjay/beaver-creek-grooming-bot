@@ -171,6 +171,51 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .contact:last-child { border-bottom: 0; }
 .contact .n { font-family: var(--font-data); white-space: nowrap; }
 
+/* Radar card on the Forecast tab: a fixed tile grid centred on the resort. */
+.radar-map { position: relative; width: 100%; height: 260px; max-width: 768px; margin-inline: auto; overflow: hidden; border-radius: 10px; border: 1px solid var(--line); background: var(--radar-land, #e6eff8); }
+/* Frost base map: the street map drained to one pale blue tone, so only the radar and the resorts carry colour. */
+.radar-base { filter: grayscale(1) contrast(.82) brightness(1.1); }
+.radar-tint { position: absolute; inset: 0; background: #cfe2f6; mix-blend-mode: multiply; pointer-events: none; }
+.radar-tiles { position: absolute; display: grid; grid-template-columns: repeat(4, 256px); width: 1024px; height: 768px; }
+.radar-tiles img { display: block; width: 256px; height: 256px; }
+.radar-frame { opacity: 0; pointer-events: none; }
+.radar-frame.on { opacity: .75; }
+/* Radar pixels are square blocks about a kilometre across. Blur them together, then firm the edge back up,
+   so echoes read as soft cloud shapes and lone specks of noise fade out. */
+.radar-frame { filter: url(#radar-soft); }
+.radar-defs { position: absolute; width: 0; height: 0; }
+/* Vector map: fills the card; markers are zero-size pins so the ring centres on the resort. */
+.radar-map > .radar-gl, .radar-map > .radar-gl.maplibregl-map { position: absolute; inset: 0; }
+.radar-pin { width: 0; height: 0; }
+.radar-pin .radar-dot { left: 0; top: 0; }
+.radar-map .maplibregl-ctrl-attrib { font-size: 10px; }
+.radar-map .maplibregl-cooperative-gesture-screen { font-size: 14px; padding: 12px; }
+.radar-legend { position: absolute; z-index: 2; left: 8px; top: 8px; display: flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.9); color: #1b2733; font-size: 11px; line-height: 16px; }
+.radar-legend[hidden] { display: none; }
+.radar-legend i { width: 60px; height: 8px; border-radius: 4px; }
+.radar-map.dark .radar-dot b { background: rgba(24,40,63,.92); }
+.radar-map.dark .radar-dot.me b { background: var(--radar-pin); }
+.radar-map.dark .radar-legend { background: rgba(24,40,63,.9); color: #eaf1f8; }
+/* Every resort is a ring in the theme's ink colour, open in the middle so the radar under it stays visible. The selected one is filled. */
+.radar-dot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; border: 2.5px solid var(--radar-pin, var(--ink)); background: rgba(255,255,255,.35); box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
+.radar-dot.me { z-index: 1; background: var(--radar-pin, var(--ink)); box-shadow: 0 0 0 2px #fff, 0 0 0 7px color-mix(in srgb, var(--radar-pin, var(--ink)) 22%, transparent); }
+.radar-dot b { position: absolute; padding: 0 5px; border-radius: 5px; background: rgba(255,255,255,.9); color: var(--radar-pin, var(--ink)); font-size: 11px; font-weight: 600; line-height: 15px; white-space: nowrap; }
+.radar-dot.me b { background: var(--radar-pin, var(--ink)); color: var(--radar-pin-text, #fff); }
+.radar-dot b.n { left: 50%; bottom: 11px; transform: translateX(-50%); }
+.radar-dot b.s { left: 50%; top: 11px; transform: translateX(-50%); }
+.radar-dot b.e { left: 11px; top: 50%; transform: translateY(-50%); }
+.radar-dot b.w { right: 11px; top: 50%; transform: translateY(-50%); }
+.radar-dot b.s2 { left: 50%; top: 27px; transform: translateX(-50%); }
+.radar-dot b.n2 { left: 50%; bottom: 27px; transform: translateX(-50%); }
+.radar-attr { position: absolute; right: 0; bottom: 0; padding: 1px 5px; border-top-left-radius: 5px; background: rgba(255,255,255,.8); color: #1b2733; font-size: 10px; line-height: 1.5; }
+.radar-none { position: absolute; inset: auto 0 22px 0; margin: 0; text-align: center; }
+.radar-none[hidden] { display: none; }
+.radar-ctl { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.radar-ctl input { flex: 1; min-width: 0; height: 32px; accent-color: var(--accent); }
+.radar-ctl .btn { min-height: 40px; padding: 6px 14px; }
+.radar-note { margin: 8px 0 0; }
+
+
 /* Theme sheet + lightbox + day sheet */
 .sheet-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
 .sheet { width: 100%; max-width: 640px; max-height: 88vh; overflow-y: auto; background: var(--surface); color: var(--ink); border-radius: 18px 18px 0 0; padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 14px; }
@@ -330,8 +375,8 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .v-today > .status-line { grid-area: status; }
   .a-groom { grid-area: groom; } .a-cond { grid-area: cond; } .a-fc { grid-area: fc; } .a-cam { grid-area: cam; } .a-cta { grid-area: cta; }
 
-  .v-fc { grid-template-areas: "ten votes" "hours more"; }
-  .a-ten { grid-area: ten; } .a-votes { grid-area: votes; } .a-hours { grid-area: hours; } .a-more { grid-area: more; }
+  .v-fc { grid-template-areas: "ten votes" "hours radar" "more more"; }
+  .a-ten { grid-area: ten; } .a-votes { grid-area: votes; } .a-hours { grid-area: hours; } .a-more { grid-area: more; } .a-radar { grid-area: radar; }
 
   .v-cal { grid-template-columns: minmax(0, 1fr); }
   .v-cal > .seg { max-width: 320px; }
@@ -386,8 +431,10 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .v-today .hour .small { font-size: 11px; line-height: 1.2; text-align: center; }
   .v-today .cam-row { grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)); }
 
-  /* Forecast: stakes beside votes, hours beside the model tables. */
-  .v-fc { grid-template-columns: minmax(0, 1.38fr) minmax(0, 1fr); grid-template-areas: "ten votes" "ten more" "hours more"; grid-template-rows: auto auto 1fr; }
+  /* Forecast: stakes and hours on the left, votes, radar and the model tables on the right. */
+  .v-fc { grid-template-columns: minmax(0, 1.38fr) minmax(0, 1fr); grid-template-areas: "ten votes" "ten radar" "hours radar" "hours more"; grid-template-rows: auto auto 1fr auto; }
+  .v-fc .radar-map { height: clamp(200px, calc(100vh - 615px), 420px); }
+  .v-fc .radar-note { display: none; }
   .v-fc th, .v-fc td { padding-block: 3px; }
   .a-more th, .a-more td { padding-inline: 5px; font-size: 12px; }
 
