@@ -60,7 +60,7 @@
     { id: "ice", name: "Ice", mood: "Crisp edges with a blue sheen" },
     { id: "powder", name: "Powder", mood: "Falling flakes, snow-capped cards" },
   ];
-  function currentMaterial() { try { return localStorage.getItem("material") || "flat"; } catch (e) { return "flat"; } }
+  function currentMaterial() { try { return localStorage.getItem("material") || "frost"; } catch (e) { return "frost"; } }
   function applyMaterial(id) {
     if (id === "flat") delete document.documentElement.dataset.material;
     else document.documentElement.dataset.material = id;
@@ -97,53 +97,153 @@
       `<div><h3>${t}</h3><ul class="chips ${cls}">${l.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></div>`).join("")}</div>`;
   }
 
-  function snowChart(days, { height = 200 } = {}) {
+  /* ---------------- chart kit ----------------
+     Every chart is a draw(width) -> [height, svgBody] function, mounted responsively.
+     Elements with data-tip show a tooltip on hover, focus or tap. */
+  function mountChart(draw, label) {
     const el = document.createElement("div");
     el.className = "chart";
-    const draw = () => {
-      const W = Math.max(280, Math.round(el.clientWidth || 600)), H = height, L = 26, R = 6, T = 22, B = 40;
-      const max = [2, 4, 6, 8, 12, 16, 24, 36, 48].find((v) => v >= Math.max(2, ...days.map((d) => d.high ?? d.snow))) || 48;
-      const step = max <= 8 ? 2 : max <= 16 ? 4 : max <= 24 ? 6 : 12;
-      const ph = H - T - B, slot = (W - L - R) / days.length, bw = Math.min(24, slot * 0.55);
-      const y = (v) => T + ph - (v / max) * ph;
-      let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Daily snowfall forecast">`;
-      for (let v = 0; v <= max; v += step) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
-      days.forEach((d, i) => {
-        const cx = L + slot * i + slot / 2, top = y(d.snow), base = y(0), h = base - top;
-        if (d.high != null && d.low != null && d.high - d.low > 0.2) {
-          s += `<line class="range" x1="${cx}" x2="${cx}" y1="${y(d.low)}" y2="${y(d.high)}"/><line class="range" x1="${cx - 4}" x2="${cx + 4}" y1="${y(d.high)}" y2="${y(d.high)}"/>`;
-        }
-        if (h >= 0.5) {
-          const r = Math.min(4, h, bw / 2), x0 = cx - bw / 2, x1 = cx + bw / 2;
-          s += `<path class="bar" data-i="${i}" d="M${x0},${base}V${top + r}Q${x0},${top} ${x0 + r},${top}H${x1 - r}Q${x1},${top} ${x1},${top + r}V${base}Z"/>`;
-        } else s += `<line x1="${cx - bw / 2}" x2="${cx + bw / 2}" y1="${base - 1}" y2="${base - 1}" stroke="var(--snow)" stroke-width="2"/>`;
-        const ly = Math.min(top, d.high != null ? y(d.high) : top) - 6;
-        s += `<text class="val" x="${cx}" y="${ly}" text-anchor="middle">${d.snow >= 1 ? Math.round(d.snow) : d.snow >= 0.1 ? d.snow.toFixed(1) : "0"}</text>`;
-        const dt = pd(d.date), wk = dt.getDay() === 0 || dt.getDay() === 6;
-        s += `<text class="${wk ? "wk" : ""}" x="${cx}" y="${H - B + 17}" text-anchor="middle">${WD[dt.getDay()]}</text><text class="${wk ? "wk" : ""}" x="${cx}" y="${H - B + 33}" text-anchor="middle">${dt.getDate()}</text>`;
-        s += `<rect class="hit" data-i="${i}" x="${L + slot * i}" y="0" width="${slot}" height="${H}" tabindex="0" aria-label="${fmtDay(d.date)}: ${inch(d.snow)}"/>`;
-      });
-      el.innerHTML = s + "</svg>";
-      const tip = $("#tip"), labels = (S.latest?.forecast?.model_labels) || {};
-      el.querySelectorAll(".hit").forEach((hit) => {
+    let lastW = 0;
+    const render = () => {
+      const W = Math.max(260, Math.round(el.clientWidth || 360));
+      if (W === lastW) return;
+      lastW = W;
+      const [H, body] = draw(W);
+      el.innerHTML = `<svg viewBox="-2 -2 ${W + 4} ${H + 4}" role="img" aria-label="${esc(label)}">${body}</svg>`;
+      const tip = $("#tip");
+      el.querySelectorAll("[data-tip]").forEach((t) => {
         const show = () => {
-          const d = days[+hit.dataset.i];
-          const models = Object.entries(d.models || {}).sort((a, b) => b[1] - a[1]).map(([m, v]) => `${esc(labels[m] || m)} ${inch(v)}`).join(" · ");
-          tip.innerHTML = `<strong>${fmtDay(d.date)}: ${inch(d.snow)}</strong>${d.low != null ? `<br>Likely ${inch(d.low)}–${inch(d.high)}` : ""}${models ? `<br>${models}` : ""}`;
-          tip.hidden = false;
-          const r = hit.getBoundingClientRect();
+          tip.textContent = t.dataset.tip; tip.hidden = false;
+          const r = t.getBoundingClientRect();
           tip.style.left = Math.max(8, Math.min(innerWidth - tip.offsetWidth - 8, r.left + r.width / 2 - tip.offsetWidth / 2)) + "px";
-          tip.style.top = Math.max(8, r.top + 4 - tip.offsetHeight) + "px";
-          el.querySelectorAll(".bar").forEach((b) => b.classList.toggle("active", b.dataset.i === hit.dataset.i));
+          tip.style.top = Math.max(8, r.top - tip.offsetHeight - 6) + "px";
         };
-        const hide = () => { tip.hidden = true; el.querySelectorAll(".bar.active").forEach((b) => b.classList.remove("active")); };
-        hit.addEventListener("mouseenter", show); hit.addEventListener("focus", show); hit.addEventListener("click", show);
-        hit.addEventListener("mouseleave", hide); hit.addEventListener("blur", hide);
+        const hide = () => { tip.hidden = true; };
+        t.addEventListener("mouseenter", show); t.addEventListener("focus", show); t.addEventListener("click", show);
+        t.addEventListener("mouseleave", hide); t.addEventListener("blur", hide);
       });
     };
-    requestAnimationFrame(draw);
-    new ResizeObserver(() => draw()).observe(el);
+    requestAnimationFrame(render);
+    new ResizeObserver(render).observe(el);
     return el;
+  }
+  const niceMax = (v) => [2, 4, 6, 8, 12, 16, 24, 36, 48].find((n) => n >= v) || 60;
+  const dayTick = (d) => { const dt = pd(d); return { wk: dt.getDay() === 0 || dt.getDay() === 6, label: `${WD[dt.getDay()][0]}${dt.getDate()}` }; };
+  const val = (x) => (x >= 1 ? Math.round(x) : x >= 0.1 ? x.toFixed(1) : "0");
+  const dayLabels = (dates, x, y) => dates.map((d, i) => { const t = dayTick(d); return `<text class="${t.wk ? "wk" : ""}" x="${x(i)}" y="${y}" text-anchor="middle">${t.label}</text>`; }).join("");
+
+  // Today: ten days in one row. Cell color deepens with snow; number inside.
+  function heatStrip(days) {
+    return mountChart((W) => {
+      const gap = 3, cw = (W - gap * (days.length - 1)) / days.length; let s = "";
+      days.forEach((d, i) => {
+        const x = i * (cw + gap), t = Math.min(1, d.snow / 10), k = dayTick(d.date);
+        const fill = d.snow < 0.1 ? "var(--surface-2)" : `color-mix(in oklab, var(--accent) ${Math.round(16 + t * 84)}%, var(--surface))`;
+        const ink = t > 0.5 ? "var(--on-accent)" : "var(--ink)";
+        s += `<rect x="${x}" y="0" width="${cw}" height="38" rx="7" fill="${fill}" tabindex="0" data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected, likely ${inch(d.low)}–${inch(d.high)}"/>`;
+        s += `<text class="val" x="${x + cw / 2}" y="24" text-anchor="middle" style="fill:${ink};pointer-events:none">${d.snow < 0.1 ? "–" : val(d.snow)}</text>`;
+        s += `<text class="${k.wk ? "wk" : ""}" x="${x + cw / 2}" y="53" text-anchor="middle">${k.label}</text>`;
+      });
+      return [58, s];
+    }, "10-day snowfall, one cell per day");
+  }
+
+  // Forecast: each day is a snow stake. Solid = expected; hatched = how much more it could
+  // reach (the upper estimate), capped by a dashed line and labeled; notch = low end.
+  function stakeChart(days) {
+    return mountChart((W) => {
+      const H = 220, L = 24, T = 18, B = 24, ph = H - T - B, slot = (W - L) / days.length, sw = Math.min(24, slot * 0.58);
+      const max = niceMax(Math.max(4, ...days.map((d) => d.high ?? d.snow))), y = (v) => T + ph - (v / max) * ph, step = max / 4;
+      let s = `<defs><pattern id="over" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--accent-soft)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--accent)" stroke-width="2" opacity=".55"/></pattern></defs>`;
+      for (let v = 0; v <= max; v += step) s += `<line class="grid" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" opacity=".6"/><text x="${L - 5}" y="${y(v) + 4}" text-anchor="end">${v}"</text>`;
+      days.forEach((d, i) => {
+        const cx = L + slot * i + slot / 2, x0 = cx - sw / 2, hi = d.high ?? d.snow, lo = d.low ?? d.snow;
+        s += `<rect x="${x0}" y="${T}" width="${sw}" height="${ph}" rx="3" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.2"/>`;
+        for (let v = 1; v < max; v++) { const major = v % step === 0; if (max > 24 && !major && v % 2) continue;
+          s += `<line x1="${x0}" x2="${x0 + (major ? sw : sw * 0.32)}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ink-2)" stroke-width="${major ? 1 : 0.7}" opacity="${major ? 0.55 : 0.4}"/>`; }
+        if (hi - d.snow >= 0.2) {
+          s += `<rect x="${x0 + 1}" y="${y(hi)}" width="${sw - 2}" height="${y(d.snow) - y(hi)}" fill="url(#over)"/>`;
+          s += `<line x1="${x0 - 2}" x2="${x0 + sw + 2}" y1="${y(hi)}" y2="${y(hi)}" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="3 2"/>`;
+          s += `<text x="${cx}" y="${y(hi) - 4}" text-anchor="middle" style="fill:var(--accent);font-weight:600">${val(hi)}</text>`;
+        }
+        if (d.snow > 0.05) s += `<path d="M${x0 + 1},${y(0)}V${y(d.snow) + 3}q${sw / 4},-4 ${sw / 2 - 1},-1q${sw / 4},3 ${sw / 2 - 1},-1V${y(0)}Z" fill="var(--snow-fill)" stroke="var(--accent)" stroke-width="1.2"/>`;
+        if (lo < d.snow - 0.2) s += `<path d="M${x0 + sw},${y(lo)}l5,-3.5v7Z" fill="var(--ink)"/>`;
+        s += `<text class="val" x="${cx}" y="${Math.min(y(0) - 4, y(d.snow) + 13)}" text-anchor="middle" style="font-weight:600">${d.snow >= 0.1 ? val(d.snow) : ""}</text>`;
+        s += `<rect x="${cx - slot / 2}" y="0" width="${slot}" height="${H}" fill="transparent" tabindex="0" data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected. Low end ${inch(lo)}, could reach ${inch(hi)}"/>`;
+      });
+      return [H, s + dayLabels(days.map((d) => d.date), (i) => L + slot * i + slot / 2, H - 5)];
+    }, "Snow stakes: expected snow per day with its upper estimate");
+  }
+
+  // Forecast detail: each dot is one model's call; the bar is the blend.
+  function votesChart(days, labels) {
+    return mountChart((W) => {
+      const H = 190, L = 24, T = 10, B = 22, ph = H - T - B, slot = (W - L) / days.length;
+      const all = days.flatMap((d) => Object.values(d.models || {})).concat(days.map((d) => d.snow));
+      const max = niceMax(Math.max(2, ...all)), y = (v) => T + ph - (v / max) * ph; let s = "";
+      for (let v = 0; v <= max; v += max / 4) s += `<line class="grid" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 5}" y="${y(v) + 4}" text-anchor="end">${v}"</text>`;
+      days.forEach((d, i) => {
+        const cx = L + slot * i + slot / 2, entries = Object.entries(d.models || {}).sort((a, b) => a[1] - b[1]);
+        s += `<line x1="${cx - slot * 0.34}" x2="${cx + slot * 0.34}" y1="${y(d.snow)}" y2="${y(d.snow)}" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round"/>`;
+        const spread = Math.min(3.4, slot / (entries.length + 3));
+        entries.forEach(([m, v], j) => { s += `<circle cx="${cx + (j - (entries.length - 1) / 2) * spread}" cy="${y(v)}" r="3.4" fill="var(--ink)" fill-opacity=".72" stroke="var(--surface)" stroke-width="1.2"/>`; });
+        s += `<rect x="${cx - slot / 2}" y="0" width="${slot}" height="${H}" fill="transparent" tabindex="0" data-tip="${fmtDay(d.date)}. Blend ${inch(d.snow)}. ${entries.slice().reverse().map(([m, v]) => `${(labels[m] || m).split(" (")[0]} ${inch(v)}`).join(", ")}"/>`;
+      });
+      return [H, s + dayLabels(days.map((d) => d.date), (i) => L + slot * i + slot / 2, H - 4)];
+    }, "Model votes: each model's snowfall call per day");
+  }
+
+  // Calendar month: running total of new snow, extended by the forecast for the current month.
+  function accumChart(points, ahead) {
+    return mountChart((W) => {
+      const H = 150, L = 28, R = 10, T = 18, B = 22, ph = H - T - B, n = points.length + ahead.length;
+      const last = points.length ? points[points.length - 1].total : 0;
+      const max = niceMax(Math.max(2, last, ...ahead.map((a) => a.hi)));
+      const x = (i) => L + (W - L - R) * (n > 1 ? i / (n - 1) : 0), y = (v) => T + ph - (v / max) * ph; let s = "";
+      for (let v = 0; v <= max; v += max / 4) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 5}" y="${y(v) + 4}" text-anchor="end">${v}"</text>`;
+      if (points.length) {
+        s += `<path d="M${x(0)},${y(0)}L${points.map((p, i) => `${x(i)},${y(p.total)}`).join("L")}L${x(points.length - 1)},${y(0)}Z" fill="var(--accent)" opacity=".12"/>`;
+        s += `<path d="M${points.map((p, i) => `${x(i)},${y(p.total)}`).join("L")}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>`;
+      }
+      if (ahead.length) {
+        const o = points.length - 1, base = { total: last, lo: last, hi: last };
+        const seq = [base, ...ahead];
+        s += `<path d="M${seq.map((a, i) => `${x(o + i)},${y(a.hi)}`).join("L")}L${seq.map((a, i) => `${x(o + i)},${y(a.lo)}`).reverse().join("L")}Z" fill="var(--accent)" opacity=".10"/>`;
+        s += `<path d="M${seq.map((a, i) => `${x(o + i)},${y(a.total)}`).join("L")}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3"/>`;
+        const e = ahead[ahead.length - 1];
+        s += `<text class="val" x="${x(n - 1)}" y="${y(e.total) - 8}" text-anchor="end">${inch(e.total)} by ${fmtDay(e.date).slice(0, 3)} ${pd(e.date).getDate()}</text>`;
+      }
+      if (points.length) {
+        const p = points[points.length - 1];
+        s += `<circle cx="${x(points.length - 1)}" cy="${y(p.total)}" r="4.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`;
+        if (!ahead.length) s += `<text class="val" x="${x(points.length - 1) - 8}" y="${y(p.total) - 9}" text-anchor="end">${inch(p.total)}</text>`;
+      }
+      [...points, ...ahead].forEach((p, i) => { s += `<rect x="${x(i) - 6}" y="0" width="12" height="${H}" fill="transparent" tabindex="0" data-tip="${fmtDay(p.date)}: ${inch(p.total)} so far${p.hi != null ? ` (forecast, likely ${inch(p.lo)}–${inch(p.hi)})` : p.add ? `, +${inch(p.add)} that day` : ""}"/>`; });
+      const all = [...points, ...ahead], every = Math.ceil(all.length / 7);
+      all.forEach((p, i) => { if (i % every === 0 || i === all.length - 1) s += `<text x="${x(i)}" y="${H - 5}" text-anchor="middle">${pd(p.date).getDate()}</text>`; });
+      return [H, s];
+    }, "Month-to-date snowfall total");
+  }
+
+  // Day view: snow per hour (bars) under the temperature line, labeled every 3 hours.
+  function hourlyChart(hours) {
+    return mountChart((W) => {
+      const H = 150, L = 4, T = 24, B = 22, ph = H - T - B, slot = (W - L) / hours.length, bw = Math.min(16, slot * 0.55);
+      const smax = Math.max(0.5, ...hours.map((h) => h.snow || 0)), temps = hours.map((h) => h.temp);
+      const tmin = Math.min(...temps), tmax = Math.max(...temps);
+      const ys = (v) => T + ph - (v / smax) * ph * 0.55, yt = (v) => T + 2 + ((tmax - v) / Math.max(1, tmax - tmin)) * ph * 0.36;
+      const cx = (i) => L + slot * i + slot / 2; let s = `<line class="grid" x1="${L}" x2="${W}" y1="${ys(0)}" y2="${ys(0)}"/>`;
+      hours.forEach((h, i) => {
+        const hh = ys(0) - ys(h.snow || 0);
+        if (hh > 0.5) s += `<rect x="${cx(i) - bw / 2}" y="${ys(h.snow)}" width="${bw}" height="${hh}" rx="3" fill="var(--snow-fill)" stroke="var(--accent)" stroke-width="1"/>`;
+        if (h.snow >= 0.1) s += `<text class="val" x="${cx(i)}" y="${ys(h.snow) - 3}" text-anchor="middle">${h.snow}</text>`;
+        s += `<text x="${cx(i)}" y="${H - 5}" text-anchor="middle">${hourLabel(h.time)}</text>`;
+        s += `<rect x="${cx(i) - slot / 2}" y="0" width="${slot}" height="${H}" fill="transparent" tabindex="0" data-tip="${hourLabel(h.time)}: ${h.temp}°F, feels ${h.feels}°, ${h.dir} ${h.wind} mph, ${h.snow ? h.snow + '" snow' : "no snow"}"/>`;
+      });
+      s += `<path d="M${hours.map((h, i) => `${cx(i)},${yt(h.temp)}`).join("L")}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>`;
+      hours.forEach((h, i) => { if (i % 3 === 0 || i === hours.length - 1) s += `<circle cx="${cx(i)}" cy="${yt(h.temp)}" r="3.8" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/><text class="val" x="${cx(i)}" y="${yt(h.temp) - 8}" text-anchor="middle">${h.temp}°</text>`; });
+      return [H, s];
+    }, "Hourly temperature and snowfall");
   }
 
   function openLightbox(src, alt) {
@@ -215,7 +315,7 @@
         <div id="cams"></div>
       </section>`;
 
-    if (fc.days?.length) $("#fc-mini", v).appendChild(snowChart(fc.days, { height: 140 }));
+    if (fc.days?.length) $("#fc-mini", v).appendChild(heatStrip(fc.days));
     const mb = $("#map-open", v);
     if (mb) mb.addEventListener("click", () => openLightbox("/" + g.image, "Grooming map"));
     renderCams($("#cams", v), L);
@@ -310,7 +410,19 @@
               <span class="d">${pd(d).getDate()}</span>${s ? `<span class="s">${inch(s)}</span>` : "<span></span>"}${groomedRuns(r).length || r?.map ? '<span class="g"></span>' : ""}</button>`;
           }).join("")}
         </div>
-        <div class="legend"><span><i style="background:color-mix(in oklab, var(--snow) 50%, var(--surface))"></i>New snow that morning</span><span><i style="background:var(--accent);border-radius:50%"></i>Grooming report saved</span></div>`;
+        <div class="legend"><span><i style="background:color-mix(in oklab, var(--snow) 50%, var(--surface))"></i>New snow that morning</span><span><i style="background:var(--accent);border-radius:50%"></i>Grooming report saved</span></div>
+        <div class="card-head" style="margin-top:4px"><h3>Snowfall so far in ${MONTH_FULL[m - 1]}</h3><span class="muted small">dashed = forecast</span></div>
+        <div id="accum"></div>`;
+      // Running total for the month; the current month continues with the forecast.
+      let run = 0;
+      const pts = monthDays.filter((d) => d <= today).map((d) => { const add = morningSnow(d) || 0; run += add; return { date: d, total: run, add }; });
+      const ahead = [];
+      if (C.month === today.slice(0, 7) && S.latest?.forecast?.days) {
+        let t = run, lo = run, hi = run;
+        S.latest.forecast.days.filter((f) => f.date > today && f.date.slice(0, 7) === C.month)
+          .forEach((f) => { t += f.snow; lo += f.low ?? f.snow; hi += f.high ?? f.snow; ahead.push({ date: f.date, total: t, lo, hi }); });
+      }
+      if (pts.length || ahead.length) $("#accum", card).appendChild(accumChart(pts, ahead));
       card.querySelectorAll("[data-ym]").forEach((b) => b.addEventListener("click", () => { C.month = b.dataset.ym; route(); }));
       card.querySelectorAll("[data-day]").forEach((b) => b.addEventListener("click", () => { C.sel = b.dataset.day; showDaySheet(b.dataset.day); }));
     }
@@ -353,7 +465,15 @@
       </div>
       ${r.map ? `<button class="map-btn" type="button" data-map="${esc(r.map)}"><img src="/${esc(r.map)}" alt="Grooming map for ${fmtDay(d)}" loading="lazy"></button>` : `<p class="muted small">No grooming map saved for this day.</p>`}
       ${runsBlock({ groomers_of_the_day: r.featured, overnight: r.overnight, morning: r.morning })}
+      <div id="day-hourly"></div>
       ${r.cam ? `<div class="cam-main"><img src="/${esc(r.cam)}" alt="Snow stake on ${fmtDay(d)}" loading="lazy"><span class="cap">Snow stake</span></div>` : ""}`;
+    const rec = S.latest?.date === d ? S.latest : await getJSON(`/data/days/${d}.json`);
+    const hrs = rec?.hourly?.hours || [];
+    if (hrs.length) {
+      const box = el.querySelector("#day-hourly");
+      box.innerHTML = `<div class="card-head"><h3>Hourly snow and temperature</h3><span class="muted small">from the ${(rec.generated || "").slice(11, 16)} report</span></div>`;
+      box.appendChild(hourlyChart(hrs));
+    }
     el.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => { S.cal.sel = addDays(d, +b.dataset.step); S.cal.month = S.cal.sel.slice(0, 7); route(); }));
     const mb = el.querySelector("[data-map]");
     if (mb) mb.addEventListener("click", () => openLightbox("/" + mb.dataset.map, "Grooming map"));
@@ -378,7 +498,6 @@
     v.className = "view";
     const fc = S.latest?.forecast || {}, days = fc.days || [], labels = fc.model_labels || {};
     const vm = S.verification?.models || {};
-    const maxHigh = Math.max(1, ...days.map((d) => d.high ?? d.snow));
     const hist = (S.verification?.history || []).slice(-10).reverse();
     v.innerHTML = `
       <section class="card">
@@ -389,14 +508,13 @@
           <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">next 5 days</span></div>
         </div>
         <div id="fc-chart"></div>
-        <p class="muted small">Bars are the blend. The line shows the likely range from ${fc.ensemble_members || "ensemble"} model runs. Tap a day for each model's number.</p>
+        <div class="legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach (upper estimate)</span><span><i style="background:none;border-left:6px solid var(--ink);border-top:4px solid transparent;border-bottom:4px solid transparent;width:0;height:0;border-radius:0"></i>Low end</span></div>
       </section>
 
       <section class="card">
-        <h2>Day by day</h2>
-        <div class="day-rows">${days.map((d) => `<div class="day-row"><span><strong>${WD[pd(d.date).getDay()]}</strong> <span class="muted">${pd(d.date).getDate()}</span></span>
-          <span class="range-track" aria-hidden="true"><span class="r" style="left:${(d.low / maxHigh) * 100}%;width:${((d.high - d.low) / maxHigh) * 100}%"></span><span class="m" style="left:${(d.snow / maxHigh) * 100}%"></span></span>
-          <span class="num" style="text-align:right">${inch(d.snow)}</span></div>`).join("")}</div>
+        <div class="card-head"><h2>Model votes</h2><span class="muted small">${(fc.models_used || []).length} models</span></div>
+        <div id="fc-votes"></div>
+        <div class="legend"><span><i style="background:var(--ink);opacity:.72;border-radius:50%"></i>One model's call</span><span><i style="background:var(--accent);height:4px;border-radius:2px"></i>Blend</span><span>Tight cluster = models agree</span></div>
       </section>
 
       <section class="card">
@@ -425,7 +543,10 @@
           ${hist.length ? `<div class="scroll"><table><thead><tr><th>Day</th><th>Forecast</th><th>Range</th><th>Fell</th></tr></thead><tbody>${hist.map((h) => `<tr><td>${fmtDay(h.date)}</td><td>${inch(h.forecast)}</td><td>${inch(h.low)}–${inch(h.high)}</td><td>${inch(h.observed)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted small">Scores appear after a few days of forecasts are saved.</p>`}
         </details>
       </section>`;
-    if (days.length) $("#fc-chart", v).appendChild(snowChart(days));
+    if (days.length) {
+      $("#fc-chart", v).appendChild(stakeChart(days));
+      $("#fc-votes", v).appendChild(votesChart(days, labels));
+    }
     return v;
   }
 

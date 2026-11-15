@@ -65,6 +65,8 @@ Why this shape:
 - **Calendar**: Day, Week and Month views. Month is a heat-map calendar of new snow each morning with grooming-report dots, and tiles for snowfall in the month, snowiest day, report count and season to date. Week shows daily bars, the weekly total and the week's reports. Day shows that day's map, runs and stake photo. Below all three is a feed of every grooming report, newest first, with "Show earlier reports".
 - **Forecast**: a 10-day chart with ensemble ranges, day-by-day range bars, hourly table, a table of every model, how the forecast is built, and forecast vs. what fell.
 - **Help**: Ski Patrol emergency (970) 754-6911 as text with Call and Copy buttons, what to tell patrol, the non-emergency line (970) 754-6610, Security, 911, and how to subscribe. Numbers are from Beaver Creek's Safety on the Mountain page.
+- **Charts**: Today has a heat strip (ten days in one row). The Forecast page has snow stakes: solid snow is expected, the hatched zone up to a dashed cap is how much more it could reach, and a notch marks the low end. Below that, model votes show one dot per model with the blend as a bar. Calendar month shows snowfall accumulated so far, with the forecast continuing as a dashed line. Calendar day shows hourly snow bars under a temperature line.
+- **Look**: Bluebird colors with the Frost finish by default.
 - **Themes**: 10 (Corduroy, Trail Sign, Patrol, Alpenglow, Beacon, Lift Ticket, Night Cat, Amber Lens, Bluebird, Glade), each passing WCAG AA. Until someone picks one, the app follows the phone's light or dark setting.
 - **Offline**: a service worker keeps the app and the last report, so it opens on a chairlift with no signal.
 

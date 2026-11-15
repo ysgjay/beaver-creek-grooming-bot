@@ -14,7 +14,7 @@
 <script>
   // Apply the saved theme before first paint so there's no flash.
   // Bluebird is the starting theme; "auto" follows the phone (Corduroy / Night Cat).
-  (function () { var t = "bluebird", m = "flat";
+  (function () { var t = "bluebird", m = "frost";
     try { t = localStorage.getItem("theme") || t; m = localStorage.getItem("material") || m; } catch (e) {}
     if (t !== "auto") document.documentElement.dataset.theme = t;
     if (m !== "flat") document.documentElement.dataset.material = m; })();

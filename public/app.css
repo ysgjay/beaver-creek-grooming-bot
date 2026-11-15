@@ -6,6 +6,7 @@
   --surface-2: color-mix(in oklab, var(--ink) 5%, var(--surface));
   --accent-soft: color-mix(in oklab, var(--accent) 16%, var(--surface));
   --snow: var(--accent);
+  --snow-fill: color-mix(in oklab, var(--accent) 30%, #ffffff);
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --tabbar-h: 58px;
@@ -276,3 +277,6 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120' preserveAspectRatio='none'%3E%3Cpath d='M0 120V70l40-25 30 18 45-48 38 30 30-20 52 52 35-22 40 28 40-36 50 40v73Z' fill='rgba(255,255,255,0.07)'/%3E%3Cpath d='M0 120V92l55-20 40 14 50-30 45 26 55-18 50 22 45-12 60 20v26Z' fill='rgba(0,0,0,0.18)'/%3E%3C/svg%3E"),
     linear-gradient(180deg, color-mix(in oklab, var(--bg) 82%, var(--accent)), var(--bg) 70%);
 }
+
+.legend i.hatch { background: repeating-linear-gradient(45deg, var(--accent-soft) 0 3px, color-mix(in oklab, var(--accent) 55%, var(--accent-soft)) 3px 5px); }
+.chart text.val { font-family: var(--font-data); fill: var(--ink); font-size: 11px; }
