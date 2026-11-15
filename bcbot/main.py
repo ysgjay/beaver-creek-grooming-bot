@@ -156,13 +156,12 @@ def run(store=None, force=False, send=None, now=None):
         in_season = _hours_since(state.get("last_map_change"), now) <= config.IN_SEASON_DAYS * 24
         fallback = minutes_to_send <= -config.SEND_FALLBACK_MINUTES
         if new_map or (fallback and in_season):
-            text = report.compose(day)
             g = day.get("grooming", {})
-            image = groom["jpeg"] if (groom and map_changed) else (store.get_bytes(g["image"]) if g.get("image") else None)
-            delivered = notify.send_all(text, image)
+            map_url = f"{config.DASHBOARD_URL.rstrip('/')}/{g['image']}" if g.get("image") else None
+            delivered = notify.send_all(day, map_url)
             alert = report.powder_alert(day.get("forecast"))
             if alert:
-                notify.send_all(alert, channels=["ntfy"])
+                notify.alert(alert)
             state["last_sent_date"] = day_str
             day["delivery"] = {"sent_at": now_local().isoformat(timespec="seconds"),
                                "scheduled": send_at.isoformat(timespec="minutes"),

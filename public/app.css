@@ -280,3 +280,10 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
 
 .legend i.hatch { background: repeating-linear-gradient(45deg, var(--accent-soft) 0 3px, color-mix(in oklab, var(--accent) 55%, var(--accent-soft)) 3px 5px); }
 .chart text.val { font-family: var(--font-data); fill: var(--ink); font-size: 11px; }
+
+/* Sign-up */
+.signup { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+.signup-row { display: flex; gap: 8px; align-items: center; }
+.signup input[type="email"] { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; border-radius: calc(var(--radius, 14px) * .8); border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 16px var(--font-body); }
+.signup input[type="email"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }

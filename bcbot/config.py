@@ -72,15 +72,10 @@ PRE_SEND_MINUTES = 30
 SEND_FALLBACK_MINUTES = int(os.environ.get("SEND_FALLBACK_MINUTES", "120"))
 # "In season" = the grooming map changed within this many days. Off-season, nothing is sent.
 IN_SEASON_DAYS = 3
-TELEGRAM_BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "@bcskireport")
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 NTFY_SERVER = os.environ.get("NTFY_SERVER", "https://ntfy.sh")
-GMAIL_USER = os.environ.get("GMAIL_USER", "")
-GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")
-EMAIL_TO = [e.strip() for e in os.environ.get("EMAIL_TO", "").split(",") if e.strip()]
-GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID", "")  # public sheet of form sign-ups
-SIGNUP_FORM_URL = os.environ.get("SIGNUP_FORM_URL", "")  # the Google Form that feeds that sheet
+# Web Push: identifies the sender to browser push services (RFC 8292).
+VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "https://snow.0xm.studio")
 
 POWDER_ALERT_INCHES = float(os.environ.get("POWDER_ALERT_INCHES", "6"))
 

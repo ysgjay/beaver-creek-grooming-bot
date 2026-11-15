@@ -7,7 +7,7 @@ Each morning, send one report with three things in it: the Beaver Creek grooming
 | v1 | now |
 |---|---|
 | Scraped OpenSnow's page with Playwright for 2 numbers | Our own multi-model forecast from public data (no scraping, no browser) |
-| Telegram + Instagram (instagrapi, private API, session expiry) | Telegram + ntfy push + email; Instagram removed |
+| Telegram + Instagram (instagrapi, private API, session expiry) | Opt-in email (Resend) and app notifications (Web Push); Telegram and Instagram removed |
 | Posted the map daily even when it hadn't changed (off-season spam) | Sends once per *new* map (PDF hash), up to 3 checks each morning |
 | One channel's failure stopped the others | Every source and channel is isolated; failures are listed in the data and the job fails only if the core is missing |
 | No history | Every day archived in Vercel Blob and browsable in the app's calendar and feed |
@@ -71,14 +71,13 @@ Why this shape:
 - **Offline**: a service worker keeps the app and the last report, so it opens on a chairlift with no signal.
 
 ## Delivery channels
-| Channel | Cost | Setup | Notes |
+| Channel | Cost | How people join | Notes |
 |---|---|---|---|
-| Telegram `@bcskireport` | free | existing `BOT_TOKEN` | Photo plus caption (≤1024 characters, enforced) |
-| **ntfy** push | free | Vercel env `NTFY_TOPIC` (pick a hard-to-guess name) | Replaces SMS. People install the ntfy app and subscribe to the topic. The map comes as an attachment, and tapping opens the app. Powder alerts go here too. |
-| Email | free | existing `GMAIL_USER` / `GMAIL_APP_PASSWORD`, plus `EMAIL_TO` and/or `GOOGLE_SHEET_ID` | HTML email with the map inline, recipients in BCC. Any email address found in the sign-up sheet is added. |
-| App | free | live | `https://snow.0xm.studio`, phone-first, installable to the home screen, works offline |
+| Email (Resend) | free up to 100 emails a day | Sign up in Help, then confirm by email | From `report@snow.0xm.studio`, a verified subdomain with its own reputation. Each person gets their own copy with one-click unsubscribe (RFC 8058 headers plus a link). The subscriber list is in a private Neon database. |
+| App notifications (Web Push) | free | "Turn on" in Help | Built on RFC 8291 encryption and VAPID (RFC 8292), checked against the RFC test vector. The signing keys are created on the server and kept in the database. Expired subscriptions are removed automatically. Powder alerts use this channel only. |
+| ntfy | free | Optional `NTFY_TOPIC` | Kept for anyone who prefers it |
 
-Real SMS was left out on purpose. Email-to-SMS gateways are shutting down, and Twilio now requires toll-free or 10DLC registration. If SMS is ever needed, a Twilio toll-free number would be one more function in `notify.py`.
+Telegram and Instagram were removed: email plus app notifications reach everyone without a third-party account.
 
 ## Configuration and testing
 See README.md for environment variables. `python -m pytest tests`: 23 tests cover the forecast math, parsers, verification, Blob protocol headers, and the pipeline's skip, refresh, send-once and outage behavior.

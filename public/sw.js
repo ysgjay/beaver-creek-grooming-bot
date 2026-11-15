@@ -1,6 +1,6 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v1";
+const SHELL = "shell-v2";
 const DATA = "data-v1";
 const SHELL_FILES = ["/", "/index.html", "/app.js", "/app.css", "/themes.css", "/config.json", "/icon.svg", "/manifest.webmanifest"];
 
@@ -24,5 +24,23 @@ self.addEventListener("fetch", (e) => {
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((hit) => {
     const net = fetch(e.request).then((res) => { if (res.ok) { const copy = res.clone(); caches.open(SHELL).then((c) => c.put(e.request, copy)); } return res; });
     return hit || net;
+  }));
+});
+
+// App notifications: the 7:00 report and powder alerts.
+self.addEventListener("push", (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: "Snow Desk", body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Snow Desk", {
+    body: d.body || "", tag: d.tag || "snow-desk", icon: "/icon-512.png", badge: "/icon-180.png",
+    image: d.image, data: { url: d.url || "/" },
+  }));
+});
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/";
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
+    for (const w of wins) if ("focus" in w) { w.navigate(url).catch(() => {}); return w.focus(); }
+    return self.clients.openWindow(url);
   }));
 });

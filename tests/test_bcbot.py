@@ -193,7 +193,7 @@ def test_grooming_render():
 
 # ---------- report ----------
 
-def test_compose_message_fits_telegram_caption():
+def test_compose_subject_and_push_payload():
     day = {
         "date": "2026-11-15", "grooming": {"new_map": True},
         "observed": {"snow_in": 2}, "resort": {"last_24h_in": 3},
@@ -204,7 +204,11 @@ def test_compose_message_fits_telegram_caption():
     }
     text = report.compose(day)
     assert "Sun Nov 15th" in text and "Snowiest day: Sat 21" in text and "6a: 18°" in text
-    assert len(text) <= notify.TELEGRAM_CAPTION_LIMIT
+    assert len(text) < 1500
+    assert report.subject(day) == 'Beaver Creek Sun 15: Grooming map, 3" next 5 days'
+    payload = report.push_payload(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
+    assert payload["title"] == "Beaver Creek · Sun 15" and "New snow 3\"" in payload["body"]
+    assert payload["image"].endswith(".jpg") and payload["url"].startswith("https://")
 
 
 # ---------- full pipeline, all network mocked ----------
@@ -236,7 +240,8 @@ def sandbox(tmp_path, monkeypatch):
                 "text_lines": text.splitlines(), "last_modified": None}
     monkeypatch.setattr(grooming, "fetch", fake_groom)
     sent = []
-    monkeypatch.setattr(notify, "send_all", lambda text, image=None, channels=None: sent.append((text, channels)) or {})
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: sent.append((report.compose(day), channels)) or {"email": "ok"})
+    monkeypatch.setattr(notify, "alert", lambda text: sent.append((text, ["alert"])) or {})
     return store, tmp_path, pdf, sent
 
 
@@ -390,3 +395,73 @@ def test_bucket_range_uses_member_totals():
     storm = 24 * 0.03 * forecast.slr(15)
     assert hi == pytest.approx(storm, abs=0.2)  # every member's 5-day total is one storm
     assert lo == 0.0  # range always includes the blend (dry deterministic model here)
+
+
+# ---------- web push (RFC 8291 / 8292) ----------
+
+def test_webpush_matches_rfc8291_vector_and_roundtrips():
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from bcbot import webpush as w
+    ua = ec.derive_private_key(int.from_bytes(w.unb64u("q1dXpw3UpT5VOmu_cf_v6ih07Aems3njxI-JWgLcM94"), "big"), ec.SECP256R1())
+    sender = ec.derive_private_key(int.from_bytes(w.unb64u("yfWPiYE-n46HLnH0KqZOF1fJJU3MYrct3AELtAQ-oRw"), "big"), ec.SECP256R1())
+    ua_pub = "BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4"
+    body = w.encrypt(b"When I grow up, I want to be a watermelon", ua_pub, "BTBZMqHH6r4Tts7J_aSIgg",
+                     salt=w.unb64u("DGv6ra1nlYgDCS1FRnbzlw"), sender_private=sender)
+    assert w.b64u(body) == ("DGv6ra1nlYgDCS1FRnbzlwAAEABBBP4z9KsN6nGRTbVYI_c7VJSPQTBtkgcy27mlmlMoZIIgDll6e3vCYLocInmYWAmS6Tlz"
+                            "AC8wEqKK6PBru3jl7A_yl95bQpu6cVPTpK4Mqgkf1CXztLVBSt2Ks3oZwbuwXPXLWyouBWLVWGNWQexSgSxsj_Qulcy4a-fN")
+    fresh = w.encrypt(b'{"title":"x"}', ua_pub, "BTBZMqHH6r4Tts7J_aSIgg")
+    assert w.decrypt(fresh, ua, "BTBZMqHH6r4Tts7J_aSIgg") == b'{"title":"x"}'
+
+
+def test_vapid_header_is_a_valid_es256_jwt():
+    import json as _json
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
+    from bcbot import webpush as w
+    priv, pub = w.generate_vapid_keys()
+    key = w.load_vapid_key(priv)
+    assert w.vapid_public_b64(key) == pub
+    h = w.vapid_header("https://fcm.googleapis.com/fcm/send/abc", key, "https://snow.0xm.studio")
+    jwt = h.split("t=")[1].split(",")[0]
+    head, claims, sig = jwt.split(".")
+    c = _json.loads(w.unb64u(claims))
+    assert c["aud"] == "https://fcm.googleapis.com" and c["sub"] == "https://snow.0xm.studio"
+    raw = w.unb64u(sig)
+    der = encode_dss_signature(int.from_bytes(raw[:32], "big"), int.from_bytes(raw[32:], "big"))
+    pubkey = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), w.unb64u(pub))
+    pubkey.verify(der, f"{head}.{claims}".encode(), ec.ECDSA(hashes.SHA256()))  # raises if invalid
+    assert h.endswith("k=" + pub)
+
+
+# ---------- email ----------
+
+def test_daily_email_is_personal_with_one_click_unsubscribe(monkeypatch):
+    from bcbot import mailer
+    calls = []
+
+    class R:
+        ok = True
+        def json(self):
+            return {"data": []}
+    monkeypatch.setattr("bcbot.mailer.http", lambda: type("H", (), {"post": lambda self, url, json=None, timeout=None, headers=None: calls.append((url, json)) or R()})())
+    monkeypatch.setenv("RESEND_API_KEY", "re_test")
+    recipients = [(f"skier{i}@example.com", f"tok{i}") for i in range(150)]
+    day = {"date": "2026-11-15", "grooming": {"new_map": True, "runs": {"overnight": ["Flint"], "morning": []}},
+           "forecast": {"days": [{"date": "2026-11-15", "snow": 3.0, "low": 1, "high": 6}], "next_1_5": 3, "next_6_10": 1}}
+    html = mailer.daily_html(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
+    assert "Flint" in html and "maps/2026-11-15.jpg" in html
+    assert mailer.send_daily(recipients, "Subject", html, "text") == 150
+    assert [len(b) for _, b in calls] == [100, 50] and all(u.endswith("/emails/batch") for u, _ in calls)
+    first = calls[0][1][0]
+    assert first["to"] == ["skier0@example.com"] and first["from"].endswith("@snow.0xm.studio>")
+    assert first["headers"]["List-Unsubscribe"] == "<https://snow.0xm.studio/api/unsubscribe?t=tok0>"
+    assert first["headers"]["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"
+    assert "api/unsubscribe?t=tok0" in first["html"] and "tok1" not in first["html"]
+
+
+def test_notify_skips_unconfigured_channels(monkeypatch):
+    for k in ["RESEND_API_KEY", "DATABASE_URL", "NTFY_TOPIC"]:
+        monkeypatch.delenv(k, raising=False)
+    r = notify.send_all({"date": "2026-11-15"}, None)
+    assert r == {"email": "skipped (email not configured)", "push": "skipped (push not configured)", "ntfy": "skipped"}

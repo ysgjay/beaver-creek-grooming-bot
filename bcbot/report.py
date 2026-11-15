@@ -1,4 +1,4 @@
-"""Compose the daily message (same text for Telegram, ntfy and email)."""
+"""Compose the daily report: email subject, plain text (email text part, ntfy) and app push payload."""
 from datetime import date, datetime
 
 from . import config
@@ -74,6 +74,34 @@ def compose(day):
     lines.append("")
     lines.append(f"📊 Forecast, cams & history: {config.DASHBOARD_URL}")
     return "\n".join(lines)
+
+
+def subject(day):
+    fc = day.get("forecast") or {}
+    runs = (day.get("grooming") or {}).get("runs") or {}
+    n = len(runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []))
+    parts = [f"{n} runs groomed" if n else ("No new grooming map" if not (day.get("grooming") or {}).get("new_map") else "Grooming map")]
+    if fc.get("next_1_5") is not None:
+        parts.append(f"{_in(fc['next_1_5'])} next 5 days")
+    return f"Beaver Creek {short_date(day['date'])}: " + ", ".join(parts)
+
+
+def push_payload(day, map_url):
+    """Short notification: what's groomed and what's coming. Tapping opens Today."""
+    fc = day.get("forecast") or {}
+    runs = (day.get("grooming") or {}).get("runs") or {}
+    groomed = runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", [])
+    rs = day.get("resort") or {}
+    r24 = rs.get("last_24h_in", (day.get("observed") or {}).get("snow_in"))
+    body = []
+    if groomed:
+        body.append("Groomed: " + ", ".join(groomed[:6]) + ("…" if len(groomed) > 6 else ""))
+    body.append(f"New snow {_in(r24)} · Next 5 days {_in(fc.get('next_1_5'))}")
+    payload = {"title": f"Beaver Creek · {short_date(day['date'])}", "body": "\n".join(body),
+               "url": config.DASHBOARD_URL, "tag": f"report-{day['date']}"}
+    if map_url:
+        payload["image"] = map_url
+    return payload
 
 
 def powder_alert(fc):

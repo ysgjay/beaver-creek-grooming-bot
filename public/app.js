@@ -313,7 +313,8 @@
       <section class="card" aria-labelledby="h-cam">
         <div class="card-head"><h2 id="h-cam">Snow stake</h2><span class="muted small">Tap to switch cams</span></div>
         <div id="cams"></div>
-      </section>`;
+      </section>
+      <a class="btn secondary block" href="#help" data-goto="alerts">Get this report at 7:00 by email or notification</a>`;
 
     if (fc.days?.length) $("#fc-mini", v).appendChild(heatStrip(fc.days));
     const mb = $("#map-open", v);
@@ -550,11 +551,71 @@
     return v;
   }
 
+  /* ---------------- sign-ups ---------------- */
+  function wireEmailForm(v) {
+    const form = $("#email-form", v), msg = $("#email-msg", v), input = $("#email-input", v);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = input.value.trim();
+      if (!/^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$/.test(email)) { msg.textContent = "Enter an email address like you@example.com."; input.focus(); return; }
+      const btn = form.querySelector("button"); btn.disabled = true; msg.textContent = "Sending…";
+      try {
+        const r = await fetch("/api/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, website: $("#website", v).value }) });
+        const j = await r.json().catch(() => ({}));
+        msg.textContent = j.message || (r.ok ? "Check your inbox for a confirmation link." : "Sign-up didn't work. Please try again.");
+        if (r.ok) input.value = "";
+      } catch (err) { msg.textContent = "You seem to be offline. Try again when you have signal."; }
+      btn.disabled = false;
+    });
+  }
+
+  const b64ToBytes = (s) => { const b = atob((s + "===".slice((s.length + 3) % 4)).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, (c) => c.charCodeAt(0)); };
+  async function wirePush(v) {
+    const state = $("#push-state", v), btn = $("#push-btn", v), hint = $("#push-hint", v);
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      state.textContent = ios && !standalone ? "Add Snow Desk to your Home Screen to get notifications." : "This browser can't show notifications.";
+      if (ios && !standalone) hint.textContent = "In Safari, tap Share, then Add to Home Screen, then open Snow Desk from your Home Screen and come back here.";
+      return;
+    }
+    const reg = await navigator.serviceWorker.ready;
+    const render = async () => {
+      const sub = await reg.pushManager.getSubscription();
+      const denied = Notification.permission === "denied";
+      state.textContent = sub ? "On: you'll get the 7:00 report and powder alerts." : denied ? "Blocked in your browser settings." : "Off";
+      btn.textContent = sub ? "Turn off" : "Turn on";
+      btn.hidden = denied && !sub;
+      hint.textContent = denied ? "Allow notifications for snow.0xm.studio in your browser or phone settings, then reload." : "";
+    };
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try {
+        const existing = await reg.pushManager.getSubscription();
+        if (existing) {
+          await fetch("/api/push", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ endpoint: existing.endpoint }) });
+          await existing.unsubscribe();
+        } else {
+          if (await Notification.requestPermission() !== "granted") { await render(); btn.disabled = false; return; }
+          const { publicKey } = await (await fetch("/api/push")).json();
+          const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(publicKey) });
+          const r = await fetch("/api/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub.toJSON()) });
+          if (!r.ok) { await sub.unsubscribe(); hint.textContent = "Couldn't turn on notifications. Please try again."; }
+        }
+      } catch (e) { hint.textContent = "Couldn't change notifications. Please try again."; }
+      btn.disabled = false;
+      render();
+    });
+    render();
+  }
+
   /* ---------------- HELP ---------------- */
   function viewHelp() {
     const v = document.createElement("div");
     v.className = "view";
     const c = S.cfg || {};
+    const q = new URLSearchParams(location.search).get("email");
+    const notice = q === "confirmed" ? `<p class="offline" role="status">You're subscribed. The report arrives at 7:00 each morning.</p>`
+      : q === "invalid" ? `<p class="offline" role="status">That confirmation link didn't work. Sign up again below.</p>` : "";
     v.innerHTML = `
       <section class="card patrol" aria-labelledby="h-patrol">
         <h2 id="h-patrol">Call Beaver Creek Ski Patrol</h2>
@@ -586,16 +647,30 @@
       </section>
 
       <section class="card">
-        <h2>Get the report every morning</h2>
-        ${c.ntfy_topic ? `<div class="contact"><span>Phone notifications (free ntfy app). Subscribe to <strong class="num">${esc(c.ntfy_topic)}</strong></span><a class="btn secondary" href="https://ntfy.sh/${esc(c.ntfy_topic)}" target="_blank" rel="noopener">Open</a></div>` : ""}
-        ${c.telegram ? `<div class="contact"><span>Telegram channel</span><a class="btn secondary" href="${esc(c.telegram)}" target="_blank" rel="noopener">Join</a></div>` : ""}
-        <p class="small muted" style="margin:0">On iPhone, tap Share, then Add to Home Screen to open Snow Desk like an app. It keeps the last report for when you lose signal.</p>
+        <h2 id="alerts">Get the 7:00 report</h2>
+        ${notice}
+        <form id="email-form" class="signup" novalidate>
+          <label for="email-input" class="label">Email, every morning</label>
+          <div class="signup-row">
+            <input id="email-input" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+            <input type="text" name="website" id="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+            <button class="btn" type="submit">Sign up</button>
+          </div>
+          <p class="small muted" id="email-msg" style="margin:0">We'll send one confirmation email first. Every report has a one-tap unsubscribe.</p>
+        </form>
+        <div class="signup">
+          <span class="label">App notifications</span>
+          <div class="signup-row"><span class="small" id="push-state" style="flex:1">Checking…</span><button class="btn secondary" type="button" id="push-btn" hidden>Turn on</button></div>
+          <p class="small muted" id="push-hint" style="margin:0"></p>
+        </div>
       </section>
 
       <section class="card">
         <h2>About the numbers</h2>
         <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the Vail Mountain SNOTEL station when the resort hasn't reported. The forecast blends seven public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own.</p>
       </section>`;
+    wireEmailForm(v);
+    wirePush(v);
     v.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", async () => {
       try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "Copied"; } catch (e) { b.textContent = b.dataset.copy; }
     }));
@@ -621,6 +696,7 @@
     });
   }
   $("#theme-btn").addEventListener("click", showThemes);
+  document.addEventListener("click", (e) => { const g = e.target.closest("[data-goto]"); if (g) S.goto = g.dataset.goto; });
 
   /* ---------------- routing ---------------- */
   const VIEWS = { today: viewToday, calendar: viewCalendar, forecast: viewForecast, help: viewHelp };
@@ -635,6 +711,7 @@
     if (my !== routing) return;
     $("#tip").hidden = true;
     $("#main").replaceChildren(view);
+    if (S.goto) { const t = document.getElementById(S.goto); S.goto = null; if (t) t.scrollIntoView({ block: "start" }); }
   }
 
   async function boot() {
