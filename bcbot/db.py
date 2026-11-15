@@ -12,7 +12,8 @@ from contextlib import contextmanager
 import psycopg
 
 CONFIRM_RESEND_MINUTES = 10
-CONFIRMS_PER_HOUR_CAP = 40  # protects the daily email quota from sign-up abuse
+CONFIRMS_PER_HOUR_CAP = 10  # protects the daily email quota (Resend free plan: 100/day,
+CONFIRMS_PER_DAY_CAP = 25   # shared with the morning reports) from sign-up abuse
 
 
 @contextmanager
@@ -37,6 +38,9 @@ def request_signup(conn, email, resorts=("beaver-creek",)):
     with conn.cursor() as cur:
         cur.execute("SELECT count(*) FROM subscribers WHERE confirm_sent_at > now() - interval '1 hour'")
         if cur.fetchone()[0] >= CONFIRMS_PER_HOUR_CAP:
+            return None, False
+        cur.execute("SELECT count(*) FROM subscribers WHERE confirm_sent_at > now() - interval '1 day'")
+        if cur.fetchone()[0] >= CONFIRMS_PER_DAY_CAP:
             return None, False
         cur.execute("SELECT token, status, confirm_sent_at > now() - make_interval(mins => %s) "
                     "FROM subscribers WHERE lower(email) = lower(%s)", (CONFIRM_RESEND_MINUTES, email))

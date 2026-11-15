@@ -531,6 +531,35 @@ def test_off_season_sends_nothing(sandbox):
     assert reports(sent) == []
 
 
+def test_failed_send_and_missed_report_alert_the_owner(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    from bcbot import alert
+    alerts = []
+    monkeypatch.setattr(alert, "admin", lambda title, body: alerts.append(title))
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None: {"email": "FAILED: Resend 429", "push": "1 delivered"})
+    main.run(store=store, send=True, now=at(5, 45))
+    r = main.run(store=store, send=True, now=at(7, 0))
+    assert alerts == ["Snow Desk Beaver Creek: send failed"] and any("delivery" in e for e in r["errors"])
+    for t in [at(9, 30), at(10, 0)]:      # it did go out (push), so no "missed" alert
+        main.run(store=store, send=True, now=t)
+    assert len(alerts) == 1
+
+
+def test_missed_report_alerts_once(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    from bcbot import alert
+    alerts = []
+    monkeypatch.setattr(alert, "admin", lambda title, body: alerts.append(title))
+    monkeypatch.setattr(main, "_claim_send", lambda *a, **k: False)   # e.g. the send never happens
+    monkeypatch.setattr(main, "send_decision", lambda *a, **k: None)
+    for t in [at(7, 0), at(9, 15)]:
+        main.run(store=store, send=True, now=t)
+    assert alerts == []
+    for t in [at(9, 30), at(9, 45), at(10, 30)]:
+        main.run(store=store, send=True, now=t)
+    assert alerts == ["Snow Desk Beaver Creek: no report yet"]
+
+
 def test_sending_disabled_never_sends(sandbox):
     store, root, pdf, sent = sandbox
     for t in [at(5, 45), at(7, 0), at(9, 0)]:
