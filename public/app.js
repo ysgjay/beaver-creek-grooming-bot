@@ -35,8 +35,45 @@
     R.slug = R.list.some((r) => r.slug === slug) ? slug : DEFAULT_RESORT;
     if (remember) { try { localStorage.setItem("resort", R.slug); } catch (e) {} }
     document.title = `Snow Desk · ${resortInfo().name}`;
-    const sel = $("#resort-select");
-    if (sel) sel.value = R.slug;
+    const nm = $("#resort-name");
+    if (nm) nm.textContent = resortInfo().name;
+    renderFavs();
+  }
+
+  /* Favorite resorts: starred in the resort menu, kept on this device, and shown as tiles in the
+     top bar with each one's new snow so switching is one tap. */
+  const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`;
+  let favList = [];
+  try { const f = JSON.parse(localStorage.getItem("favResorts") || "[]"); if (Array.isArray(f)) favList = f.filter((x) => typeof x === "string"); } catch (e) {}
+  const isFav = (slug) => favList.includes(slug);
+  function toggleFav(slug) {
+    favList = isFav(slug) ? favList.filter((x) => x !== slug) : favList.concat(slug);
+    try { localStorage.setItem("favResorts", JSON.stringify(favList)); } catch (e) {}
+    renderFavs();
+  }
+  // New snow in the last 24 hours for a resort, read once from its latest report.
+  const snowBy = {};
+  function newSnow(slug) {
+    if (!snowBy[slug]) {
+      snowBy[slug] = fetch(slug === DEFAULT_RESORT ? "/data/latest.json" : `/data/${slug}/latest.json`)
+        .then((r) => (r.ok ? r.json() : null)).then((L) => (L ? (L.resort || {}).last_24h_in ?? (L.observed || {}).snow_in ?? null : null)).catch(() => null);
+    }
+    return snowBy[slug];
+  }
+  function fillSnow(root) {
+    root.querySelectorAll("[data-snow]").forEach(async (el) => {
+      const x = await newSnow(el.dataset.snow);
+      if (x == null || !el.isConnected) return;
+      el.textContent = inch(x);
+      el.title = "New snow, last 24 hours";
+    });
+  }
+  function renderFavs() {
+    const el = $("#favs"); if (!el) return;
+    const others = R.list.filter((r) => isFav(r.slug) && r.slug !== R.slug);
+    el.hidden = !others.length;
+    el.innerHTML = others.map((r) => `<button class="fav-tile" type="button" data-resort="${r.slug}"><span>${esc(r.name)}</span><strong class="num" data-snow="${r.slug}"></strong></button>`).join("");
+    fillSnow(el);
   }
 
   async function getJSON(path, { fresh = false } = {}) {
@@ -1215,19 +1252,52 @@ ${tell}
     getJSON("/data/verification.json").then((v) => { if (slug !== R.slug) return; S.verification = v; if ((location.hash || "#today") === "#forecast") route(); });
   }
 
-  function wireResortSelect() {
-    const sel = $("#resort-select"), h1 = $(".brand h1");
-    if (!sel || R.list.length < 2) { if (h1) h1.textContent = resortInfo().name; return; }
-    sel.innerHTML = R.list.map((r) => `<option value="${r.slug}">${esc(r.name)}</option>`).join("");
-    sel.value = R.slug;
-    sel.hidden = false; h1.hidden = true;
-    sel.addEventListener("change", async () => {
-      pickResort(sel.value);
-      const u = new URL(location.href); u.searchParams.delete("resort"); history.replaceState(null, "", u);
-      $("#main").innerHTML = `<div class="skeleton"></div><div class="skeleton"></div>`;
-      await loadResortData();
-      route();
+  async function switchResort(slug) {
+    if (slug === R.slug) return;
+    pickResort(slug);
+    const u = new URL(location.href); u.searchParams.delete("resort"); history.replaceState(null, "", u);
+    $("#main").innerHTML = `<div class="skeleton"></div><div class="skeleton"></div>`;
+    await loadResortData();
+    route();
+  }
+
+  // The resort menu: a themed pop-up under the resort name. Pick a resort, or star it as a favorite.
+  function closeResortMenu() {
+    const m = $("#resort-menu"); if (!m) return;
+    m.remove(); $("#resort-btn").setAttribute("aria-expanded", "false");
+    document.removeEventListener("keydown", menuKey); document.removeEventListener("pointerdown", menuOutside);
+  }
+  const menuKey = (e) => { if (e.key === "Escape") { closeResortMenu(); $("#resort-btn").focus(); } };
+  const menuOutside = (e) => { if (!e.target.closest("#resort-menu, #resort-btn")) closeResortMenu(); };
+  function openResortMenu() {
+    const btn = $("#resort-btn"), m = document.createElement("div");
+    m.id = "resort-menu"; m.className = "resort-menu"; m.setAttribute("role", "dialog"); m.setAttribute("aria-label", "Resorts");
+    const rows = () => R.list.map((r) => `<div class="rm-row">
+        <button class="rm-pick" type="button" data-resort="${r.slug}"${r.slug === R.slug ? ' aria-current="true"' : ""}><span>${esc(r.name)}</span><strong class="num" data-snow="${r.slug}"></strong></button>
+        <button class="rm-star" type="button" data-star="${r.slug}" aria-pressed="${isFav(r.slug)}" aria-label="${isFav(r.slug) ? "Remove" : "Add"} ${esc(r.name)} ${isFav(r.slug) ? "from" : "to"} favorites">${STAR}</button>
+      </div>`).join("") + `<p class="small muted">Starred resorts stay in the top bar. The number is new snow in the last 24 hours.</p>`;
+    m.innerHTML = rows(); fillSnow(m);
+    m.addEventListener("click", (e) => {
+      const star = e.target.closest("[data-star]"), pick = e.target.closest("[data-resort]");
+      if (star) { toggleFav(star.dataset.star); const at = star.dataset.star; m.innerHTML = rows(); fillSnow(m); m.querySelector(`[data-star="${at}"]`)?.focus(); }
+      else if (pick) { closeResortMenu(); switchResort(pick.dataset.resort); }
     });
+    // Fixed to the page rather than inside the top bar, so its frosted blur shows the page behind it.
+    document.body.appendChild(m);
+    const br = btn.getBoundingClientRect();
+    m.style.top = `${Math.round(br.bottom + 8)}px`;
+    m.style.left = `${Math.round(Math.max(8, Math.min(br.left - 6, innerWidth - m.offsetWidth - 8)))}px`;
+    btn.setAttribute("aria-expanded", "true");
+    document.addEventListener("keydown", menuKey); document.addEventListener("pointerdown", menuOutside);
+    (m.querySelector('[aria-current="true"]') || m.querySelector(".rm-pick")).focus();
+  }
+  function wireResortMenu() {
+    const btn = $("#resort-btn"), h1 = $(".brand h1");
+    $("#home-btn").addEventListener("click", () => window.scrollTo({ top: 0 }));
+    if (!btn || R.list.length < 2) { if (h1) h1.textContent = resortInfo().name; return; }
+    btn.hidden = false; h1.hidden = true;
+    btn.addEventListener("click", () => ($("#resort-menu") ? closeResortMenu() : openResortMenu()));
+    $("#favs").addEventListener("click", (e) => { const t = e.target.closest("[data-resort]"); if (t) switchResort(t.dataset.resort); });
   }
 
   async function boot() {
@@ -1240,7 +1310,7 @@ ${tell}
     try { saved = localStorage.getItem("resort"); } catch (e) {}
     const linked = new URLSearchParams(location.search).get("resort");
     pickResort(linked || saved || DEFAULT_RESORT, !!linked);
-    wireResortSelect();
+    wireResortMenu();
     await loadResortData();
     route();
     window.addEventListener("hashchange", () => { window.scrollTo({ top: 0 }); route(); });
