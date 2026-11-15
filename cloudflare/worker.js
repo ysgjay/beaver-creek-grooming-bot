@@ -45,7 +45,7 @@ async function trigger(env, why, mode = "") {
   if (env.ADMIN_NTFY_TOPIC) {
     await fetch(`https://ntfy.sh/${env.ADMIN_NTFY_TOPIC}`, {
       method: "POST",
-      headers: { Title: "Snow Desk run failed", Tags: "warning", Priority: "4" },
+      headers: { Title: "Chair 0 run failed", Tags: "warning", Priority: "4" },
       body: `${why}: HTTP ${last.status} ${last.body}`.slice(0, 1000),
     }).catch(() => {});
   }

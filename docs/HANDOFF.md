@@ -1,4 +1,4 @@
-# Snow Desk (Colorado Vail resorts): handoff
+# Chair 0 (formerly Snow Desk, Colorado Vail resorts): handoff
 
 *Status as of Nov 15, 2026. Everything below is live, merged to `main`, and covered by 36 passing tests.*
 
@@ -6,7 +6,7 @@
 **Resorts:** Beaver Creek, Vail, Breckenridge, Keystone and Crested Butte, picked from the title in the app. Sources, layouts and what differs per resort: `docs/RESORTS.md`. Database schema: `docs/schema.sql`.
 
 A morning report for Beaver Creek skiers: the grooming map with the named runs, conditions, a multi-model snow forecast, and the snow stake cam.
-- **Who gets it:** people who opt in. Delivery is by email and by notifications from the Snow Desk app itself.
+- **Who gets it:** people who opt in. Delivery is by email and by notifications from the Chair 0 app itself.
 - **The app:** a phone-first web app with Today, Calendar, Forecast and Help tabs, at **https://snow.0xm.studio**.
 - **History:** every day is archived, and the Calendar shows the season's history.
 
@@ -27,6 +27,8 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
 - **Design process:** the 0xM "ideas scout" skill is run before mockups. For this app the owner chose the standard card layout over the scout's alternatives.
 
 ## Where everything runs (all free tiers)
+The app was renamed from Snow Desk to Chair 0 on 11/15/2026. Only user-facing text changed: the Vercel project, Blob store, Neon project and Cloudflare Worker all keep their `snow-desk` names, so nothing below moved. Brand sheet and style guide: see the project's Chair 0 brand artifact.
+
 | Piece | Service / ID | Notes |
 |---|---|---|
 | Code | GitHub `ysgjay/beaver-creek-grooming-bot`, branch `main` | GitHub only stores code and runs tests (`.github/workflows/ci.yml`). Pushing to `main` deploys production. |

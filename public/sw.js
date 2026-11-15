@@ -31,9 +31,9 @@ self.addEventListener("fetch", (e) => {
 // App notifications: the morning report (at most one a day; powder alerts ride along).
 self.addEventListener("push", (e) => {
   let d = {};
-  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: "Snow Desk", body: e.data ? e.data.text() : "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "Snow Desk", {
-    body: d.body || "", tag: d.tag || "snow-desk", icon: "/icon-512.png", badge: "/icon-180.png",
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: "Chair 0", body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Chair 0", {
+    body: d.body || "", tag: d.tag || "chair-0", icon: "/icon-512.png", badge: "/icon-180.png",
     image: d.image, data: { url: d.url || "/" },
   }));
 });
