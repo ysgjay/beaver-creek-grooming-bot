@@ -992,7 +992,7 @@
         const r = await fetch("/api/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, resorts: picked(v, "email-resort"), website: $("#website", v).value }) });
         const j = await r.json().catch(() => ({}));
         msg.textContent = j.message || (r.ok ? "Check your inbox for a confirmation link." : "Sign-up didn't work. Please try again.");
-        if (r.ok) input.value = "";
+        if (r.ok) { input.value = ""; setSignedUp("email", true); }
       } catch (err) { msg.textContent = "You seem to be offline. Try again when you have signal."; }
       btn.disabled = false;
     });
@@ -1041,6 +1041,7 @@
     };
     const render = async () => {
       const sub = await reg.pushManager.getSubscription();
+      setSignedUp("push", !!sub);
       const denied = Notification.permission === "denied";
       state.textContent = sub ? "On: you'll get the morning report, with any powder alert in it." : denied ? "Blocked in your browser settings." : "Off";
       btn.textContent = sub ? "Turn off" : "Turn on";
@@ -1119,19 +1120,8 @@ ${tell}
   }
   const picked = (v, name) => { const a = [...v.querySelectorAll(`input[name="${name}"]:checked`)].map((i) => i.value); return a.length ? a : [R.slug]; };
 
-  function viewHelp() {
-    const v = document.createElement("div");
-    v.className = "view v-help";
-    const c = S.cfg || {};
-    const q = new URLSearchParams(location.search).get("email");
-    const notice = q === "confirmed" ? `<p class="offline" role="status">You're subscribed. The report arrives at 7:00 each morning.</p>`
-      : q === "invalid" ? `<p class="offline" role="status">That confirmation link didn't work. Sign up again below.</p>` : "";
-    v.innerHTML = `
-      ${patrolCards()}
-
-      <section class="card">
-        <h2 id="alerts">Get the 7:00 report</h2>
-        ${notice}
+  // Email and notification sign-up, shared by the Help page and the top bar pop-up.
+  const signupBlocks = () => `
         <form id="email-form" class="signup" novalidate>
           <label for="email-input" class="label">Email, every morning</label>
           ${resortPicks("email-resort")}
@@ -1147,7 +1137,38 @@ ${tell}
           ${resortPicks("push-resort")}
           <div class="signup-row"><span class="small" id="push-state" style="flex:1">Checking…</span><button class="btn secondary" type="button" id="push-btn" hidden>Turn on</button></div>
           <p class="small muted" id="push-hint" style="margin:0"></p>
-        </div>
+        </div>`;
+
+  /* The top bar's sign-up button. It shows until this browser has asked for the email or turned on notifications. */
+  const cta = { push: false, email: false };
+  try { cta.email = localStorage.getItem("emailSignup") === "1"; } catch (e) {}
+  function setSignedUp(kind, on) {
+    cta[kind] = on;
+    if (kind === "email" && on) { try { localStorage.setItem("emailSignup", "1"); } catch (e) {} }
+    const b = $("#signup-btn"); if (b) b.hidden = cta.push || cta.email;
+  }
+  function openSignup() {
+    if ($("#alerts")) { $("#alerts").closest(".card").scrollIntoView({ block: "start" }); return; }   // already on the Help page
+    openSheet("Get the morning report", `<p class="small muted" style="margin:0">Grooming, new snow and the forecast for your resort, once each morning.</p>${signupBlocks()}`, (ov) => {
+      wireEmailForm(ov); wirePush(ov);
+      const i = $("#email-input", ov); if (i && matchMedia("(min-width: 900px)").matches) i.focus();
+    });
+  }
+
+  function viewHelp() {
+    const v = document.createElement("div");
+    v.className = "view v-help";
+    const c = S.cfg || {};
+    const q = new URLSearchParams(location.search).get("email");
+    const notice = q === "confirmed" ? `<p class="offline" role="status">You're subscribed. The report arrives at 7:00 each morning.</p>`
+      : q === "invalid" ? `<p class="offline" role="status">That confirmation link didn't work. Sign up again below.</p>` : "";
+    v.innerHTML = `
+      ${patrolCards()}
+
+      <section class="card">
+        <h2 id="alerts">Get the 7:00 report</h2>
+        ${notice}
+        ${signupBlocks()}
       </section>
 
       <section class="card">
@@ -1175,6 +1196,12 @@ ${tell}
     });
   }
   $("#theme-btn").addEventListener("click", showThemes);
+  $("#signup-btn").addEventListener("click", openSignup);
+  if (new URLSearchParams(location.search).get("email") === "confirmed") cta.email = true, setSignedUp("email", true);
+  setSignedUp("push", false);
+  (async () => { // a browser that already has notifications on doesn't need the button
+    try { const reg = await navigator.serviceWorker?.getRegistration(); const sub = await reg?.pushManager?.getSubscription(); if (sub) setSignedUp("push", true); } catch (e) {}
+  })();
   document.addEventListener("click", (e) => { const g = e.target.closest("[data-goto]"); if (g) S.goto = g.dataset.goto; });
 
   /* ---------------- routing ---------------- */
