@@ -104,10 +104,9 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
    - The personal cloud environment "beaver-creek-grooming-bot" is archived.
    - Facebook: no longer used, so the old app secret in git history was left as is.
 2. **Still to do by hand:** delete the old Telegram bot in @BotFather (`/deletebot`) and the old Telegram channel. Optionally delete the leftover GitHub secrets `GOOGLE_SHEET_ID`, `SMS_RECIPIENTS` and `TWILIO_*`, which nothing uses.
-3. **Web push:** see PR #4, which moves the VAPID private key into the Vercel env var `VAPID_PRIVATE_KEY`.
-4. **Optional:** add `ADMIN_NTFY_TOPIC` to the Worker to get a phone alert if a trigger fails.
-5. **Next season:** set each resort's opening day for 2027 (`opening_day` in `bcbot/resorts.py`, or the `OPENING_DAY*` env vars). Any date before it gets daily pre-season reports, so set it close to when you want those to begin. Also note that the crons are in UTC, so in daylight time the windows shift an hour later in local time.
-6. **Ideas parked as GitHub issues #1–3** (label `idea`): a one-sentence verdict at the top of Today, grouping groomed runs by mountain area, and the season shown as a snow pit.
-7. **Reference artifacts:**
+3. **Optional:** add `ADMIN_NTFY_TOPIC` to the Worker to get a phone alert if a trigger fails.
+4. **Next season:** set each resort's opening day for 2027 (`opening_day` in `bcbot/resorts.py`, or the `OPENING_DAY*` env vars). Any date before it gets daily pre-season reports, so set it close to when you want those to begin. Also note that the crons are in UTC, so in daylight time the windows shift an hour later in local time.
+5. **Ideas parked as GitHub issues #1–3** (label `idea`): a one-sentence verdict at the top of Today, grouping groomed runs by mountain area, and the season shown as a snow pit.
+6. **Reference artifacts:**
    - Theme gallery: https://claude.ai/artifact/JKiXvakBJAFPDMGPLnjcTN
    - Bluebird studies (finishes and chart designs): https://claude.ai/artifact/37NRmiA9Ksjsa5oS6afgYN
