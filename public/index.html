@@ -13,11 +13,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>
   // Set the colors and saved finish before first paint so there's no flash.
-  // Bluebird by day, Night Cat when the phone is in dark mode.
+  // Always Bluebird (light), even when the phone is in dark mode.
   (function () { var m = "frost";
     try { m = localStorage.getItem("material") || m; } catch (e) {}
-    var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    document.documentElement.dataset.theme = dark ? "nightcat" : "bluebird";
+    document.documentElement.dataset.theme = "bluebird";
     if (m !== "flat") document.documentElement.dataset.material = m; })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
