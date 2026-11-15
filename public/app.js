@@ -164,11 +164,12 @@
     return el;
   }
   const niceMax = (v) => [2, 4, 6, 8, 12, 16, 24, 36, 48].find((n) => n >= v) || 60;
-  // Day labels read month/day ("11/15"); weekends are bold. Narrow slots (phones) get a smaller size so ten fit.
-  const dayTick = (d) => { const dt = pd(d); return { wk: dt.getDay() === 0 || dt.getDay() === 6, label: `${dt.getMonth() + 1}/${dt.getDate()}` }; };
+  // Day labels read weekday over month/day ("Mon" above "11/15"); weekends are bold. Narrow slots (phones) get a smaller size so ten fit.
+  const dayTick = (d) => { const dt = pd(d); return { wk: dt.getDay() === 0 || dt.getDay() === 6, wd: WD[dt.getDay()], label: `${dt.getMonth() + 1}/${dt.getDate()}` }; };
+  const DAY_LINE = 12;   // the date sits this far under the weekday
   const tickSize = (slot) => (slot < 30 ? ' style="font-size:9px;letter-spacing:-.03em"' : slot < 36 ? ' style="font-size:10px"' : "");
   const val = (x) => (x >= 1 ? Math.round(x) : x >= 0.1 ? x.toFixed(1) : "0");
-  const dayLabels = (dates, x, y) => { const size = tickSize(dates.length > 1 ? x(1) - x(0) : 99); return dates.map((d, i) => { const t = dayTick(d); return `<text class="${t.wk ? "wk" : ""}" x="${x(i)}" y="${y}" text-anchor="middle"${size}>${t.label}</text>`; }).join(""); };
+  const dayLabels = (dates, x, y) => { const size = tickSize(dates.length > 1 ? x(1) - x(0) : 99); return dates.map((d, i) => { const t = dayTick(d); return `<text class="wd${t.wk ? " wk" : ""}" x="${x(i)}" y="${y}" text-anchor="middle"${size}>${t.wd}</text><text class="${t.wk ? "wk" : ""}" x="${x(i)}" y="${y + DAY_LINE}" text-anchor="middle"${size}>${t.label}</text>`; }).join(""); };
 
   // Today: ten days in one row. Cell color deepens with snow; number inside.
   function heatStrip(days) {
@@ -180,9 +181,9 @@
         const ink = t > 0.5 ? "var(--on-accent)" : "var(--ink)";
         s += `<rect x="${x}" y="0" width="${cw}" height="38" rx="7" fill="${fill}" tabindex="0" data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected, likely ${inch(d.low)}–${inch(d.high)}"/>`;
         s += `<text class="val" x="${x + cw / 2}" y="24" text-anchor="middle" style="fill:${ink};pointer-events:none">${d.snow < 0.1 ? "–" : val(d.snow)}</text>`;
-        s += `<text class="${k.wk ? "wk" : ""}" x="${x + cw / 2}" y="53" text-anchor="middle"${tickSize(cw + gap)}>${k.label}</text>`;
+        s += `<text class="wd${k.wk ? " wk" : ""}" x="${x + cw / 2}" y="52" text-anchor="middle"${tickSize(cw + gap)}>${k.wd}</text><text class="${k.wk ? "wk" : ""}" x="${x + cw / 2}" y="${52 + DAY_LINE}" text-anchor="middle"${tickSize(cw + gap)}>${k.label}</text>`;
       });
-      return [58, s];
+      return [69, s];
     }, "10-day snowfall, one cell per day");
   }
 
@@ -192,7 +193,7 @@
   // number gets its own row under the baseline, so short and tall days read the same way.
   function stakeChart(days, plotH, pick) {
     return mountChart((W) => {
-      const L = W < 340 ? 20 : 24, T = 20, ph = plotH || 168, base = T + ph, valY = base + 16, dateY = base + 32, H = dateY + 4;
+      const L = W < 340 ? 20 : 24, T = 20, ph = plotH || 168, base = T + ph, valY = base + 16, dateY = base + 31, H = dateY + DAY_LINE + 4;
       const slot = (W - L) / days.length, sw = Math.max(12, Math.min(30, slot * 0.5)), small = slot < 40;
       const max = niceMax(Math.max(4, ...days.map((d) => d.high ?? d.snow))), y = (v) => T + ph - (v / max) * ph, step = max / 4;
       let s = `<defs><pattern id="over" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="var(--accent-soft)"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--accent)" stroke-width="1.4" opacity=".45"/></pattern></defs>`;
@@ -227,7 +228,7 @@
   // Forecast detail: each dot is one model's call; the bar is the blend.
   function votesChart(days, labels) {
     return mountChart((W) => {
-      const H = 190, L = 24, T = 10, B = 22, ph = H - T - B, slot = (W - L) / days.length;
+      const H = 202, L = 24, T = 10, B = 34, ph = H - T - B, slot = (W - L) / days.length;
       const all = days.flatMap((d) => Object.values(d.models || {})).concat(days.map((d) => d.snow));
       const max = niceMax(Math.max(2, ...all)), y = (v) => T + ph - (v / max) * ph; let s = "";
       for (let v = 0; v <= max; v += max / 4) s += `<line class="grid" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 5}" y="${y(v) + 4}" text-anchor="end">${v}"</text>`;
@@ -238,7 +239,7 @@
         entries.forEach(([m, v], j) => { s += `<circle cx="${cx + (j - (entries.length - 1) / 2) * spread}" cy="${y(v)}" r="3.4" fill="var(--ink)" fill-opacity=".72" stroke="var(--surface)" stroke-width="1.2"/>`; });
         s += `<rect x="${cx - slot / 2}" y="0" width="${slot}" height="${H}" fill="transparent" tabindex="0" data-tip="${fmtDay(d.date)}. Blend ${inch(d.snow)}. ${entries.slice().reverse().map(([m, v]) => `${(labels[m] || m).split(" (")[0]} ${inch(v)}`).join(", ")}"/>`;
       });
-      return [H, s + dayLabels(days.map((d) => d.date), (i) => L + slot * i + slot / 2, H - 4)];
+      return [H, s + dayLabels(days.map((d) => d.date), (i) => L + slot * i + slot / 2, H - 4 - DAY_LINE)];
     }, "Model votes: each model's snowfall call per day");
   }
 
@@ -466,7 +467,7 @@
       card.innerHTML = `
         <div class="month-nav"><button type="button" data-step="-7" aria-label="Previous week">‹</button><h2>Week of ${fmtDay(weekStart)}</h2><button type="button" data-step="7" aria-label="Next week">›</button></div>
         <div class="stats">${statTiles}</div>
-        <div class="week-bars" aria-label="Snowfall by day">${wk.map((x) => `<div><span class="num">${x.s == null ? "–" : inch(x.s)}</span><span class="b" style="height:${((x.s || 0) / max) * 80}%"></span><span>${WD[pd(x.d).getDay()]}</span></div>`).join("")}</div>
+        <div class="week-bars" aria-label="Snowfall by day">${wk.map((x) => `<div><span class="num">${x.s == null ? "–" : inch(x.s)}</span><span class="b" style="height:${((x.s || 0) / max) * 80}%"></span><span class="wd">${WD[pd(x.d).getDay()]}</span><span class="dt">${dayTick(x.d).label}</span></div>`).join("")}</div>
         <div class="feed">${wk.slice().reverse().filter((x) => groomedRuns(x.r).length).map((x) => feedItem(x.d, x.r)).join("") || `<p class="muted small">No grooming reports this week.</p>`}</div>`;
       card.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => { C.sel = addDays(C.sel, +b.dataset.step); C.month = C.sel.slice(0, 7); route(); }));
     } else {
@@ -908,7 +909,7 @@
     const onKey = (e) => { if (e.key === "Escape") close(); };
     const onOutside = (e) => { if (pop && !pop.contains(e.target) && !e.target.closest(".day-hit")) close(); };
     const show = (i, hit) => {
-      const d = days[i], title = `Model votes, ${dayTick(d.date).label}`;
+      const d = days[i], title = `Model votes, ${fmtDay(d.date)}`;
       $("#tip").hidden = true;
       if (!matchMedia("(min-width: 900px)").matches) { close(); openSheet(title, body(d)); return; }
       if (open === i) return close();
@@ -981,7 +982,7 @@
           <div class="legend"><span><i style="background:var(--ink);opacity:.72;border-radius:50%"></i>One model's call</span><span><i style="background:var(--accent);height:4px;border-radius:2px"></i>Blend</span><span>Tight cluster = models agree</span></div>
         </details>
         <details><summary>Every model, day by day</summary>
-          <div class="scroll"><table><thead><tr><th>Model</th>${days.map((d) => `<th>${dayTick(d.date).label}</th>`).join("")}<th>Weight ×</th></tr></thead><tbody>
+          <div class="scroll"><table><thead><tr><th>Model</th>${days.map((d) => `<th><span class="th-wd">${dayTick(d.date).wd}</span>${dayTick(d.date).label}</th>`).join("")}<th>Weight ×</th></tr></thead><tbody>
             <tr><td><strong>Blend</strong></td>${days.map((d) => `<td><strong>${inch(d.snow)}</strong></td>`).join("")}<td></td></tr>
             ${(fc.models_used || []).map((m) => `<tr><td>${esc(labels[m] || m)}</td>${days.map((d) => `<td>${d.models?.[m] != null ? inch(d.models[m]) : "·"}</td>`).join("")}<td>${(vm[m]?.skill ?? 1).toFixed(2)}</td></tr>`).join("")}
           </tbody></table></div>
@@ -1000,7 +1001,7 @@
       </section>`;
     if (days.length) {
       // On wide screens the stakes grow to fill the card beside the radar.
-      const plotH = matchMedia(WIDE).matches ? Math.max(168, Math.min(380, innerHeight - 564)) : 168;
+      const plotH = matchMedia(WIDE).matches ? Math.max(168, Math.min(380, innerHeight - 564 - DAY_LINE)) : 168;
       $("#fc-chart", v).appendChild(stakeChart(days, plotH, true));
       $("#fc-votes", v).appendChild(votesChart(days, labels));
       dayVotes($(".a-ten", v), days, labels, (fc.models_used || []).length);
