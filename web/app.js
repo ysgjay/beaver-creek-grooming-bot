@@ -83,7 +83,7 @@
         s += `<line class="axis" x1="${cx - bw / 2}" x2="${cx + bw / 2}" y1="${base - 1}" y2="${base - 1}" style="stroke:var(--snow);stroke-width:2"/>`;
       }
       const labelY = Math.min(top, d.high != null ? y(d.high) : top) - 6;
-      s += `<text class="val" x="${cx}" y="${labelY}" text-anchor="middle">${d.snow >= 0.5 ? Math.round(d.snow) : "0"}</text>`;
+      s += `<text class="val" x="${cx}" y="${labelY}" text-anchor="middle">${d.snow >= 1 ? Math.round(d.snow) : d.snow >= 0.1 ? d.snow.toFixed(1) : "0"}</text>`;
       const dt = parseDate(d.date), wkend = dt.getDay() === 0 || dt.getDay() === 6;
       s += `<text class="day-wk${wkend ? " weekend" : ""}" x="${cx}" y="${H - B + 18}" text-anchor="middle">${WD[dt.getDay()]}</text>`;
       s += `<text class="${wkend ? "weekend" : ""}" x="${cx}" y="${H - B + 34}" text-anchor="middle">${dt.getDate()}</text>`;
