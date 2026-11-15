@@ -15,6 +15,7 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
   - **Phone (under 900px):** one column of cards with the bottom tab bar. Desktop work must leave this unchanged.
   - **900 to 1199px:** two columns of cards.
   - **1200px and wider:** full-width, map-led. The grooming map takes the left 62% of Today, tabs move into the top bar, and Today, Calendar and Forecast fit 1440 x 900 without scrolling. The rules are the two `@media` blocks at the end of `public/app.css`; each page's sections carry region classes (`a-groom`, `a-cond`, ...) set in `public/app.js`.
+- **Radar (Forecast tab):** past hour of NEXRAD and the next 12 hours of HRRR simulated radar, as image tiles from Iowa State's Mesonet (`mesonet.agron.iastate.edu/cache/tile.py`), over OpenStreetMap tiles. No map library and no key: `mountRadar()` in `public/app.js` lays out a fixed tile grid centred on the resort's `lat`/`lon` from `public/resorts.json`. Times show in the resort's time zone. Keep the map credit visible.
 - **Look:** the Bluebird theme with the Frost finish is the default. Ten themes and five finishes are available from the snowflake button.
 - **Charts:**
 

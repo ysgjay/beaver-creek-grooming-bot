@@ -44,7 +44,9 @@
     "checked": "11/15/2026"
    },
    "snotel": "Vail Mountain",
-   "site": "https://www.beavercreek.com"
+   "site": "https://www.beavercreek.com",
+   "lat": 39.5893,
+   "lon": -106.5214
   },
   {
    "slug": "vail",
@@ -79,7 +81,9 @@
    ],
    "patrol": null,
    "snotel": "Vail Mountain",
-   "site": "https://www.vail.com"
+   "site": "https://www.vail.com",
+   "lat": 39.6145,
+   "lon": -106.372
   },
   {
    "slug": "breckenridge",
@@ -109,7 +113,9 @@
    ],
    "patrol": null,
    "snotel": "Copper Mountain",
-   "site": "https://www.breckenridge.com"
+   "site": "https://www.breckenridge.com",
+   "lat": 39.479,
+   "lon": -106.082
   },
   {
    "slug": "keystone",
@@ -149,7 +155,9 @@
    ],
    "patrol": null,
    "snotel": "Grizzly Peak",
-   "site": "https://www.keystoneresort.com"
+   "site": "https://www.keystoneresort.com",
+   "lat": 39.596,
+   "lon": -105.945
   },
   {
    "slug": "crested-butte",
@@ -174,7 +182,9 @@
    ],
    "patrol": null,
    "snotel": "Butte",
-   "site": "https://www.skicb.com"
+   "site": "https://www.skicb.com",
+   "lat": 38.893,
+   "lon": -106.971
   }
  ]
 }

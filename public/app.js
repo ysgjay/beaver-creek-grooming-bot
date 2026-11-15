@@ -550,6 +550,96 @@
     });
   }
 
+  /* ---------------- RADAR ---------------- */
+  // No map library: a fixed grid of 256px map tiles, placed so the resort sits in the middle of the card.
+  // Past frames are NEXRAD composites and future frames are HRRR simulated radar, both from Iowa State's Mesonet tile cache.
+  const RADAR = { z: 7, cols: 4, rows: 3, src: "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", base: "https://tile.openstreetmap.org" };
+  const worldPx = (lat, lon, z) => { const n = 256 * 2 ** z, sn = Math.sin(lat * Math.PI / 180); return [(lon + 180) / 360 * n, (0.5 - Math.log((1 + sn) / (1 - sn)) / (4 * Math.PI)) * n]; };
+  function radarFrames(now) {
+    const p2 = (n) => String(n).padStart(2, "0");
+    const t0 = Math.floor(now / 300000) * 300000, out = [];
+    for (let m = 55; m >= 5; m -= 5) out.push({ t: t0 - m * 60000, layer: `nexrad-n0q-m${p2(m)}m`, kind: "Radar" });
+    out.push({ t: t0, layer: "nexrad-n0q", kind: "Radar, latest" });
+    // The newest HRRR run is ready about 50 minutes after the next hour starts, so a run two hours back is always there.
+    const init = Math.floor(now / 3600000 - 2) * 3600000, d = new Date(init);
+    const stamp = `${d.getUTCFullYear()}${p2(d.getUTCMonth() + 1)}${p2(d.getUTCDate())}${p2(d.getUTCHours())}00`;
+    for (let t = (Math.floor(t0 / 1800000) + 1) * 1800000, i = 0; i < 24; i++, t += 1800000) {
+      const f = Math.round((t - init) / 60000);
+      if (f > 1080) break;
+      out.push({ t, layer: `hrrr::REFD-F${String(f).padStart(4, "0")}-${stamp}`, kind: "Model forecast" });
+    }
+    return out;
+  }
+  function mountRadar(card) {
+    const r = resortInfo();
+    if (!card || r?.lat == null || r?.lon == null) { card?.remove(); return; }
+    const { z, cols, rows } = RADAR, [px, py] = worldPx(r.lat, r.lon, z);
+    const tx = Math.floor(px / 256), ty = Math.floor(py / 256);
+    const x0 = tx - (px / 256 - tx >= 0.5 ? 1 : 2), y0 = ty - 1;
+    const pos = `left:calc(50% - ${(px - x0 * 256).toFixed(1)}px);top:calc(50% - ${(py - y0 * 256).toFixed(1)}px)`;
+    const tiles = (url) => { let s = ""; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) s += `<img src="${url}/${z}/${x0 + i}/${y0 + j}.png" alt="" decoding="async" draggable="false">`; return s; };
+    const frames = radarFrames(Date.now()), nowIdx = frames.findIndex((f) => f.layer === "nexrad-n0q");
+    const fmt = new Intl.DateTimeFormat("en-US", { timeZone: r.timezone || S.cfg?.timezone || RESORT_TZ, month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" });
+    const dots = R.list.filter((o) => o.lat != null && o.lon != null).map((o) => {
+      const [ox, oy] = worldPx(o.lat, o.lon, z), me = o.slug === r.slug;
+      return `<span class="radar-dot${me ? " me" : ""}" style="left:calc(50% + ${(ox - px).toFixed(1)}px);top:calc(50% + ${(oy - py).toFixed(1)}px)">${me ? `<b>${esc(o.name)}</b>` : ""}</span>`;
+    }).join("");
+    card.innerHTML = `
+      <div class="card-head"><h2>Radar</h2><span class="muted small" id="radar-when" aria-live="polite"></span></div>
+      <div class="radar-map" id="radar-map">
+        <div class="radar-tiles radar-base" style="${pos}">${tiles(RADAR.base)}</div>
+        ${dots}
+        <span class="radar-attr">© OpenStreetMap · NOAA, Iowa State Mesonet</span>
+        <p class="radar-none muted small" id="radar-none" hidden>No radar image for this time.</p>
+      </div>
+      <div class="radar-ctl">
+        <button class="btn secondary" type="button" id="radar-play">Play</button>
+        <input type="range" id="radar-time" min="0" max="${frames.length - 1}" step="1" value="${nowIdx}" aria-label="Radar time, from an hour ago to 12 hours ahead">
+        <button class="btn secondary" type="button" id="radar-now">Now</button>
+      </div>
+      <p class="muted small radar-note">Slide left for the past hour of radar and right for the next 12 hours from the HRRR model. Mountains block the radar beam, so light snow on the hill can be missing.</p>`;
+    const map = $("#radar-map", card), slider = $("#radar-time", card), play = $("#radar-play", card), when = $("#radar-when", card), none = $("#radar-none", card);
+    map.querySelectorAll(".radar-base img").forEach((im) => im.addEventListener("error", () => { im.style.visibility = "hidden"; }));
+    const layers = new Map();
+    let cur = -1, timer = null;
+    const layerFor = (i) => {
+      if (layers.has(i)) return layers.get(i);
+      const el = document.createElement("div");
+      el.className = "radar-tiles radar-frame"; el.style.cssText = pos; el.innerHTML = tiles(`${RADAR.src}/${frames[i].layer}`);
+      el.failed = 0;
+      el.querySelectorAll("img").forEach((im) => im.addEventListener("error", () => { im.style.visibility = "hidden"; el.failed++; if (i === cur) none.hidden = el.failed < cols * rows; }));
+      map.insertBefore(el, map.querySelector(".radar-dot, .radar-attr"));
+      layers.set(i, el);
+      return el;
+    };
+    const show = (i) => {
+      const el = layerFor(i);
+      if (cur >= 0 && cur !== i) layers.get(cur).classList.remove("on");
+      el.classList.add("on"); cur = i;
+      none.hidden = el.failed < cols * rows;
+      slider.value = i;
+      const f = frames[i];
+      when.textContent = `${fmt.format(new Date(f.t)).replace(",", "")} · ${f.kind}`;
+      slider.setAttribute("aria-valuetext", when.textContent);
+    };
+    const stop = () => { clearInterval(timer); timer = null; play.textContent = "Play"; };
+    play.addEventListener("click", () => {
+      if (timer) return stop();
+      play.textContent = "Pause";
+      if (cur === frames.length - 1) show(0);
+      timer = setInterval(() => {
+        if (!card.isConnected) return stop();
+        const next = (cur + 1) % frames.length;
+        show(next);
+        layerFor((next + 1) % frames.length);   // start loading the frame after this one
+        if (next === frames.length - 1) stop();
+      }, 700);
+    });
+    slider.addEventListener("input", () => { stop(); show(Number(slider.value)); });
+    $("#radar-now", card).addEventListener("click", () => { stop(); show(nowIdx); });
+    show(nowIdx);
+  }
+
   /* ---------------- FORECAST ---------------- */
   function viewForecast() {
     const v = document.createElement("div");
@@ -576,6 +666,8 @@
         <div class="legend"><span><i style="background:var(--ink);opacity:.72;border-radius:50%"></i>One model's call</span><span><i style="background:var(--accent);height:4px;border-radius:2px"></i>Blend</span><span>Tight cluster = models agree</span></div>
       </section>
 
+      <section class="card a-radar" id="radar-card"></section>
+
       <section class="card a-hours">
         <div class="card-head"><h2>Next 12 hours</h2>${bands.length ? `<span class="muted small">${bands.map((b) => `${esc(b.label)} ${bandFt(b)}`).join(" · ")}</span>` : ""}</div>
         <div class="scroll"><table><thead><tr><th>Hour</th>${bands.length ? bands.map((b) => `<th>${esc(b.label)}</th>`).join("") : "<th>Temp</th>"}<th>Feels</th><th>Wind</th><th>Gust</th><th>Snow</th><th>Cloud</th></tr></thead><tbody>
@@ -584,7 +676,7 @@
       </section>
 
       <section class="card a-more">
-        <details${matchMedia(WIDE).matches ? " open" : ""}><summary>Every model, day by day</summary>
+        <details><summary>Every model, day by day</summary>
           <div class="scroll"><table><thead><tr><th>Model</th>${days.map((d) => `<th>${dayTick(d.date).label}</th>`).join("")}<th>Weight ×</th></tr></thead><tbody>
             <tr><td><strong>Blend</strong></td>${days.map((d) => `<td><strong>${inch(d.snow)}</strong></td>`).join("")}<td></td></tr>
             ${(fc.models_used || []).map((m) => `<tr><td>${esc(labels[m] || m)}</td>${days.map((d) => `<td>${d.models?.[m] != null ? inch(d.models[m]) : "·"}</td>`).join("")}<td>${(vm[m]?.skill ?? 1).toFixed(2)}</td></tr>`).join("")}
@@ -606,6 +698,7 @@
       $("#fc-chart", v).appendChild(stakeChart(days));
       $("#fc-votes", v).appendChild(votesChart(days, labels));
     }
+    mountRadar($("#radar-card", v));
     return v;
   }
 

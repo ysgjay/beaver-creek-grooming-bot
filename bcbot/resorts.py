@@ -158,5 +158,5 @@ def public_list():
     for slug in enabled():
         r = get(slug)
         out.append({"slug": slug, "name": r["name"], "timezone": r["tz"], "cams": r["cams"], "patrol": r["patrol"],
-                    "snotel": r["snotel_label"], "site": r["site"]})
+                    "snotel": r["snotel_label"], "site": r["site"], "lat": r["lat"], "lon": r["lon"]})
     return {"default": DEFAULT, "resorts": out}
