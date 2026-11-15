@@ -39,10 +39,24 @@ _SECTIONS = {
     "LAST NIGHT'S GROOMING": "overnight",
     "MORNING GROOMING": "morning",
 }
-_DATE = re.compile(r"^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$")
+_DATE = re.compile(r"^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}"
+                   r"(?: \d{1,2}:\d{2} ?[AP]M)?$")
 
 
 _NUM_NAME = re.compile(r"^(\d{1,3})[\s\u00a0]+(\S.*)$")
+
+
+def _split_pairs(ln):
+    """Park City's sheet can put two runs on one line: "1 Snow Dancer 2 Mellow Moose".
+    A number only starts a new run when it is the next pin number, so names with digits stay whole."""
+    tokens, runs, num = ln.split(), [], None
+    for t in tokens:
+        if t.isdigit() and (num is None or int(t) == num + 1) and (not runs or runs[-1][1]):
+            num = int(t)
+            runs.append([num, []])
+        elif runs:
+            runs[-1][1].append(t)
+    return [" ".join(words) for _n, words in runs if words]
 
 
 def _parse_area_layout(lines):
@@ -52,7 +66,7 @@ def _parse_area_layout(lines):
         ln = ln.replace("\u00a0", " ").strip()
         m = _NUM_NAME.match(ln)
         if m:
-            areas.setdefault(area or "Groomed", []).append(m.group(2).strip())
+            areas.setdefault(area or "Groomed", []).extend(_split_pairs(ln))
         elif _DATE.match(ln) or ln.isdigit():
             continue
         elif ln.isupper() and len(ln) <= 40:

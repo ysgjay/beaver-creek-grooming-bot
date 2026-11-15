@@ -1,5 +1,6 @@
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 
 import pymupdf
 import pytest
@@ -947,13 +948,15 @@ def test_every_resort_is_complete():
         assert [b["key"] for b in r["bands"]] == ["base", "mid", "peak"] and fts == sorted(fts), slug
         assert fts[0] < r["elevation_ft"] <= fts[2], slug          # forecast point is on the mountain
         assert r["snotel"] and r["tz"] == "America/Denver" and r["opening_day"], slug
-        assert r["snow_report"].startswith(r["site"] + "/the-mountain/mountain-conditions/"), slug
+        assert r["region"] in ("Colorado", "Utah") and r["pass"] in ("Epic", "Ikon"), slug
+        if r["snow_report"]:  # Vail-platform resorts; the others' reports aren't read yet
+            assert r["snow_report"].startswith(r["site"] + "/the-mountain/mountain-conditions/"), slug
 
 
 def test_resorts_running_at_once_never_share_settings():
     """Vercel runs concurrent requests in one process: each must keep its own resort's config."""
     import threading
-    barrier, seen = threading.Barrier(5), {}
+    barrier, seen = threading.Barrier(len(resorts.RESORTS)), {}
 
     def work(slug):
         config.use(slug)
@@ -966,3 +969,39 @@ def test_resorts_running_at_once_never_share_settings():
     for slug, (got, pdf, lat, snotel) in seen.items():
         r = resorts.get(slug)
         assert got == slug and pdf == r["grooming_pdf"] and lat == r["lat"] and list(snotel) == r["snotel"]
+
+
+def test_colorado_and_utah_are_covered():
+    names = {resorts.get(s)["name"] for s in resorts.enabled()}
+    for n in ("Park City", "Telluride", "Snowmass", "Steamboat", "Winter Park", "Copper Mountain",
+              "Arapahoe Basin", "Deer Valley", "Alta", "Snowbird", "Snowbasin", "Brighton", "Solitude"):
+        assert n in names
+    assert resorts.get("park-city")["snow_report"].endswith("/weather-report.aspx")
+    assert resorts.get("alta")["snow_report"] is None and resorts.is_static("alta")
+    assert not resorts.is_static("park-city") and not resorts.is_static("breckenridge")
+
+
+def test_unread_snow_report_is_skipped(monkeypatch):
+    config.use("alta")
+    monkeypatch.setattr(resort, "get", lambda *a, **k: (_ for _ in ()).throw(AssertionError("fetched")))
+    assert resort.fetch() == {}
+
+
+def test_static_resorts_only_run_on_the_half_hour():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("api_run", Path(__file__).resolve().parent.parent / "api" / "run.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    slugs = ["beaver-creek", "alta", "park-city"]
+    at = lambda m: datetime(2026, 11, 20, 12, m, tzinfo=timezone.utc)
+    assert mod.due(slugs, now=at(5)) == ["beaver-creek", "park-city"]
+    assert mod.due(slugs, now=at(30)) == slugs and mod.due(slugs, now=at(0)) == slugs
+    assert mod.due(slugs, force=True, now=at(5)) == slugs
+    assert mod.due(slugs, user_agent="vercel-cron/1.0", now=at(5)) == slugs
+
+
+def test_park_city_two_runs_per_line():
+    out = grooming.parse_runs(["November 3, 2026 06:24 AM", "1 Snow Dancer 2 Mellow Moose", "3 Sweet Pea", "4 Kokopelli", "2", "41"])
+    assert out["groomed"] == ["Snow Dancer", "Mellow Moose", "Sweet Pea", "Kokopelli"]
+    assert out["map_date"] == "November 3, 2026 06:24 AM"
+    assert grooming.parse_runs(["MID-VAIL", "9 Highline 10 Lane 2", "11 Run 7 Up"])["groomed"] == ["Highline", "Lane 2", "Run 7 Up"]

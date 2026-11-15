@@ -64,6 +64,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .rm-star[aria-pressed="true"] { color: var(--accent); }
 .rm-star[aria-pressed="true"] svg { fill: currentColor; }
 .resort-menu p { margin: 6px 12px 8px; }
+.rm-region { margin: 10px 12px 2px; font-size: 12px; }
+.rm-region:first-child { margin-top: 4px; }
 .favs { order: 9; flex: 1 0 100%; display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .favs::-webkit-scrollbar { display: none; }
 .fav-tile { flex: none; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
@@ -73,6 +75,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .resort-picks { border: 0; padding: 0; margin: 4px 0 8px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .resort-picks legend { padding: 0; margin-bottom: 2px; }
 .resort-picks label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; min-height: 32px; }
+.more-resorts { flex-basis: 100%; }
+.more-resorts summary { cursor: pointer; font-size: 14px; min-height: 32px; display: flex; align-items: center; color: var(--accent, inherit); }
+.pick-group { display: flex; flex-wrap: wrap; gap: 0 14px; align-items: center; margin: 2px 0 4px; }
+.pick-group > span { flex-basis: 100%; }
 .brand .sub { font-size: 13px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .icon-btn { flex: none; width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; }
 .icon-btn svg { width: 22px; height: 22px; }

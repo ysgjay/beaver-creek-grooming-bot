@@ -385,7 +385,7 @@
       </section>
 
       <section class="card a-cam" aria-labelledby="h-cam">
-        <div class="card-head"><h2 id="h-cam">Snow stake</h2><span class="muted small">Tap to switch cams</span></div>
+        <div class="card-head"><h2 id="h-cam">${/stake/i.test(resortInfo().cams?.[0]?.label || "") || L.cam ? "Snow stake" : "Cams"}</h2>${resortInfo().cams?.length ? `<span class="muted small">Tap to switch cams</span>` : ""}</div>
         <div id="cams"></div>
       </section>
       <a class="btn secondary block a-cta" href="#help" data-goto="alerts">Get this report at 7:00 by email or notification</a>`;
@@ -402,7 +402,11 @@
     const minute = Math.floor(Date.now() / 60000);
     const items = cams.map((c) => ({ label: c.label, src: `${c.image}?t=${minute}`, live: c.live }));
     if (L?.cam) items.splice(1, 0, { label: `Stake at ${(L.generated || "").slice(11, 16) || "report"}`, src: "/" + L.cam, live: null });
-    if (!items.length) { el.innerHTML = `<p class="muted">No cams configured.</p>`; return; }
+    if (!items.length) {
+      const r = resortInfo();
+      el.innerHTML = `<p class="muted" style="margin:0">Snow Desk doesn't show ${esc(r.name)}'s cams yet. ${r.site ? `<a class="link" href="${esc(r.site)}" target="_blank" rel="noopener">See them on the resort's site</a>.` : ""}</p>`;
+      return;
+    }
     let sel = 0;
     const draw = () => {
       const c = items[sel];
@@ -1158,10 +1162,22 @@ ${tell}
   }
 
   // Which resorts' reports to get (email and app notifications). Starts with the one on screen.
+  // Resorts grouped by state, in the order resorts.json lists them.
+  function byRegion(list) {
+    const groups = new Map();
+    for (const r of list) { const k = r.region || "Colorado"; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
+    return [...groups];
+  }
+
+  // The resort being viewed is ticked; the rest sit behind "More resorts" so the form stays short.
   function resortPicks(name) {
     if (R.list.length < 2) return "";
-    return `<fieldset class="resort-picks"><legend class="label">Resorts</legend>${R.list.map((r) =>
-      `<label><input type="checkbox" name="${name}" value="${r.slug}"${r.slug === R.slug ? " checked" : ""}> ${esc(r.name)}</label>`).join("")}</fieldset>`;
+    const box = (r) => `<label><input type="checkbox" name="${name}" value="${r.slug}"${r.slug === R.slug ? " checked" : ""}> ${esc(r.name)}</label>`;
+    const here = R.list.find((r) => r.slug === R.slug) || R.list[0];
+    const others = byRegion(R.list.filter((r) => r !== here));
+    return `<fieldset class="resort-picks"><legend class="label">Resorts</legend>${box(here)}
+      <details class="more-resorts"><summary>More resorts</summary>${others.map(([region, list]) =>
+        `<div class="pick-group"><span class="small muted">${esc(region)}</span>${list.map(box).join("")}</div>`).join("")}</details></fieldset>`;
   }
   const picked = (v, name) => { const a = [...v.querySelectorAll(`input[name="${name}"]:checked`)].map((i) => i.value); return a.length ? a : [R.slug]; };
 
@@ -1288,10 +1304,12 @@ ${tell}
   function openResortMenu() {
     const btn = $("#resort-btn"), m = document.createElement("div");
     m.id = "resort-menu"; m.className = "resort-menu"; m.setAttribute("role", "dialog"); m.setAttribute("aria-label", "Resorts");
-    const rows = () => R.list.map((r) => `<div class="rm-row">
+    const row = (r) => `<div class="rm-row">
         <button class="rm-pick" type="button" data-resort="${r.slug}"${r.slug === R.slug ? ' aria-current="true"' : ""}><span>${esc(r.name)}</span><strong class="num" data-snow="${r.slug}"></strong></button>
         <button class="rm-star" type="button" data-star="${r.slug}" aria-pressed="${isFav(r.slug)}" aria-label="${isFav(r.slug) ? "Remove" : "Add"} ${esc(r.name)} ${isFav(r.slug) ? "from" : "to"} favorites">${STAR}</button>
-      </div>`).join("") + `<p class="small muted">Starred resorts stay in the top bar. The number is new snow in the last 24 hours.</p>`;
+      </div>`;
+    const rows = () => byRegion(R.list).map(([region, list]) => `<h3 class="rm-region label">${esc(region)}</h3>${list.map(row).join("")}`).join("")
+      + `<p class="small muted">Starred resorts stay in the top bar. The number is new snow in the last 24 hours.</p>`;
     m.innerHTML = rows(); fillSnow(m);
     m.addEventListener("click", (e) => {
       const star = e.target.closest("[data-star]"), pick = e.target.closest("[data-resort]");

@@ -31,6 +31,18 @@ def _ok(result):
     return result.get("status") == "skipped" or bool(result.get("ok"))
 
 
+def due(slugs, force=False, user_agent="", now=None):
+    """Which resorts this tick should run. Resorts with nothing to watch between refreshes
+    (no grooming map, no snow report that's read) only need the ticks on the hour and half
+    hour, which still cover every refresh and the 7:00 send. That keeps the free plans'
+    request counts low as resorts are added. Vercel's own backup cron always runs them all."""
+    if force or "vercel-cron" in user_agent.lower():
+        return list(slugs)
+    from datetime import datetime, timezone
+    minute = (now or datetime.now(timezone.utc)).minute
+    return [s for s in slugs if minute % 30 < 2 or not resorts.is_static(s)]
+
+
 class handler(BaseHTTPRequestHandler):
     def _go(self):
         secret = os.environ.get("CRON_SECRET", "")
@@ -57,7 +69,9 @@ class handler(BaseHTTPRequestHandler):
             return self._reply(500, {"status": "error", "error": str(e)})
 
     def _fan_out(self, auth, force):
-        slugs = resorts.enabled()
+        slugs = due(resorts.enabled(), force, self.headers.get("User-Agent", ""))
+        if not slugs:
+            return {}
         host = urlsplit(config.DASHBOARD_URL).netloc  # never the request's Host: the secret goes along
         # Production: one function call per resort, in parallel. Previews sit behind Vercel
         # login protection (a self-call would bounce), so they run the resorts in this call.
