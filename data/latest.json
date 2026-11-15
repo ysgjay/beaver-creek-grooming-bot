@@ -1,6 +1,6 @@
 {
  "date": "2026-11-14",
- "generated": "2026-11-14T22:00-07:00",
+ "generated": "2026-11-14T22:02-07:00",
  "grooming": {
   "new_map": true,
   "image": "data/maps/2026-11-14.jpg",
@@ -347,6 +347,6 @@
   "base_in": 4.0,
   "season_in": 10.0
  },
- "cam": null,
+ "cam": "data/cams/2026-11-14.jpg",
  "errors": []
 }
