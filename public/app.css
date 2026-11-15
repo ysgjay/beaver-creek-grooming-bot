@@ -194,13 +194,13 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .radar-legend[hidden] { display: none; }
 .radar-legend i { width: 60px; height: 8px; border-radius: 4px; }
 .radar-map.dark .radar-dot b { background: rgba(24,40,63,.92); }
-.radar-map.dark .radar-dot.me b { background: var(--radar-pin); color: #17120a; }
+.radar-map.dark .radar-dot.me b { background: var(--radar-pin); }
 .radar-map.dark .radar-legend { background: rgba(24,40,63,.9); color: #eaf1f8; }
-/* Every resort is a maroon ring, open in the middle so the radar under it stays visible. The selected one is filled. */
-.radar-dot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; border: 2.5px solid var(--radar-pin, #7b1e2e); background: rgba(255,255,255,.35); box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
-.radar-dot.me { z-index: 1; background: var(--radar-pin, #7b1e2e); box-shadow: 0 0 0 2px #fff, 0 0 0 7px color-mix(in srgb, var(--radar-pin, #7b1e2e) 22%, transparent); }
-.radar-dot b { position: absolute; padding: 0 5px; border-radius: 5px; background: rgba(255,255,255,.9); color: var(--radar-pin, #7b1e2e); font-size: 11px; font-weight: 600; line-height: 15px; white-space: nowrap; }
-.radar-dot.me b { background: var(--radar-pin, #7b1e2e); color: #fff; }
+/* Every resort is a ring in the theme's ink colour, open in the middle so the radar under it stays visible. The selected one is filled. */
+.radar-dot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; border: 2.5px solid var(--radar-pin, var(--ink)); background: rgba(255,255,255,.35); box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); }
+.radar-dot.me { z-index: 1; background: var(--radar-pin, var(--ink)); box-shadow: 0 0 0 2px #fff, 0 0 0 7px color-mix(in srgb, var(--radar-pin, var(--ink)) 22%, transparent); }
+.radar-dot b { position: absolute; padding: 0 5px; border-radius: 5px; background: rgba(255,255,255,.9); color: var(--radar-pin, var(--ink)); font-size: 11px; font-weight: 600; line-height: 15px; white-space: nowrap; }
+.radar-dot.me b { background: var(--radar-pin, var(--ink)); color: var(--radar-pin-text, #fff); }
 .radar-dot b.n { left: 50%; bottom: 11px; transform: translateX(-50%); }
 .radar-dot b.s { left: 50%; top: 11px; transform: translateX(-50%); }
 .radar-dot b.e { left: 11px; top: 50%; transform: translateY(-50%); }

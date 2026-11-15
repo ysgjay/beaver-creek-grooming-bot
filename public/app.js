@@ -595,21 +595,18 @@
   const rgbOf = (c) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(c).trim()); const n = m ? parseInt(m[1], 16) : 0x808080; return [n >> 16, (n >> 8) & 255, n & 255]; };
   const hexOf = (c) => "#" + c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
   const mixRgb = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
-  const MAROON = [123, 30, 46];
   function radarPalette() {
     const cs = getComputedStyle(document.documentElement), v = (n) => rgbOf(cs.getPropertyValue(n));
     const bg = v("--bg"), ink = v("--ink"), white = [255, 255, 255], black = [0, 0, 0];
-    let accent = v("--accent");
+    const accent = v("--accent");
     const dark = (0.299 * bg[0] + 0.587 * bg[1] + 0.114 * bg[2]) < 110;
-    // The resort markers are maroon, so a maroon theme accent would hide them in the radar: use blue there.
-    if (Math.hypot(...accent.map((c, i) => c - MAROON[i])) < 60) accent = [10, 91, 211];
     const ramp = dark
       ? [mixRgb(bg, accent, 0.36), mixRgb(bg, accent, 0.55), mixRgb(bg, accent, 0.75), mixRgb(bg, accent, 0.92), mixRgb(accent, white, 0.4)]
       : [mixRgb(white, accent, 0.3), mixRgb(white, accent, 0.5), mixRgb(white, accent, 0.72), accent, mixRgb(accent, black, 0.35)];
     const map = dark
       ? { land: bg, hills: mixRgb(bg, ink, 0.07), water: mixRgb(bg, black, 0.35), roads: mixRgb(bg, ink, 0.26), lines: mixRgb(bg, ink, 0.14), labels: mixRgb(bg, ink, 0.66), halo: bg }
       : { land: mixRgb(bg, white, 0.55), hills: mixRgb(bg, white, 0.12), water: mixRgb(bg, ink, 0.07), roads: mixRgb(bg, ink, 0.24), lines: mixRgb(bg, ink, 0.1), labels: mixRgb(bg, ink, 0.68), halo: mixRgb(bg, white, 0.55) };
-    return { dark, ramp, map: Object.fromEntries(Object.entries(map).map(([k, c]) => [k, hexOf(c)])), pin: dark ? hexOf(accent) : hexOf(MAROON) };
+    return { dark, ramp, map: Object.fromEntries(Object.entries(map).map(([k, c]) => [k, hexOf(c)])), pin: hexOf(ink), pinText: hexOf(dark ? bg : white) };   // markers in the theme's ink, so they stand apart from the accent-coloured radar
   }
   // How strong an echo is, 0 to 1, from its colour in the standard radar palette. That palette runs
   // cyan, blue, green, yellow, orange, red, magenta, and is not ordered by brightness, so this goes by hue.
@@ -702,7 +699,7 @@
     radarRamp = pal.ramp;
     card.innerHTML = `
       <div class="card-head"><h2>Radar</h2><span class="muted small" id="radar-when" aria-live="polite"></span></div>
-      <div class="radar-map${pal.dark ? " dark" : ""}" id="radar-map" style="--radar-land:${pal.map.land};--radar-pin:${pal.pin}">
+      <div class="radar-map${pal.dark ? " dark" : ""}" id="radar-map" style="--radar-land:${pal.map.land};--radar-pin:${pal.pin};--radar-pin-text:${pal.pinText}">
         <span class="radar-legend" id="radar-legend" hidden>Light <i style="background:linear-gradient(90deg, ${pal.ramp.map(hexOf).join(", ")})"></i> Heavy</span>
         <p class="radar-none muted small" id="radar-none" hidden>No radar image for this time.</p>
       </div>
