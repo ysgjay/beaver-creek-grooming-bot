@@ -174,3 +174,15 @@ details.table-view[open] summary { margin-bottom: 8px; }
 @media (prefers-reduced-motion: no-preference) {
   .chart .bar { transition: filter 0.15s; }
 }
+
+/* Groomed runs */
+.runs { display: flex; flex-direction: column; gap: 8px; }
+.runs h3 { margin: 0 0 4px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+.runs ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.runs li { padding: 3px 10px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); font-size: 13px; }
+.top-runs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.top-runs li { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr) 2.5rem; align-items: center; gap: 10px; font-size: 14px; }
+.top-runs .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top-runs .track { height: 8px; border-radius: 4px; background: var(--grid); overflow: hidden; }
+.top-runs .fill { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--groomed); }
+.top-runs .n { text-align: right; font-family: var(--font-data); font-size: 13px; color: var(--ink-2); }

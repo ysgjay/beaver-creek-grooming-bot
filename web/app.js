@@ -150,6 +150,27 @@
       $("map-date").textContent = "";
     }
   }
+  function renderRuns(day) {
+    const r = (day.grooming && day.grooming.runs) || {};
+    const groups = [["Groomers of the day", r.groomers_of_the_day], ["Groomed overnight", r.overnight], ["Morning grooming", r.morning]]
+      .filter(([, list]) => list && list.length);
+    $("runs").innerHTML = groups.map(([title, list]) =>
+      `<div><h3>${title}</h3><ul>${list.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></div>`).join("") +
+      (r.map_date ? `<p class="muted small">Map dated ${esc(r.map_date)}</p>` : "");
+  }
+
+  function renderTopRuns() {
+    const days = ((index && index.days) || []).slice(0, 30);
+    const counts = {};
+    days.forEach((d) => (d.groomed || []).forEach((n) => { counts[n] = (counts[n] || 0) + 1; }));
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 10);
+    $("top-runs-panel").hidden = !top.length;
+    if (!top.length) return;
+    const max = top[0][1];
+    $("top-runs").innerHTML = top.map(([n, c]) =>
+      `<li><span class="name" title="${esc(n)}">${esc(n)}</span><span class="track"><span class="fill" style="width:${(100 * c / max).toFixed(0)}%"></span></span><span class="n">${c}×</span></li>`).join("");
+  }
+
   $("map-open").addEventListener("click", () => {
     $("lightbox-img").src = $("map").src;
     $("lightbox").hidden = false;
@@ -203,7 +224,7 @@
     const days = (index && index.days) || [];
     $("archive").innerHTML = days.map((d) =>
       `<li class="${d.date === current ? "current" : ""}"><a href="#day-${d.date}"><span><span class="dot${d.new_map ? "" : " none"}"></span>${fmtDay(d.date)}</span>` +
-      `<span class="meta">${d.resort_24h ?? d.snow_24h ?? 0}" fell · ${inches(d.next_1_5)} next 5d</span></a></li>`).join("") ||
+      `<span class="meta">${d.groomed ? d.groomed.length + " runs · " : ""}${d.resort_24h ?? d.snow_24h ?? 0}" fell · ${inches(d.next_1_5)} next 5d</span></a></li>`).join("") ||
       '<li class="muted small">The archive fills in one report per day.</li>';
   }
 
@@ -234,6 +255,7 @@
     renderChart(day);
     renderModelsTable(day);
     renderMap(day);
+    renderRuns(day);
     renderHourly(day);
     renderCams(day);
     renderArchive(day.date);
@@ -253,6 +275,7 @@
       return;
     }
     renderVerify();
+    renderTopRuns();
     renderSubscribe();
     route();
     window.addEventListener("hashchange", route);

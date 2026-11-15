@@ -82,6 +82,7 @@
         <img id="map" alt="Beaver Creek grooming map" loading="eager">
       </button>
       <p id="map-none" class="muted" hidden>No grooming map archived for this day.</p>
+      <div id="runs" class="runs"></div>
       <p class="muted small">Tap to zoom. Source: Beaver Creek / Lumiplan grooming report.</p>
     </section>
 
@@ -105,6 +106,11 @@
       </div>
       <div class="scroll"><table id="verify" class="verify"></table></div>
       <p id="verify-empty" class="muted small" hidden>Scores appear after a few days of forecasts are archived and the SNOTEL station reports.</p>
+    </section>
+
+    <section class="panel" id="top-runs-panel" hidden>
+      <div class="panel-head"><h2>Most-groomed runs</h2><span class="muted small">Last 30 reports</span></div>
+      <ol id="top-runs" class="top-runs"></ol>
     </section>
 
     <section class="panel">
