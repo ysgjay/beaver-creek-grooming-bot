@@ -171,6 +171,45 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .contact:last-child { border-bottom: 0; }
 .contact .n { font-family: var(--font-data); white-space: nowrap; }
 
+/* Forecast: the next 12 hours as one strip. Each hour stacks snow, then the temperatures from peak down to base, then wind. */
+.hstrip { display: grid; grid-auto-flow: column; grid-template-columns: max-content; grid-auto-columns: minmax(50px, 1fr); overflow-x: auto; scrollbar-width: thin; font-variant-numeric: tabular-nums; }
+.hs-col { display: flex; flex-direction: column; align-items: center; border-left: 1px solid var(--line); border-radius: 0; }
+.hs-col:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.hs-labels { position: sticky; left: 0; z-index: 1; align-items: flex-start; padding-right: 10px; border-left: 0; background: var(--surface); color: var(--ink-2); font-size: 12px; }
+.hs-col > span { display: flex; align-items: center; white-space: nowrap; }
+.hs-col .t { height: 18px; font-size: 12px; color: var(--ink-2); }
+.hs-col .sn { height: 32px; flex-direction: column; justify-content: flex-end; }
+.hs-labels .sn { justify-content: center; }
+.hs-col .sn b { font-size: 11px; line-height: 1; margin-bottom: 2px; color: var(--accent); }
+.hs-col .sn i { width: 22px; border-radius: 3px 3px 0 0; background: var(--line); }
+.hs-col .sn i.on { background: var(--accent); }
+.hs-col .tmp { height: 18px; font-size: 13px; color: var(--ink-2); }
+.hs-col .mid { height: 22px; font-family: var(--font-display); font-weight: var(--display-weight); font-size: 18px; }
+.hs-labels .tmp, .hs-labels .mid { font-family: inherit; font-size: 12px; }
+.hs-labels .mid { font-weight: 600; color: var(--ink); }
+.hs-col .w { height: 20px; font-size: 12px; }
+
+/* Forecast: each day in the 10-day chart is a button for that day's model votes. */
+.day-hit { cursor: pointer; }
+.day-hit:hover { fill: color-mix(in srgb, var(--accent) 7%, transparent); }
+.day-hit.sel { fill: color-mix(in srgb, var(--accent) 11%, transparent); stroke: var(--accent); stroke-width: 1.5; }
+.day-hit:focus-visible { outline: none; stroke: var(--accent); stroke-width: 2; }
+.pick-hint { margin-left: auto; color: var(--ink); }
+.a-ten { position: relative; }
+.votes-pop { position: absolute; z-index: 5; width: min(320px, calc(100% - 16px)); padding: 12px 14px; border-radius: 14px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 12px 32px rgba(0,0,0,.28); }
+.votes-pop p, .sheet .vp-rows + p { margin: 6px 0 0; }
+.vp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.vp-head h3 { margin: 0; }
+.vp-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 17px; line-height: 1; cursor: pointer; }
+.vp-rows { margin-top: 6px; }
+.vp-row { display: grid; grid-template-columns: minmax(0, 122px) 1fr 38px; align-items: center; gap: 8px; min-height: 22px; font-size: 13px; }
+.vp-row > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vp-row .num { text-align: right; }
+.vp-row.blend { font-weight: 700; }
+.vp-bar { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.vp-bar i { display: block; height: 100%; border-radius: 4px; background: var(--ink-2); opacity: .7; }
+.vp-row.blend .vp-bar i { background: var(--accent); opacity: 1; }
+
 /* Radar card on the Forecast tab: a fixed tile grid centred on the resort. */
 .radar-map { position: relative; width: 100%; height: 260px; max-width: 768px; margin-inline: auto; overflow: hidden; border-radius: 10px; border: 1px solid var(--line); background: var(--radar-land, #e6eff8); }
 /* Frost base map: the street map drained to one pale blue tone, so only the radar and the resorts carry colour. */
@@ -315,6 +354,7 @@ html[data-material="frost"] .snow-grid > div, html[data-material="frost"] .cond 
 }
 html[data-material="glass"] .snow-grid, html[data-material="glass"] .cond, html[data-material="glass"] .stats,
 html[data-material="frost"] .snow-grid, html[data-material="frost"] .cond, html[data-material="frost"] .stats { background: rgba(255,255,255,.12); }
+html[data-material="glass"] .hs-labels, html[data-material="frost"] .hs-labels { background: color-mix(in oklab, var(--surface) 80%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { background: color-mix(in oklab, var(--surface) 45%, transparent); }
 
 /* Dark themes get a dimmer ridge behind Glass and Frost. */
@@ -371,8 +411,10 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .v-today > .status-line { grid-area: status; }
   .a-groom { grid-area: groom; } .a-cond { grid-area: cond; } .a-fc { grid-area: fc; } .a-cam { grid-area: cam; } .a-cta { grid-area: cta; }
 
-  .v-fc { grid-template-areas: "ten votes" "hours radar" "more more"; }
-  .a-ten { grid-area: ten; } .a-votes { grid-area: votes; } .a-hours { grid-area: hours; } .a-more { grid-area: more; } .a-radar { grid-area: radar; }
+  .v-fc { grid-template-areas: "hours hours" "ten radar" "more more"; }
+  .v-fc .hstrip { overflow: visible; }
+  html .v-fc .hs-labels.hs-labels { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .a-ten { grid-area: ten; } .a-hours { grid-area: hours; } .a-more { grid-area: more; } .a-radar { grid-area: radar; }
 
   .v-cal { grid-template-columns: minmax(0, 1fr); }
   .v-cal > .seg { max-width: 320px; }
@@ -427,10 +469,13 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .v-today .hour .small { font-size: 11px; line-height: 1.2; text-align: center; }
   .v-today .cam-row { grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)); }
 
-  /* Forecast: stakes and hours on the left, votes, radar and the model tables on the right. */
-  .v-fc { grid-template-columns: minmax(0, 1.38fr) minmax(0, 1fr); grid-template-areas: "ten votes" "ten radar" "hours radar" "hours more"; grid-template-rows: auto auto 1fr auto; }
-  .v-fc .radar-map { height: clamp(200px, calc(100vh - 625px), 420px); }
+  /* Forecast: the 12-hour strip across the top, 10-day beside the radar, then a row of drop-downs. */
+  .v-fc { grid-template-columns: minmax(0, 1.38fr) minmax(0, 1fr); grid-template-areas: "hours hours" "ten radar" "more more"; grid-template-rows: auto 1fr auto; align-items: stretch; }
+  .v-fc .a-radar { display: flex; flex-direction: column; }
+  .v-fc .radar-map { flex: 1; height: auto; min-height: 220px; max-width: none; }
   .v-fc .radar-note { display: none; }
+  .v-fc .a-more { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 16px; padding-block: 6px; }
+  .v-fc .a-more details[open] { grid-column: 1 / -1; }
   .v-fc th, .v-fc td { padding-block: 3px; }
   .a-more th, .a-more td { padding-inline: 5px; font-size: 12px; }
 

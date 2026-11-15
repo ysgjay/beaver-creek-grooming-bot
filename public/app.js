@@ -122,6 +122,20 @@
   /* ---------------- chart kit ----------------
      Every chart is a draw(width) -> [height, svgBody] function, mounted responsively.
      Elements with data-tip show a tooltip on hover, focus or tap. */
+  function bindTips(el) {
+    const tip = $("#tip");
+    el.querySelectorAll("[data-tip]").forEach((t) => {
+      const show = () => {
+        tip.textContent = t.dataset.tip; tip.hidden = false;
+        const r = t.getBoundingClientRect();
+        tip.style.left = Math.max(8, Math.min(innerWidth - tip.offsetWidth - 8, r.left + r.width / 2 - tip.offsetWidth / 2)) + "px";
+        tip.style.top = Math.max(8, r.top - tip.offsetHeight - 6) + "px";
+      };
+      const hide = () => { tip.hidden = true; };
+      t.addEventListener("mouseenter", show); t.addEventListener("focus", show); t.addEventListener("click", show);
+      t.addEventListener("mouseleave", hide); t.addEventListener("blur", hide);
+    });
+  }
   function mountChart(draw, label) {
     const el = document.createElement("div");
     el.className = "chart";
@@ -132,18 +146,7 @@
       lastW = W;
       const [H, body] = draw(W);
       el.innerHTML = `<svg viewBox="-2 -2 ${W + 4} ${H + 4}" role="img" aria-label="${esc(label)}">${body}</svg>`;
-      const tip = $("#tip");
-      el.querySelectorAll("[data-tip]").forEach((t) => {
-        const show = () => {
-          tip.textContent = t.dataset.tip; tip.hidden = false;
-          const r = t.getBoundingClientRect();
-          tip.style.left = Math.max(8, Math.min(innerWidth - tip.offsetWidth - 8, r.left + r.width / 2 - tip.offsetWidth / 2)) + "px";
-          tip.style.top = Math.max(8, r.top - tip.offsetHeight - 6) + "px";
-        };
-        const hide = () => { tip.hidden = true; };
-        t.addEventListener("mouseenter", show); t.addEventListener("focus", show); t.addEventListener("click", show);
-        t.addEventListener("mouseleave", hide); t.addEventListener("blur", hide);
-      });
+      bindTips(el);
     };
     requestAnimationFrame(render);
     new ResizeObserver(render).observe(el);
@@ -176,9 +179,9 @@
   // reach (the upper estimate), capped by a dashed line with its number above; notch = low end.
   // Labels never sit on the bars: the upper number rides above its cap, and the expected
   // number gets its own row under the baseline, so short and tall days read the same way.
-  function stakeChart(days) {
+  function stakeChart(days, plotH, pick) {
     return mountChart((W) => {
-      const L = W < 340 ? 20 : 24, T = 20, ph = 168, base = T + ph, valY = base + 16, dateY = base + 32, H = dateY + 4;
+      const L = W < 340 ? 20 : 24, T = 20, ph = plotH || 168, base = T + ph, valY = base + 16, dateY = base + 32, H = dateY + 4;
       const slot = (W - L) / days.length, sw = Math.max(12, Math.min(30, slot * 0.5)), small = slot < 40;
       const max = niceMax(Math.max(4, ...days.map((d) => d.high ?? d.snow))), y = (v) => T + ph - (v / max) * ph, step = max / 4;
       let s = `<defs><pattern id="over" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="var(--accent-soft)"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--accent)" stroke-width="1.4" opacity=".45"/></pattern></defs>`;
@@ -204,7 +207,7 @@
         if (lo < d.snow - 0.2) { const ly = Math.min(y(0) - 3, y(lo)); s += `<path d="M${x0 + sw + 1},${ly}l4.5,-3v6Z" fill="var(--ink)" opacity=".8"/>`; }
         s += d.snow >= 0.1 ? `<text class="val" x="${cx}" y="${valY}" text-anchor="middle">${val(d.snow)}</text>`
                            : `<text x="${cx}" y="${valY}" text-anchor="middle" opacity=".55">–</text>`;
-        s += `<rect x="${cx - slot / 2}" y="0" width="${slot}" height="${H}" fill="transparent" tabindex="0" data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected. Low end ${inch(lo)}, could reach ${inch(hi)}"/>`;
+        s += `<rect x="${cx - slot / 2}" y="0" width="${slot}" height="${H}" rx="8" fill="transparent" tabindex="0" ${pick ? `class="day-hit" role="button" data-day="${i}" aria-label="${fmtDay(d.date)}, show each model's call" ` : ""}data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected. Low end ${inch(lo)}, could reach ${inch(hi)}"/>`;
       });
       return [H, `<g class="stakes${small ? " small" : ""}">` + s + dayLabels(days.map((d) => d.date), (i) => L + slot * i + slot / 2, dateY) + "</g>"];
     }, "Snow stakes: expected snow per day with its upper estimate");
@@ -832,15 +835,85 @@
     };
   }
 
+  // Selecting a day in the 10-day chart opens that day's model votes: a pop-up beside the bar on
+  // wide screens, a bottom sheet on a phone. The same bar, the close button, Esc or a click outside closes it.
+  function dayVotes(card, days, labels, modelCount) {
+    const chart = $("#fc-chart", card);
+    let open = -1, pop = null;
+    const one = (x) => (x >= 0.05 ? `${Math.round(x * 10) / 10}"` : '0"');   // tenths, so close calls stay distinguishable
+    const body = (d) => {
+      const votes = Object.entries(d.models || {}).filter(([, x]) => x != null).sort((a, b) => b[1] - a[1]);
+      const max = Math.max(1, d.high ?? 0, d.snow, ...votes.map(([, x]) => x));
+      const row = (name, x, blend) => `<div class="vp-row${blend ? " blend" : ""}"><span>${esc(name)}</span><span class="vp-bar"><i style="width:${Math.round((x / max) * 100)}%"></i></span><span class="num">${one(x)}</span></div>`;
+      let rowsHtml = "", placed = false;
+      votes.forEach(([m, x]) => { if (!placed && x < d.snow) { rowsHtml += row("Blend", d.snow, true); placed = true; } rowsHtml += row(labels[m] || m, x); });
+      if (!placed) rowsHtml += row("Blend", d.snow, true);
+      const mark = d.snow >= 1 ? Math.floor(d.snow) : 0, agree = votes.filter(([, x]) => (mark ? x >= mark : x >= 0.1)).length;
+      return `<p class="muted small">Blend ${one(d.snow)}. Range ${one(d.low ?? d.snow)} to ${one(d.high ?? d.snow)}. ${votes.length} of ${modelCount || votes.length} models reach this day.</p>
+        <div class="vp-rows">${rowsHtml}</div>
+        <p class="small">${votes.length ? `${agree} of ${votes.length} models show ${mark ? `${mark} ${mark === 1 ? "inch" : "inches"} or more` : "some snow"}.` : "No model reaches this day yet."}</p>`;
+    };
+    const close = () => {
+      if (pop) pop.remove();
+      pop = null; open = -1;
+      chart.querySelectorAll(".day-hit.sel").forEach((r) => r.classList.remove("sel"));
+      document.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", onOutside);
+    };
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    const onOutside = (e) => { if (pop && !pop.contains(e.target) && !e.target.closest(".day-hit")) close(); };
+    const show = (i, hit) => {
+      const d = days[i], title = `Model votes, ${dayTick(d.date).label}`;
+      $("#tip").hidden = true;
+      if (!matchMedia("(min-width: 900px)").matches) { close(); openSheet(title, body(d)); return; }
+      if (open === i) return close();
+      close(); open = i; hit.classList.add("sel");
+      pop = document.createElement("div");
+      pop.className = "votes-pop"; pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", title);
+      pop.innerHTML = `<div class="vp-head"><h3>${title}</h3><button type="button" class="vp-close" aria-label="Close">×</button></div>${body(d)}`;
+      card.appendChild(pop);
+      // Sit beside the selected bar, on whichever side has room, and stay inside the card.
+      const c = card.getBoundingClientRect(), h = hit.getBoundingClientRect(), w = pop.offsetWidth, gap = 8;
+      const right = h.right - c.left + gap, left = h.left - c.left - gap - w;
+      pop.style.left = Math.max(8, Math.min(c.width - w - 8, right + w <= c.width - 8 ? right : left)) + "px";
+      pop.style.top = Math.max(8, Math.min(c.height - pop.offsetHeight - 8, h.top - c.top)) + "px";
+      pop.querySelector(".vp-close").addEventListener("click", () => { close(); hit.focus(); });
+      document.addEventListener("keydown", onKey); document.addEventListener("pointerdown", onOutside);
+    };
+    chart.addEventListener("click", (e) => { const hit = e.target.closest(".day-hit"); if (hit) show(+hit.dataset.day, hit); });
+    chart.addEventListener("keydown", (e) => {
+      const hit = e.target.closest?.(".day-hit"); if (!hit) return;
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(+hit.dataset.day, hit); }
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const n = chart.querySelector(`.day-hit[data-day="${+hit.dataset.day + (e.key === "ArrowRight" ? 1 : -1)}"]`); if (n) { e.preventDefault(); n.focus(); } }
+    });
+    // A redraw (resize) replaces the bars, so drop any open pop-up with them.
+    new ResizeObserver(() => { if (pop && !chart.querySelector(".day-hit.sel")) close(); }).observe(chart);
+  }
+
   /* ---------------- FORECAST ---------------- */
   function viewForecast() {
     const v = document.createElement("div");
     v.className = "view v-fc";
     const fc = S.latest?.forecast || {}, days = fc.days || [], labels = fc.model_labels || {};
     const bands = bandsOf(S.latest);
+    // The hourly strip stacks the temperatures like the mountain: peak on top, base at the bottom.
+    const rows = bands.slice().reverse(), midBand = rows.find((b) => b.key === "mid") || rows[Math.floor(rows.length / 2)];
+    const hours = S.latest?.hourly?.hours || [], snowMax = Math.max(0.5, ...hours.map((h) => h.snow || 0));
     const vm = S.verification?.models || {};
     const hist = (S.verification?.history || []).slice(-10).reverse();
     v.innerHTML = `
+      <section class="card a-hours">
+        <div class="card-head"><h2>Next 12 hours</h2><span class="muted small">${rows.length > 1 ? "Temperature at " + rows.map((b) => `${esc(b.label).toLowerCase()} ${bandFt(b)}`).join(", ") + " · wind in mph" : "Wind in mph"}</span></div>
+        <div class="hstrip" role="group" aria-label="Next 12 hours, hour by hour">
+          <div class="hs-col hs-labels" aria-hidden="true"><span class="t"></span><span class="sn">Snow</span>${rows.length ? rows.map((b) => `<span class="${b === midBand ? "mid" : "tmp"}">${esc(b.label)}</span>`).join("") : '<span class="mid">Temp</span>'}<span class="w">Wind</span></div>
+          ${hours.map((h) => `<div class="hs-col" tabindex="0" data-tip="${hourLabel(h.time)}: ${rows.length ? rows.map((b) => `${esc(b.label)} ${bandTemp(b, h.time)}`).join(", ") : h.temp + "°"}, feels ${h.feels}°. Wind ${esc(h.dir)} ${h.wind} mph${h.gust != null ? ", gusts " + h.gust : ""}. ${h.snow ? h.snow + " in. snow" : "No snow"}, cloud ${h.cloud}%">
+            <span class="t">${hourLabel(h.time)}</span>
+            <span class="sn">${h.snow ? `<b>${h.snow}"</b>` : ""}<i class="${h.snow ? "on" : ""}" style="height:${h.snow ? Math.max(3, Math.round((h.snow / snowMax) * 20)) : 2}px"></i></span>
+            ${rows.length ? rows.map((b) => `<span class="${b === midBand ? "mid" : "tmp"}">${bandTemp(b, h.time)}</span>`).join("") : `<span class="mid">${h.temp}°</span>`}
+            <span class="w">${esc(h.dir)} ${h.wind}</span>
+          </div>`).join("")}
+        </div>
+      </section>
+
       <section class="card a-ten">
         <div class="card-head"><h2>10-day snowfall</h2><span class="muted small">Blended from ${(fc.models_used || []).length} models</span></div>
         <div class="snow-grid">
@@ -849,25 +922,16 @@
           <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">next 5 days</span></div>
         </div>
         <div id="fc-chart"></div>
-        <div class="legend stake-legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span></div>
-      </section>
-
-      <section class="card a-votes">
-        <div class="card-head"><h2>Model votes</h2><span class="muted small">${(fc.models_used || []).length} models</span></div>
-        <div id="fc-votes"></div>
-        <div class="legend"><span><i style="background:var(--ink);opacity:.72;border-radius:50%"></i>One model's call</span><span><i style="background:var(--accent);height:4px;border-radius:2px"></i>Blend</span><span>Tight cluster = models agree</span></div>
+        <div class="legend stake-legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span><span class="pick-hint">Select a day to see each model's call.</span></div>
       </section>
 
       <section class="card a-radar" id="radar-card"></section>
 
-      <section class="card a-hours">
-        <div class="card-head"><h2>Next 12 hours</h2>${bands.length ? `<span class="muted small">${bands.map((b) => `${esc(b.label)} ${bandFt(b)}`).join(" · ")}</span>` : ""}</div>
-        <div class="scroll"><table><thead><tr><th>Hour</th>${bands.length ? bands.map((b) => `<th>${esc(b.label)}</th>`).join("") : "<th>Temp</th>"}<th>Feels</th><th>Wind</th><th>Gust</th><th>Snow</th><th>Cloud</th></tr></thead><tbody>
-          ${(S.latest?.hourly?.hours || []).map((h) => `<tr><td>${hourLabel(h.time)}</td>${bands.length ? bands.map((b) => `<td>${bandTemp(b, h.time)}</td>`).join("") : `<td>${h.temp}°</td>`}<td>${h.feels}°</td><td>${esc(h.dir)} ${h.wind}</td><td>${h.gust ?? "–"}</td><td>${h.snow ? h.snow + '"' : "–"}</td><td>${h.cloud}%</td></tr>`).join("")}
-        </tbody></table></div>
-      </section>
-
       <section class="card a-more">
+        <details><summary>Model votes, all 10 days</summary>
+          <div id="fc-votes"></div>
+          <div class="legend"><span><i style="background:var(--ink);opacity:.72;border-radius:50%"></i>One model's call</span><span><i style="background:var(--accent);height:4px;border-radius:2px"></i>Blend</span><span>Tight cluster = models agree</span></div>
+        </details>
         <details><summary>Every model, day by day</summary>
           <div class="scroll"><table><thead><tr><th>Model</th>${days.map((d) => `<th>${dayTick(d.date).label}</th>`).join("")}<th>Weight ×</th></tr></thead><tbody>
             <tr><td><strong>Blend</strong></td>${days.map((d) => `<td><strong>${inch(d.snow)}</strong></td>`).join("")}<td></td></tr>
@@ -887,9 +951,13 @@
         </details>
       </section>`;
     if (days.length) {
-      $("#fc-chart", v).appendChild(stakeChart(days));
+      // On wide screens the stakes grow to fill the card beside the radar.
+      const plotH = matchMedia(WIDE).matches ? Math.max(168, Math.min(380, innerHeight - 564)) : 168;
+      $("#fc-chart", v).appendChild(stakeChart(days, plotH, true));
       $("#fc-votes", v).appendChild(votesChart(days, labels));
+      dayVotes($(".a-ten", v), days, labels, (fc.models_used || []).length);
     }
+    bindTips($(".hstrip", v));
     mountRadar($("#radar-card", v));
     return v;
   }
