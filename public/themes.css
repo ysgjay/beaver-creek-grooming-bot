@@ -1,0 +1,64 @@
+/* Ten themes. Each sets five colors and a display face; everything else is derived in app.css.
+   Selectors are attribute-only so a theme can be applied to <html> (the app) or to any
+   element (the theme gallery's phone frames). Contrast checked: ink and accent >= 4.5:1. */
+
+:root, [data-theme="corduroy"] {
+  --bg: #eef2f5; --surface: #ffffff; --ink: #1c2b3a; --accent: #2f6fa8; --on-accent: #ffffff;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif; --display-weight: 700;
+  --texture: repeating-linear-gradient(90deg, rgba(28,43,58,.045) 0 2px, transparent 2px 7px);
+  color-scheme: light;
+}
+[data-theme="trailsign"] {
+  --bg: #f4f4f0; --surface: #ffffff; --ink: #111111; --accent: #1b7a3e; --on-accent: #ffffff;
+  --font-display: "Overpass", "Arial", sans-serif; --display-weight: 800;
+  --texture: none; color-scheme: light;
+}
+[data-theme="patrol"] {
+  --bg: #f3f5f6; --surface: #ffffff; --ink: #1a1a1a; --accent: #c8102e; --on-accent: #ffffff;
+  --font-display: "Archivo", "Arial", sans-serif; --display-weight: 800;
+  --texture: none; color-scheme: light;
+}
+[data-theme="alpenglow"] {
+  --bg: #2b1f2a; --surface: #3b2b38; --ink: #fbede6; --accent: #ff8e72; --on-accent: #1d1218;
+  --font-display: "Bricolage Grotesque", "Arial", sans-serif; --display-weight: 700;
+  --texture: linear-gradient(180deg, rgba(255,142,114,.10), transparent 240px); color-scheme: dark;
+}
+[data-theme="beacon"] {
+  --bg: #f6c915; --surface: #fff6cc; --ink: #17150c; --accent: #0b4f9e; --on-accent: #ffffff;
+  --font-display: "Chakra Petch", "Arial", sans-serif; --display-weight: 700;
+  --texture: none; color-scheme: light;
+}
+[data-theme="liftticket"] {
+  --bg: #ffffff; --surface: #f0f0ec; --ink: #101010; --accent: #d6006e; --on-accent: #ffffff;
+  --font-display: "IBM Plex Mono", ui-monospace, monospace; --display-weight: 600;
+  --texture: repeating-linear-gradient(0deg, rgba(16,16,16,.035) 0 1px, transparent 1px 4px); color-scheme: light;
+}
+[data-theme="nightcat"] {
+  --bg: #0e1a2b; --surface: #18283f; --ink: #eaf1f8; --accent: #ffb52e; --on-accent: #17120a;
+  --font-display: "Saira Condensed", "Arial Narrow", sans-serif; --display-weight: 700;
+  --texture: radial-gradient(120% 60% at 50% -10%, rgba(255,181,46,.10), transparent 60%); color-scheme: dark;
+}
+[data-theme="amberlens"] {
+  --bg: #3a2410; --surface: #4e3218; --ink: #ffe9c7; --accent: #ff9a1f; --on-accent: #1f1305;
+  --font-display: "Barlow", "Arial", sans-serif; --display-weight: 700;
+  --texture: none; color-scheme: dark;
+}
+[data-theme="bluebird"] {
+  --bg: #dcebfa; --surface: #ffffff; --ink: #0c2a4a; --accent: #0a5bd3; --on-accent: #ffffff;
+  --font-display: "Outfit", "Arial", sans-serif; --display-weight: 700;
+  --texture: linear-gradient(180deg, rgba(10,91,211,.08), transparent 280px); color-scheme: light;
+}
+[data-theme="glade"] {
+  --bg: #12261e; --surface: #1d382c; --ink: #eef3ec; --accent: #f2c14e; --on-accent: #17120a;
+  --font-display: "Bitter", Georgia, serif; --display-weight: 700;
+  --texture: none; color-scheme: dark;
+}
+
+/* No choice made yet: follow the phone. Light = Corduroy, dark = Night Cat. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #0e1a2b; --surface: #18283f; --ink: #eaf1f8; --accent: #ffb52e; --on-accent: #17120a;
+    --font-display: "Saira Condensed", "Arial Narrow", sans-serif; --display-weight: 700;
+    --texture: radial-gradient(120% 60% at 50% -10%, rgba(255,181,46,.10), transparent 60%); color-scheme: dark;
+  }
+}

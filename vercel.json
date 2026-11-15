@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "public",
+  "functions": {
+    "api/run.py": { "maxDuration": 60, "memory": 1024, "includeFiles": "bcbot/**" }
+  },
+  "crons": [{ "path": "/api/run", "schedule": "35 12 * * *" }],
+  "rewrites": [
+    { "source": "/data/:path*", "destination": "https://kpkajfy5kovso7gy.public.blob.vercel-storage.com/data/:path*" },
+    { "source": "/maps/:path*", "destination": "https://kpkajfy5kovso7gy.public.blob.vercel-storage.com/maps/:path*" },
+    { "source": "/cams/:path*", "destination": "https://kpkajfy5kovso7gy.public.blob.vercel-storage.com/cams/:path*" }
+  ],
+  "headers": [
+    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+    { "source": "/(app.js|app.css|themes.css|config.json)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=86400" }] },
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+    ] }
+  ]
+}

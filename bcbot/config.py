@@ -4,9 +4,6 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT / "data"
-WEB_DIR = ROOT / "web"
-SITE_DIR = ROOT / "_site"
 
 TZ = ZoneInfo("America/Denver")
 
@@ -61,7 +58,11 @@ CAMS = [{"label": label, "image": f"{BROWNRICE}/snapshot/{cid}", "live": f"{BROW
 STAKE_SNAPSHOT_URL = os.environ.get("STAKE_SNAPSHOT_URL", CAMS[0]["image"] if CAMS else "")
 
 # Notifications
-DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "https://ysgjay.github.io/beaver-creek-grooming-bot/")
+DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "https://snow.0xm.studio/")
+# Notifications go out only when this is "1" (so a new deployment can't double-post).
+SEND_ENABLED = os.environ.get("SEND_ENABLED") == "1"
+# A run with no new grooming map still refreshes the forecast when it's older than this.
+REFRESH_HOURS = float(os.environ.get("REFRESH_HOURS", "6"))
 TELEGRAM_BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "@bcskireport")
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")

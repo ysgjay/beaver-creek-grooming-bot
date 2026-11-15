@@ -1,23 +1,26 @@
-"""Daily pipeline: fetch -> forecast -> verify -> archive -> notify -> (site built by workflow).
+"""The pipeline: fetch -> verify -> forecast -> archive -> notify.
 
-Usage:
-  python -m bcbot run [--dry-run] [--force-send]
-  python -m bcbot site          # build _site/ from data/
-  python -m bcbot discover      # print candidate cam image URLs from the resort site
-Env DRY_RUN=1 behaves like --dry-run (no notifications, state not advanced).
+Triggered every 30 minutes through the early morning (Cloudflare cron -> /api/run on
+Vercel). Most runs exit after one cheap check: a full run happens only when the grooming
+map changed, the forecast is older than REFRESH_HOURS, or it's the first run of the day.
+
+CLI:
+  python -m bcbot run [--force] [--send]   # local run into public/ (no sending unless --send)
+  python -m bcbot discover                 # list the resort's cam ids
 """
 import argparse
 import logging
 import os
 import re
 import sys
+from datetime import datetime
 
-from . import config, forecast, notify, report, site, verify
+from . import config, forecast, notify, report, verify
 from .sources import grooming, nws, openmeteo, resort, snotel
-from .util import get, now_local, read_json, write_json
+from .store import get_store
+from .util import get, now_local
 
 log = logging.getLogger("bcbot")
-D = config.DATA_DIR
 
 
 def _try(name, fn, errors, default=None):
@@ -29,183 +32,197 @@ def _try(name, fn, errors, default=None):
         return default
 
 
-def _archive_cam(day_str):
+def _hours_since(iso, now):
+    try:
+        return (now - datetime.fromisoformat(iso)).total_seconds() / 3600
+    except (TypeError, ValueError):
+        return 1e9
+
+
+def _snapshot_stake(store, day_str):
     if not config.STAKE_SNAPSHOT_URL:
         return None
     try:
-        r = get(config.STAKE_SNAPSHOT_URL, timeout=30)
+        r = get(config.STAKE_SNAPSHOT_URL, timeout=30, retries=1)
         r.raise_for_status()
         if not r.headers.get("Content-Type", "").startswith("image/"):
             raise ValueError(f"not an image: {r.headers.get('Content-Type')}")
-        path = D / "cams" / f"{day_str}.jpg"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(r.content)
-        return f"data/cams/{day_str}.jpg"
+        path = f"cams/{day_str}.jpg"
+        store.put_bytes(path, r.content, "image/jpeg")
+        return path
     except Exception as e:
-        log.warning("stake cam snapshot failed: %s", e)
+        log.warning("stake snapshot failed: %s", e)
         return None
 
 
-def _update_index(day):
-    index = read_json(D / "index.json", {"days": []})
-    entry = {
+def day_summary(day):
+    """The compact per-day row used by the calendar, stats and feed."""
+    g = day.get("grooming") or {}
+    runs = g.get("runs") or {}
+    resort_rep = day.get("resort") or {}
+    obs = day.get("observed") or {}
+    fc = day.get("forecast") or {}
+    return {
         "date": day["date"],
-        "map": day["grooming"].get("image"),
-        "new_map": day["grooming"].get("new_map", False),
-        "next_1_5": (day.get("forecast") or {}).get("next_1_5"),
-        "snow_24h": (day.get("observed") or {}).get("snow_in"),
-        "resort_24h": (day.get("resort") or {}).get("last_24h_in"),
+        "resort_24h": resort_rep.get("last_24h_in"),
+        "snotel_24h": obs.get("snow_in"),
+        "base_in": resort_rep.get("base_in"),
+        "season_in": resort_rep.get("season_in"),
+        "map": g.get("image") if g.get("new_map") else None,
+        "map_date": runs.get("map_date"),
+        "featured": runs.get("groomers_of_the_day", []),
+        "overnight": runs.get("overnight", []),
+        "morning": runs.get("morning", []),
+        "cam": day.get("cam"),
+        "next_1_5": fc.get("next_1_5"),
     }
-    runs = day["grooming"].get("runs") or {}
-    if day["grooming"].get("new_map") and runs:
-        entry["groomed"] = sorted(set(runs.get("overnight", []) + runs.get("morning", [])))
-    days = [d for d in index["days"] if d["date"] != day["date"]] + [entry]
-    index["days"] = sorted(days, key=lambda d: d["date"], reverse=True)
-    index["updated"] = now_local().isoformat(timespec="minutes")
-    write_json(D / "index.json", index)
 
 
-def run(dry_run=False, force_send=False):
+def update_months(store, summary=None, snotel_daily=None):
+    """Merge today's summary and SNOTEL's observed daily snowfall into month files.
+
+    SNOTEL fills in snowfall for days the bot never ran, so the calendar has real
+    numbers for every day of the season.
+    """
+    touched = {}
+
+    def month(ym):
+        if ym not in touched:
+            touched[ym] = store.get_json(f"data/months/{ym}.json", None) or {"month": ym, "days": {}}
+        return touched[ym]
+
+    for d, row in (snotel_daily or {}).items():
+        if row.get("depth_change_in") is None and row.get("precip_in") is None:
+            continue
+        entry = month(d[:7])["days"].setdefault(d, {"date": d})
+        entry["snotel_new_in"] = max(0.0, row.get("depth_change_in") or 0.0)
+        entry["snotel_precip_in"] = row.get("precip_in")
+        entry["snotel_depth_in"] = row.get("depth_in")
+    if summary:
+        entry = month(summary["date"][:7])["days"].setdefault(summary["date"], {"date": summary["date"]})
+        entry.update({k: v for k, v in summary.items() if v not in (None, [])})
+    for ym, m in touched.items():
+        m["days"] = dict(sorted(m["days"].items()))
+        m["updated"] = now_local().isoformat(timespec="minutes")
+        store.put_json(f"data/months/{ym}.json", m)
+    return touched
+
+
+def run(store=None, force=False, send=None, now=None):
+    store = store or get_store()
+    send = config.SEND_ENABLED if send is None else send
+    now = now or now_local()
+    day_str = now.date().isoformat()
     errors = []
-    now = now_local()
-    today = now.date()
-    day_str = today.isoformat()
-    state = read_json(D / "state.json", {})
+    state = store.get_json("data/state.json", {}) or {}
 
-    # 1. Sources (each one optional)
+    # 1. Cheap check: has anything changed worth a full run?
+    groom = _try("grooming map", grooming.fetch, errors, None)
+    map_changed = bool(groom) and groom["hash"] != state.get("last_map_hash")
+    age = _hours_since(state.get("last_full_run"), now)
+    new_day = (state.get("last_full_run") or "")[:10] != day_str
+    if not (force or map_changed or new_day or age >= config.REFRESH_HOURS):
+        log.info("nothing new (map unchanged, forecast %.1fh old)", age)
+        return {"status": "skipped", "forecast_age_h": round(age, 1)}
+
+    # 2. Sources
     models = _try("open-meteo", openmeteo.fetch_models, errors, {})
     ens = _try("open-meteo ensemble", openmeteo.fetch_ensemble, errors, {})
     nws_daily = _try("nws", nws.fetch_snowfall, errors, {})
     obs = _try("snotel", snotel.fetch, errors, {})
     resort_report = resort.fetch()
-    groom = _try("grooming map", grooming.fetch, errors, None)
 
-    # 2. Verification first, so today's blend uses the freshest bias/skill numbers.
-    verification = verify.compute(obs.get("daily", {})) if obs else read_json(D / "verification.json", {})
+    # 3. Verification, then forecast
     if obs:
+        verification = verify.compute(obs.get("daily", {}),
+                                      lambda d: store.get_json(f"data/forecasts/{d}.json"), today=now.date())
         verification["station"] = obs.get("station")
-        write_json(D / "verification.json", verification)
-
-    # 3. Forecast
-    fc = forecast.build(models, nws_daily, ens, verification, today=today) if (models or nws_daily) else None
+        store.put_json("data/verification.json", verification)
+    else:
+        verification = store.get_json("data/verification.json", {}) or {}
+    fc = forecast.build(models, nws_daily, ens, verification, today=now.date()) if (models or nws_daily) else None
     if fc:
-        write_json(D / "forecasts" / f"{day_str}.json", fc)
+        store.put_json(f"data/forecasts/{day_str}.json", fc)
     hourly = forecast.hourly_outlook(models, now=now) if models else {"hours": []}
 
-    # 4. Grooming map (only archive when the PDF actually changed)
-    last_hash = state.get("last_map_hash")
-    g = {"new_map": False, "image": state.get("last_map_image")}
-    if groom:
-        g["hash"] = groom["hash"]
-        g["last_modified"] = groom["last_modified"]
-        if groom["hash"] != last_hash:
-            path = D / "maps" / f"{day_str}.jpg"
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(groom["jpeg"])
-            g.update(new_map=True, image=f"data/maps/{day_str}.jpg", runs=groom.get("runs"))
-            state["last_map_hash"] = groom["hash"]
-            state["last_map_image"] = g["image"]
-    elif not g["image"]:
-        g["image"] = None
+    # 4. Grooming map + today's record
+    prev = store.get_json(f"data/days/{day_str}.json", {}) or {}
+    g = dict(prev.get("grooming") or {"new_map": False, "image": state.get("last_map_image")})
+    if groom and map_changed:
+        path = f"maps/{day_str}.jpg"
+        store.put_bytes(path, groom["jpeg"], "image/jpeg")
+        g = {"new_map": True, "image": path, "hash": groom["hash"], "runs": groom.get("runs"),
+             "last_modified": groom.get("last_modified")}
+        state.update(last_map_hash=groom["hash"], last_map_image=path)
 
-    prev = read_json(D / "days" / f"{day_str}.json", {})
     day = {
         "date": day_str,
         "generated": now.isoformat(timespec="minutes"),
-        "grooming": g if (g["new_map"] or not prev.get("grooming", {}).get("new_map")) else prev["grooming"],
+        "grooming": g,
         "forecast": {k: v for k, v in (fc or {}).items() if k != "raw"},
         "hourly": hourly,
         "observed": (obs or {}).get("last_24h", {}) | ({"station": obs["station"]} if obs else {}),
         "resort": resort_report,
-        "cam": prev.get("cam") or _archive_cam(day_str),
+        "cam": prev.get("cam") or _snapshot_stake(store, day_str),
         "errors": errors,
     }
-    write_json(D / "days" / f"{day_str}.json", day)
-    write_json(D / "latest.json", day)
-    _update_index(day)
+    store.put_json(f"data/days/{day_str}.json", day)
+    store.put_json("data/latest.json", day)
+    update_months(store, day_summary(day), (obs or {}).get("daily"))
 
-    # 5. Notify: once per new grooming map (several cron runs a morning catch a late upload).
+    # 5. Notify once per day, when that day's map is new.
     text = report.compose(day)
-    print("\n----- message -----\n" + text + "\n-------------------")
-    image = groom["jpeg"] if groom else None
-    should_send = force_send or (day["grooming"].get("new_map") and state.get("last_sent_date") != day_str)
-    if should_send and not dry_run:
-        results = notify.send_all(text, image)
-        log.info("delivery: %s", results)
+    log.info("message:\n%s", text)
+    delivered = None
+    if send and g.get("new_map") and state.get("last_sent_date") != day_str:
+        image = groom["jpeg"] if (groom and map_changed) else _fetch_map_bytes(g.get("image"))
+        delivered = notify.send_all(text, image)
         state["last_sent_date"] = day_str
         alert = report.powder_alert(fc)
         if alert and state.get("last_alert_date") != day_str:
             notify.send_all(alert, channels=["ntfy"])
             state["last_alert_date"] = day_str
-    elif dry_run:
-        log.info("dry run: would %s", "send" if should_send else "not send")
-    else:
-        log.info("no new grooming map -> not sending (use --force-send to override)")
 
-    if not dry_run:
-        write_json(D / "state.json", state)
+    state["last_full_run"] = now.isoformat(timespec="minutes")
+    store.put_json("data/state.json", state)
+    return {"status": "ok", "map_changed": map_changed, "sent": delivered, "errors": errors,
+            "ok": bool(fc and groom)}
 
-    if errors:
-        log.warning("source errors: %s", errors)
-    # Fail the job (GitHub emails the owner) only if the core of the report is missing.
-    if not fc or not groom:
-        return 1
-    return 0
+
+def _fetch_map_bytes(path):
+    if not path:
+        return None
+    base = os.environ.get("BLOB_PUBLIC_BASE")
+    try:
+        if base:
+            return get(f"{base.rstrip('/')}/{path}", timeout=30).content
+        return (config.ROOT / "public" / path).read_bytes()
+    except Exception:
+        return None
 
 
 def discover():
-    """Print cam ids/URLs on the resort cams page, to update CAM_IDS."""
-    for url in ["https://www.beavercreek.com/the-mountain/mountain-conditions/mountain-cams.aspx",
-                config.RESORT_SNOW_REPORT_URL]:
-        try:
-            html = get(url).text
-        except Exception as e:
-            print(url, "->", e)
-            continue
-        flat = html.replace("\\/", "/")
-        found = set(re.findall(r'https?://[^"\'\s>]+?\.(?:jpe?g|png|m3u8|mp4)(?:\?[^"\'\s>]*)?', flat, re.I))
-        found |= set(re.findall(r'(?:https?:)?//[^"\'\s>]*(?:cam|stake|roundshot|youtube|ipcam|panomax)[^"\'\s>]*', flat, re.I))
-        print(f"{url}: {len(html)} bytes")
-        for f in sorted(found):
-            print("   url:", f)
-        # Cams are often configured in embedded JSON with relative paths: show context.
-        for cam_id in sorted(set(re.findall(r"player\.brownrice\.com/embed/([\w-]+)", flat))):
-            print(f"   brownrice cam: {cam_id}")
-            _probe_brownrice(cam_id)
-
-
-def _probe_brownrice(cam_id):
-    """Look for a still-image URL for a Brown Rice cam (for the daily stake archive)."""
-    try:
-        embed = get(f"https://player.brownrice.com/embed/{cam_id}").text.replace("\\/", "/")
-        for u in sorted(set(re.findall(r'(?:https?:)?//[^"\'\s<>]+', embed)))[:40]:
-            print("      embed ref:", u)
-    except Exception as e:
-        print("      embed fetch failed:", e)
-    for u in [f"https://player.brownrice.com/snapshot/{cam_id}"]:
-        try:
-            r = get(u, timeout=15, retries=0)
-            print(f"      {r.status_code} {r.headers.get('Content-Type', '')} {len(r.content)}B {u}")
-        except Exception as e:
-            print(f"      ERR {u}: {e}")
+    """List the Brown Rice cam ids on the resort's cams page (to update CAM_IDS)."""
+    url = "https://www.beavercreek.com/the-mountain/mountain-conditions/mountain-cams.aspx"
+    html = get(url).text.replace("\\/", "/")
+    for cam_id in sorted(set(re.findall(r"player\.brownrice\.com/embed/([\w-]+)", html))):
+        r = get(f"https://player.brownrice.com/snapshot/{cam_id}", timeout=15, retries=0)
+        print(f"{cam_id}: snapshot {r.status_code} {r.headers.get('Content-Type', '')}")
 
 
 def main(argv=None):
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     ap = argparse.ArgumentParser(prog="bcbot")
-    ap.add_argument("command", choices=["run", "site", "discover"])
-    ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--force-send", action="store_true")
+    ap.add_argument("command", choices=["run", "discover"])
+    ap.add_argument("--force", action="store_true")
+    ap.add_argument("--send", action="store_true")
     a = ap.parse_args(argv)
-    if a.command == "site":
-        print(site.build())
-        return 0
     if a.command == "discover":
         discover()
         return 0
-    dry = a.dry_run or os.environ.get("DRY_RUN") == "1"
-    force = a.force_send or os.environ.get("FORCE_SEND") == "1"
-    return run(dry_run=dry, force_send=force)
+    result = run(force=a.force, send=True if a.send else None)
+    print(result)
+    return 0 if result.get("status") == "skipped" or result.get("ok") else 1
 
 
 if __name__ == "__main__":

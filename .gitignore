@@ -2,3 +2,7 @@ __pycache__/
 .pytest_cache/
 _site/
 *.pyc
+public/data/
+public/maps/
+public/cams/
+.vercel/

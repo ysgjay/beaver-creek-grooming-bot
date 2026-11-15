@@ -5,6 +5,7 @@ import pymupdf
 import pytest
 
 from bcbot import config, forecast, main, notify, report, verify
+from bcbot.store import BlobStore, LocalStore
 from bcbot.sources import grooming, nws, openmeteo, resort, snotel
 
 TODAY = date(2026, 11, 15)
@@ -161,7 +162,7 @@ def test_verification_learns_dry_model(tmp_path):
             "days": [{"date": d.isoformat(), "snow": 5.0, "low": 2, "high": 8}],
             "raw": {"dry": {d.isoformat(): {"liquid": 0.25, "snow": 3}},
                     "good": {d.isoformat(): {"liquid": 0.5, "snow": 6}}}}))
-    v = verify.compute(obs, forecasts_dir=fdir, today=TODAY)
+    v = verify.compute(obs, lambda d: json.loads((fdir / f"{d}.json").read_text()) if (fdir / f"{d}.json").exists() else None, today=TODAY)
     assert v["models"]["dry"]["bias_ratio"] == 1.6  # clamped from 2.0
     assert v["models"]["good"]["skill"] > v["models"]["dry"]["skill"]
     assert v["history"][-1]["observed"] == 6
@@ -208,18 +209,22 @@ def test_compose_message_fits_telegram_caption():
 
 # ---------- full pipeline, all network mocked ----------
 
+NOW = datetime(2026, 11, 15, 5, 45, tzinfo=config.TZ)
+
+
 @pytest.fixture
 def sandbox(tmp_path, monkeypatch):
-    monkeypatch.setattr(config, "DATA_DIR", tmp_path / "data")
-    monkeypatch.setattr(main, "D", tmp_path / "data")
-    monkeypatch.setattr(verify.config, "DATA_DIR", tmp_path / "data")
+    store = LocalStore(tmp_path)
     models = list(config.MODELS)
     monkeypatch.setattr(openmeteo, "fetch_models",
                         lambda: openmeteo._split_models(openmeteo_payload(models), models))
     monkeypatch.setattr(openmeteo, "fetch_ensemble", lambda: {})
     monkeypatch.setattr(nws, "fetch_snowfall", lambda: {"2026-11-15": 1.0})
-    monkeypatch.setattr(snotel, "fetch", lambda: {"station": "842:CO:SNTL", "daily": {}, "last_24h": {"snow_in": 0}})
-    monkeypatch.setattr(resort, "fetch", lambda: {})
+    monkeypatch.setattr(snotel, "fetch", lambda: {
+        "station": "842:CO:SNTL", "last_24h": {"snow_in": 0},
+        "daily": {"2026-11-13": {"precip_in": 0.4, "depth_change_in": 5, "depth_in": 8},
+                  "2026-11-14": {"precip_in": 0.0, "depth_change_in": -1, "depth_in": 7}}})
+    monkeypatch.setattr(resort, "fetch", lambda: {"last_24h_in": 0.0, "base_in": 4.0, "season_in": 10.0})
     monkeypatch.setattr(config, "STAKE_SNAPSHOT_URL", "")
     pdf = {"bytes": make_pdf()}
 
@@ -227,45 +232,90 @@ def sandbox(tmp_path, monkeypatch):
         jpeg, text = grooming.render(pdf["bytes"])
         import hashlib
         return {"hash": hashlib.sha256(pdf["bytes"]).hexdigest()[:16], "jpeg": jpeg,
+                "runs": {"groomers_of_the_day": [], "overnight": ["Flint"], "morning": ["Maverick"], "map_date": "November 14, 2026"},
                 "text_lines": text.splitlines(), "last_modified": None}
     monkeypatch.setattr(grooming, "fetch", fake_groom)
     sent = []
     monkeypatch.setattr(notify, "send_all", lambda text, image=None, channels=None: sent.append((text, channels)) or {})
-    return tmp_path / "data", pdf, sent
+    return store, tmp_path, pdf, sent
 
 
-def test_pipeline_sends_once_per_new_map(sandbox):
-    data, pdf, sent = sandbox
-    assert main.run() == 0
-    reports = [t for t, ch in sent if ch is None]
-    alerts = [t for t, ch in sent if ch == ["ntfy"]]
-    assert len(reports) == 1 and "Grooming" in reports[0]
-    assert len(alerts) == 1 and "Powder alert" in alerts[0]  # ~7"/day in the fixture
-    assert (data / "latest.json").exists() and (data / "index.json").exists()
-    latest = json.loads((data / "latest.json").read_text())
+def test_pipeline_full_run_writes_archive_and_sends_once(sandbox):
+    store, root, pdf, sent = sandbox
+    r = main.run(store=store, send=True, now=NOW)
+    assert r["status"] == "ok" and r["ok"] and r["map_changed"]
+    latest = store.get_json("data/latest.json")
     assert latest["grooming"]["new_map"] and latest["forecast"]["days"]
-    assert any(data.glob("maps/*.jpg"))
-    # second cron run, same map -> nothing sent
-    assert main.run() == 0
-    assert len(sent) == 2
+    assert (root / "maps/2026-11-15.jpg").exists()
+    month = store.get_json("data/months/2026-11.json")
+    assert month["days"]["2026-11-15"]["overnight"] == ["Flint"]
+    assert month["days"]["2026-11-13"]["snotel_new_in"] == 5      # SNOTEL fills past days
+    assert month["days"]["2026-11-14"]["snotel_new_in"] == 0.0    # settling is not negative snow
+    reports = [t for t, ch in sent if ch is None]
+    assert len(reports) == 1 and "Groomed overnight: Flint" in reports[0]
+
+    # 30 minutes later, same map: cheap skip, nothing written or sent
+    r2 = main.run(store=store, send=True, now=NOW + timedelta(minutes=30))
+    assert r2["status"] == "skipped"
+    assert len([1 for _, ch in sent if ch is None]) == 1
+
+    # A new map later the same morning updates the archive but doesn't send twice
+    pdf["bytes"] = make_pdf("Updated map")
+    r3 = main.run(store=store, send=True, now=NOW + timedelta(hours=1))
+    assert r3["map_changed"] and len([1 for _, ch in sent if ch is None]) == 1
 
 
-def test_pipeline_dry_run_sends_nothing(sandbox):
-    data, pdf, sent = sandbox
-    assert main.run(dry_run=True) == 0
-    assert sent == [] and not (data / "state.json").exists()
+def test_pipeline_refreshes_stale_forecast_without_new_map(sandbox):
+    store, root, pdf, sent = sandbox
+    main.run(store=store, send=False, now=NOW)
+    r = main.run(store=store, send=False, now=NOW + timedelta(hours=config.REFRESH_HOURS + 0.1))
+    assert r["status"] == "ok" and not r["map_changed"]
+    assert sent == []  # send disabled
+
+
+def test_pipeline_new_day_runs_and_sending_enabled_later_catches_up(sandbox):
+    store, root, pdf, sent = sandbox
+    main.run(store=store, send=False, now=NOW)       # deployed with sending off
+    assert sent == []
+    main.run(store=store, send=True, now=NOW + timedelta(hours=config.REFRESH_HOURS + 1), force=True)
+    assert len([1 for _, ch in sent if ch is None]) == 1  # today's map still goes out once
 
 
 def test_pipeline_survives_source_outage(sandbox, monkeypatch):
-    data, pdf, sent = sandbox
+    store, root, pdf, sent = sandbox
+
     def boom():
         raise RuntimeError("down")
     monkeypatch.setattr(nws, "fetch_snowfall", boom)
     monkeypatch.setattr(snotel, "fetch", boom)
-    assert main.run() == 0
-    latest = json.loads((data / "latest.json").read_text())
-    assert any("nws" in e for e in latest["errors"])
-    assert len([1 for _, ch in sent if ch is None]) == 1
+    r = main.run(store=store, send=True, now=NOW)
+    assert r["ok"]
+    assert any("nws" in e for e in store.get_json("data/latest.json")["errors"])
+
+
+def test_blob_store_put_uses_vercel_blob_protocol(monkeypatch):
+    calls = []
+
+    class Resp:
+        ok = True
+        status_code = 200
+        def json(self):
+            return {"url": "https://x.public.blob.vercel-storage.com/data/latest.json"}
+
+    class FakeHttp:
+        def put(self, url, data=None, headers=None, timeout=None):
+            calls.append((url, headers, data))
+            return Resp()
+    monkeypatch.setattr("bcbot.store.http", lambda: FakeHttp())
+    b = BlobStore("vercel_blob_rw_store123_secret", "https://x.public.blob.vercel-storage.com")
+    b.put_json("data/latest.json", {"a": 1})
+    url, h, data = calls[0]
+    assert url == "https://vercel.com/api/blob/?pathname=data%2Flatest.json"
+    assert h["authorization"] == "Bearer vercel_blob_rw_store123_secret"
+    assert h["x-add-random-suffix"] == "0" and h["x-allow-overwrite"] == "1"
+    assert h["x-content-type"] == "application/json" and h["x-cache-control-max-age"] == "60"
+    b.put_bytes("maps/2026-11-15.jpg", b"jpg", "image/jpeg")
+    assert calls[1][1]["x-cache-control-max-age"] == "31536000"
 
 
 def test_parse_runs_from_real_lumiplan_text():

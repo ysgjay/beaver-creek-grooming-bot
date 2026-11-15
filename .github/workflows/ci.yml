@@ -1,43 +1,18 @@
 name: CI
-
-# Every push to a non-main branch: unit tests, then the real pipeline against the
-# live APIs in dry-run mode (never sends). The resulting data is committed back to the
-# branch so the dashboard can be previewed from it.
+# Unit tests only. The app runs on Vercel + Cloudflare; GitHub just holds the code.
 on:
   push:
-    branches-ignore: [main]
   pull_request:
-
-permissions:
-  contents: write
-
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      DRY_RUN: "1"
-      CAM_IDS: ${{ vars.CAM_IDS }}
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt
-      - name: Unit tests
-        run: python -m pytest -q tests
-      - name: Live dry run
-        run: python -m bcbot run
-      - name: Build dashboard
-        if: always()
-        run: python -m bcbot site
-      - name: Commit preview data to the branch
-        if: always() && github.event_name == 'push'
-        run: |
-          git config user.name "grooming-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
-          git diff --cached --quiet && exit 0
-          git commit -m "Dry-run data $(TZ=America/Denver date +%F\ %H:%M)"
-          git push
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q tests
+      - run: node --check public/app.js && node --check public/sw.js && node --check cloudflare/worker.js

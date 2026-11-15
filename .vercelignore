@@ -1,0 +1,7 @@
+tests/
+docs/
+cloudflare/
+.github/
+public/data/
+public/maps/
+public/cams/

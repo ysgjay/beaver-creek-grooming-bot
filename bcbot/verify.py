@@ -10,8 +10,7 @@ for display only and keeps its fixed weight.
 """
 from datetime import date, timedelta
 
-from . import config
-from .util import r1, read_json
+from .util import r1
 
 MIN_DAYS = 5
 WINDOW_DAYS = 45
@@ -22,8 +21,8 @@ def _clamp(x, lo, hi):
     return max(lo, min(hi, x))
 
 
-def compute(observed_daily, forecasts_dir=None, today=None):
-    forecasts_dir = forecasts_dir or (config.DATA_DIR / "forecasts")
+def compute(observed_daily, load_forecast, today=None):
+    """`load_forecast(date_str)` returns the forecast document issued that day, or None."""
     today = today or date.today()
     pairs = {}        # model -> [(fcst_liquid, obs_liquid)]
     snow_pairs = {}   # model -> [(fcst_snow, obs_snow)]
@@ -32,7 +31,7 @@ def compute(observed_daily, forecasts_dir=None, today=None):
 
     def issued(d):
         if d not in cache:
-            cache[d] = read_json(forecasts_dir / f"{d}.json")
+            cache[d] = load_forecast(d)
         return cache[d]
 
     start = today - timedelta(days=WINDOW_DAYS)
