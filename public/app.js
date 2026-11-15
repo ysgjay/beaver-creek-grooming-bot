@@ -13,7 +13,13 @@
   const fmtDay = (s) => { const d = pd(s); return `${WD[d.getDay()]} ${MO[d.getMonth()]} ${d.getDate()}`; };
   const inch = (x) => (x == null ? "–" : (x >= 1 || x === 0 ? Math.round(x) : x.toFixed(1)) + '"');
   const hourLabel = (t) => { const h = Number(t.slice(11, 13)); return `${h % 12 || 12}${h < 12 ? "a" : "p"}`; };
-  const todayIso = () => iso(new Date());
+  // "Today" is the resort's calendar day, not the viewer's: someone checking from another
+  // time zone sees the same day the mountain is on. Report times are already resort-local text.
+  const RESORT_TZ = "America/Denver";
+  const todayIso = () => {
+    try { return new Intl.DateTimeFormat("en-CA", { timeZone: S.cfg?.timezone || RESORT_TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); }
+    catch (e) { return iso(new Date()); }
+  };
 
   async function getJSON(path, { fresh = false } = {}) {
     try {
@@ -128,9 +134,11 @@
     return el;
   }
   const niceMax = (v) => [2, 4, 6, 8, 12, 16, 24, 36, 48].find((n) => n >= v) || 60;
-  const dayTick = (d) => { const dt = pd(d); return { wk: dt.getDay() === 0 || dt.getDay() === 6, label: `${WD[dt.getDay()][0]}${dt.getDate()}` }; };
+  // Day labels read month/day ("11/15"); weekends are bold. Narrow slots (phones) get a smaller size so ten fit.
+  const dayTick = (d) => { const dt = pd(d); return { wk: dt.getDay() === 0 || dt.getDay() === 6, label: `${dt.getMonth() + 1}/${dt.getDate()}` }; };
+  const tickSize = (slot) => (slot < 36 ? ' style="font-size:10px"' : "");
   const val = (x) => (x >= 1 ? Math.round(x) : x >= 0.1 ? x.toFixed(1) : "0");
-  const dayLabels = (dates, x, y) => dates.map((d, i) => { const t = dayTick(d); return `<text class="${t.wk ? "wk" : ""}" x="${x(i)}" y="${y}" text-anchor="middle">${t.label}</text>`; }).join("");
+  const dayLabels = (dates, x, y) => { const size = tickSize(dates.length > 1 ? x(1) - x(0) : 99); return dates.map((d, i) => { const t = dayTick(d); return `<text class="${t.wk ? "wk" : ""}" x="${x(i)}" y="${y}" text-anchor="middle"${size}>${t.label}</text>`; }).join(""); };
 
   // Today: ten days in one row. Cell color deepens with snow; number inside.
   function heatStrip(days) {
@@ -142,7 +150,7 @@
         const ink = t > 0.5 ? "var(--on-accent)" : "var(--ink)";
         s += `<rect x="${x}" y="0" width="${cw}" height="38" rx="7" fill="${fill}" tabindex="0" data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected, likely ${inch(d.low)}–${inch(d.high)}"/>`;
         s += `<text class="val" x="${x + cw / 2}" y="24" text-anchor="middle" style="fill:${ink};pointer-events:none">${d.snow < 0.1 ? "–" : val(d.snow)}</text>`;
-        s += `<text class="${k.wk ? "wk" : ""}" x="${x + cw / 2}" y="53" text-anchor="middle">${k.label}</text>`;
+        s += `<text class="${k.wk ? "wk" : ""}" x="${x + cw / 2}" y="53" text-anchor="middle"${tickSize(cw + gap)}>${k.label}</text>`;
       });
       return [58, s];
     }, "10-day snowfall, one cell per day");
