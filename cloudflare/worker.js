@@ -1,7 +1,9 @@
 // Cloudflare Worker (free plan): the scheduler.
 //
-// Cron fires every 15 minutes from 09:00 to 17:45 UTC (2-10 a.m. MST, 3-11 a.m. MDT) and once
-// at 21:00 UTC. Cloudflare cron runs on the minute, unlike GitHub Actions' best-effort
+// Cron (UTC, non-overlapping so two ticks never fire in the same minute):
+//   */5 11-13      every 5 min, 4:00-6:55 a.m. MST: send within minutes of the map + snow report
+//   */15 9-10,14-17  every 15 min the rest of 2-10 a.m. MST
+//   0 21           mid-afternoon forecast refresh Cloudflare cron runs on the minute, unlike GitHub Actions' best-effort
 // schedule. Each tick calls the Vercel function, which decides what to do:
 // mostly a cheap "nothing changed", a full refresh before 7:00, and the 7:00 send.
 //

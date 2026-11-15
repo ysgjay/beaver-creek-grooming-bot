@@ -81,6 +81,8 @@ def subject(day):
     runs = (day.get("grooming") or {}).get("runs") or {}
     n = len(runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []))
     parts = [f"{n} runs groomed" if n else ("No new grooming map" if not (day.get("grooming") or {}).get("new_map") else "Grooming map")]
+    if day.get("preseason") and not n:
+        parts = [f"Opens {config.OPENING_DAY.strftime('%b')} {config.OPENING_DAY.day}"]
     if fc.get("next_1_5") is not None:
         parts.append(f"{_in(fc['next_1_5'])} next 5 days")
     return ("Test · " if day.get("test") else "") + f"Beaver Creek {short_date(day['date'])}: " + ", ".join(parts)

@@ -111,3 +111,11 @@ def vapid_keys(conn):
         cur.execute("SELECT name, value FROM app_secrets WHERE name IN ('vapid_private', 'vapid_public')")
         found = dict(cur.fetchall())  # another request may have won the race; use what's stored
         return found["vapid_private"], found["vapid_public"]
+
+
+def claim_send(conn, day, reason):
+    """True exactly once per day, even if two triggers race."""
+    with conn.cursor() as cur:
+        cur.execute("INSERT INTO daily_sends (day, reason) VALUES (%s, %s) ON CONFLICT (day) DO NOTHING RETURNING day",
+                    (day, reason))
+        return cur.fetchone() is not None

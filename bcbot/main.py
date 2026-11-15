@@ -10,9 +10,10 @@ CLI:
 """
 import argparse
 import logging
+import os
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from . import config, forecast, notify, report, verify
 from .sources import grooming, nws, openmeteo, resort, snotel
@@ -107,19 +108,47 @@ def update_months(store, summary=None, snotel_daily=None):
     return touched
 
 
-def _send_at(now):
-    hh, mm = (int(x) for x in config.SEND_TIME.split(":"))
+def _at(now, hhmm):
+    hh, mm = (int(x) for x in hhmm.split(":"))
     return now.replace(hour=hh, minute=mm, second=0, microsecond=0)
 
 
-def run(store=None, force=False, send=None, now=None):
-    """One trigger. Cheap unless something changed or the daily send is due.
+def _since(iso, ref_iso):
+    """True when timestamp `iso` is later than `ref_iso` (missing ref = always)."""
+    if not iso:
+        return False
+    if not ref_iso:
+        return True
+    return datetime.fromisoformat(iso) > datetime.fromisoformat(ref_iso)
 
-    Send rule (once per day, never twice):
-      at SEND_TIME, if today's grooming map is new -> send;
-      if it isn't new yet -> keep checking each trigger, send the moment it appears;
-      at SEND_TIME + SEND_FALLBACK_MINUTES -> send anyway (in season) with a note.
+
+def send_decision(state, now, *, map_new, resort_fresh, send=True):
+    """What the daily send should do at `now`. Returns a reason to send, "quiet", or None (not yet).
+
+    Pre-season (before OPENING_DAY): every morning at SEND_TIME, map or not.
+    In season: as soon as (from SEND_EARLIEST) there's a new grooming map since the last report
+      AND the resort's snow report is dated today. If the report has no readable date, the map
+      alone counts from SEND_TIME. At SEND_LATEST, send whatever there is (in season) or stay
+      quiet (the resort has stopped posting maps: season over).
     """
+    if not send or state.get("last_sent_date") == now.date().isoformat():
+        return None
+    if now.date() < config.OPENING_DAY:
+        return "preseason" if now >= _at(now, config.SEND_TIME) else None
+    if now < _at(now, config.SEND_EARLIEST):
+        return None
+    if map_new and resort_fresh is True:
+        return "ready"
+    if map_new and resort_fresh is None and now >= _at(now, config.SEND_TIME):
+        return "ready (map; report has no date)"
+    if now >= _at(now, config.SEND_LATEST):
+        in_season = _hours_since(state.get("last_map_change"), now) <= config.IN_SEASON_DAYS * 24
+        return "deadline" if in_season else "quiet"
+    return None
+
+
+def run(store=None, force=False, send=None, now=None):
+    """One trigger: a cheap check, a full refresh when something changed, and the daily send."""
     store = store or get_store()
     send = config.SEND_ENABLED if send is None else send
     now = now or now_local()
@@ -127,56 +156,73 @@ def run(store=None, force=False, send=None, now=None):
     errors = []
     state = store.get_json("data/state.json", {}) or {}
 
-    send_at = _send_at(now)
-    minutes_to_send = (send_at - now).total_seconds() / 60
-    send_pending = send and state.get("last_sent_date") != day_str and minutes_to_send <= 0
-    pre_send = 0 < minutes_to_send <= config.PRE_SEND_MINUTES
-
-    # 1. Cheap check
+    # 1. Cheap check: has the grooming map changed?
     groom = _try("grooming map", grooming.fetch, errors, None)
     map_changed = bool(groom) and groom["hash"] != state.get("last_map_hash")
+    last_change = now.isoformat(timespec="minutes") if map_changed else state.get("last_map_change")
+    # "New" = changed since the last report went out (or in the last 18 hours if none has).
+    ref = state.get("last_sent_at") or (now - timedelta(hours=18)).isoformat(timespec="minutes")
+    map_new = _since(last_change, ref)
+
+    # 2. Only when a send could happen: is the resort's snow report dated today?
+    resort_report, resort_fresh = None, None
+    in_window = (send and state.get("last_sent_date") != day_str and now.date() >= config.OPENING_DAY
+                 and now >= _at(now, config.SEND_EARLIEST))
+    if in_window and map_new:
+        resort_report = resort.fetch()
+        resort_fresh = resort.is_fresh(resort_report, now.date())
+
+    decision = send_decision(state, now, map_new=map_new, resort_fresh=resort_fresh, send=send)
+
     age = _hours_since(state.get("last_full_run"), now)
     new_day = (state.get("last_full_run") or "")[:10] != day_str
-    stale_after = 1.0 if (pre_send or send_pending) else config.REFRESH_HOURS
-    full = force or map_changed or new_day or age >= stale_after
+    pre_send = 0 < (_at(now, config.SEND_TIME) - now).total_seconds() / 60 <= config.PRE_SEND_MINUTES
+    stale_after = 1.0 if pre_send else config.REFRESH_HOURS
+    full = force or map_changed or new_day or age >= stale_after or decision not in (None, "quiet")
 
-    if not full and not send_pending:
+    if not full and decision is None:
         log.info("nothing new (map unchanged, forecast %.1fh old)", age)
-        return {"status": "skipped", "forecast_age_h": round(age, 1)}
+        return {"status": "skipped", "forecast_age_h": round(age, 1), "map_new": map_new}
 
     if full:
-        day = _full_run(store, state, groom, map_changed, now, day_str, errors)
+        day = _full_run(store, state, groom, map_changed, now, day_str, errors, resort_report)
     else:
         day = store.get_json("data/latest.json", {}) or {}
 
-    # 2. The daily send
+    # 3. The daily send (exactly once per day, enforced by a database claim)
     delivered = None
-    if send_pending and day.get("date") == day_str:
-        new_map = bool(day.get("grooming", {}).get("new_map"))
-        in_season = _hours_since(state.get("last_map_change"), now) <= config.IN_SEASON_DAYS * 24
-        fallback = minutes_to_send <= -config.SEND_FALLBACK_MINUTES
-        if new_map or (fallback and in_season):
+    if decision == "quiet":
+        state["last_sent_date"] = day_str
+        log.info("season over (no new map in %s days): not sending", config.IN_SEASON_DAYS)
+    elif decision and day.get("date") == day_str:
+        if _claim_send(day_str, decision):
             g = day.get("grooming", {})
             map_url = f"{config.DASHBOARD_URL.rstrip('/')}/{g['image']}" if g.get("image") else None
-            delivered = notify.send_all(day, map_url)
+            delivered = notify.send_all(dict(day, preseason=decision == "preseason"), map_url)
             alert = report.powder_alert(day.get("forecast"))
             if alert:
                 notify.alert(alert)
-            state["last_sent_date"] = day_str
-            day["delivery"] = {"sent_at": now_local().isoformat(timespec="seconds"),
-                               "scheduled": send_at.isoformat(timespec="minutes"),
-                               "new_map": new_map, "results": delivered}
+            day["delivery"] = {"sent_at": now_local().isoformat(timespec="seconds"), "reason": decision,
+                               "new_map": map_new, "snow_report_fresh": resort_fresh, "results": delivered}
             store.put_json(f"data/days/{day_str}.json", day)
             store.put_json("data/latest.json", day)
-        elif fallback:
-            state["last_sent_date"] = day_str  # off-season: nothing to send today
-            log.info("off-season (no new map in %s days): not sending", config.IN_SEASON_DAYS)
-        else:
-            log.info("send due but today's map isn't posted yet; checking again next trigger")
+        state["last_sent_date"] = day_str
+        state["last_sent_at"] = now.isoformat(timespec="minutes")
+    elif in_window and map_new and not resort_fresh:
+        log.info("new map is in; waiting for today's snow report")
 
     store.put_json("data/state.json", state)
-    return {"status": "ok", "full_run": full, "map_changed": map_changed, "sent": delivered,
-            "errors": errors, "ok": bool(day.get("forecast")) and (groom is not None or not full)}
+    return {"status": "ok", "full_run": full, "map_changed": map_changed, "decision": decision,
+            "sent": delivered, "errors": errors, "ok": bool(day.get("forecast")) and (groom is not None or not full)}
+
+
+def _claim_send(day_str, reason):
+    """Atomic once-per-day guard. Without a database (tests, local runs) it always allows."""
+    if not os.environ.get("DATABASE_URL"):
+        return True
+    from . import db
+    with db.connect() as conn:
+        return db.claim_send(conn, day_str, reason)
 
 
 TEST_MAX_RECIPIENTS = 5
@@ -202,12 +248,12 @@ def send_test(store=None):
     return {"status": "ok", "test": True, "sent": notify.send_all(dict(day, test=True), map_url)}
 
 
-def _full_run(store, state, groom, map_changed, now, day_str, errors):
+def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_report=None):
     models = _try("open-meteo", openmeteo.fetch_models, errors, {})
     ens = _try("open-meteo ensemble", openmeteo.fetch_ensemble, errors, {})
     nws_daily = _try("nws", nws.fetch_snowfall, errors, {})
     obs = _try("snotel", snotel.fetch, errors, {})
-    resort_report = resort.fetch()
+    resort_report = resort_report if resort_report is not None else resort.fetch()
 
     if obs:
         verification = verify.compute(obs.get("daily", {}),

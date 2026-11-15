@@ -59,6 +59,34 @@ def parse(html):
     return out
 
 
+_MONTHS = "january february march april may june july august september october november december".split()
+
+
+def _stamp_dates(value):
+    """Every calendar date found in one stamp value (ISO, US, 'November 15, 2026', /Date(ms)/)."""
+    from datetime import date, datetime, timezone
+    s = str(value)
+    out = []
+    for y, m, d in re.findall(r"(20\d\d)-(\d{1,2})-(\d{1,2})", s):
+        out.append(date(int(y), int(m), int(d)))
+    for m, d, y in re.findall(r"\b(\d{1,2})/(\d{1,2})/(20\d\d)\b", s):
+        out.append(date(int(y), int(m), int(d)))
+    for mon, d, y in re.findall(r"([A-Za-z]+)\.? (\d{1,2}),? (20\d\d)", s):
+        if mon.lower()[:3] in [x[:3] for x in _MONTHS]:
+            out.append(date(int(y), [x[:3] for x in _MONTHS].index(mon.lower()[:3]) + 1, int(d)))
+    for ms in re.findall(r"/Date\((\d{12,13})", s):
+        out.append(datetime.fromtimestamp(int(ms) / 1000, tz=timezone.utc).astimezone(config.TZ).date())
+    return out
+
+
+def is_fresh(report, today):
+    """True/False when the report carries a recognizable date; None when it doesn't."""
+    dates = [d for v in (report or {}).get("stamps", {}).values() for d in _stamp_dates(v)]
+    if not dates:
+        return None
+    return max(dates) >= today
+
+
 def fetch():
     try:
         r = get(config.RESORT_SNOW_REPORT_URL, headers={"Accept": "text/html"})

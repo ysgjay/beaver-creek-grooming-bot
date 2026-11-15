@@ -231,6 +231,7 @@ def sandbox(tmp_path, monkeypatch):
                   "2026-11-14": {"precip_in": 0.0, "depth_change_in": -1, "depth_in": 7}}})
     monkeypatch.setattr(resort, "fetch", lambda: {"last_24h_in": 0.0, "base_in": 4.0, "season_in": 10.0})
     monkeypatch.setattr(config, "STAKE_SNAPSHOT_URL", "")
+    monkeypatch.setattr(config, "OPENING_DAY", date(2026, 11, 1))   # these tests are in season
     pdf = {"bytes": make_pdf()}
 
     def fake_groom():
@@ -276,7 +277,7 @@ def test_sends_at_seven_exactly_once(sandbox):
     assert r["sent"] is not None and len(reports(sent)) == 1
     assert "Groomed overnight: Flint" in reports(sent)[0]
     d = store.get_json("data/latest.json")["delivery"]
-    assert d["scheduled"].endswith("07:00") and d["new_map"]
+    assert d["reason"].startswith("ready") and d["new_map"] and d["sent_at"]
     # retries, the backup cron, and later triggers never send twice
     for t in [at(7, 0), at(7, 15), at(9, 0), at(14, 0)]:
         main.run(store=store, send=True, now=t)
@@ -483,3 +484,49 @@ def test_send_test_labels_and_leaves_schedule_alone(sandbox, monkeypatch):
     assert store.get_json("data/state.json") == state_before          # schedule untouched
     monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("x@example.com", "t")] * 6)
     assert main.send_test(store)["status"] == "refused"
+
+
+# ---------- pre-season and "send as soon as confirmed" ----------
+
+def test_preseason_sends_daily_at_seven_without_a_new_map(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    monkeypatch.setattr(config, "OPENING_DAY", date(2026, 11, 25))
+    main.run(store=store, send=True, now=at(6, 0, day=14))
+    main.run(store=store, send=True, now=at(7, 0, day=14))
+    assert len(reports(sent)) == 1                               # Nov 14 at 7:00
+    main.run(store=store, send=True, now=at(6, 50))
+    assert len(reports(sent)) == 1                               # not before 7:00
+    main.run(store=store, send=True, now=at(7, 0))
+    main.run(store=store, send=True, now=at(7, 15))
+    assert len(reports(sent)) == 2                               # Nov 15 at 7:00, once
+    assert report.subject({"date": "2026-11-15", "preseason": True, "grooming": {}}).startswith("Beaver Creek Sun 15: Opens Nov 25")
+
+
+def test_sends_as_soon_as_map_and_todays_snow_report_are_confirmed(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    main.run(store=store, send=True, now=at(7, 0, day=14))           # yesterday's report
+    sent.clear()
+    stale = {"last_24h_in": 0.0, "stamps": {"LastUpdated": "November 14, 2026 5:10 AM"}}
+    fresh = {"last_24h_in": 4.0, "stamps": {"LastUpdated": "November 15, 2026 5:20 AM"}}
+    pdf["bytes"] = make_pdf("Tonight's map")
+    monkeypatch.setattr(resort, "fetch", lambda: stale)
+    main.run(store=store, send=True, now=at(4, 50))                  # before SEND_EARLIEST
+    main.run(store=store, send=True, now=at(5, 5))                   # new map, old snow report
+    assert reports(sent) == []
+    monkeypatch.setattr(resort, "fetch", lambda: fresh)
+    r = main.run(store=store, send=True, now=at(5, 25))              # both confirmed -> send now
+    assert r["decision"] == "ready" and len(reports(sent)) == 1
+    d = store.get_json("data/latest.json")["delivery"]
+    assert d["snow_report_fresh"] is True and d["new_map"] is True
+    main.run(store=store, send=True, now=at(5, 30))
+    assert len(reports(sent)) == 1
+
+
+def test_resort_stamp_dates():
+    from datetime import date as D
+    assert resort.is_fresh({"stamps": {"a": "2026-11-15T05:20:00"}}, D(2026, 11, 15)) is True
+    assert resort.is_fresh({"stamps": {"a": "11/14/2026 5:10"}}, D(2026, 11, 15)) is False
+    assert resort.is_fresh({"stamps": {"a": "Nov. 15, 2026"}}, D(2026, 11, 15)) is True
+    assert resort.is_fresh({"stamps": {"a": "/Date(1794749400000)/"}}, D(2026, 11, 15)) is True
+    assert resort.is_fresh({"stamps": {"Report": "Daily"}}, D(2026, 11, 15)) is None
+    assert resort.is_fresh({}, D(2026, 11, 15)) is None

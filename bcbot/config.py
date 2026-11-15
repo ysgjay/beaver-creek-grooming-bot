@@ -1,5 +1,6 @@
 """All tunable settings in one place. Secrets come from environment variables."""
 import os
+from datetime import date
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -63,14 +64,17 @@ DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "https://snow.0xm.studio/")
 SEND_ENABLED = os.environ.get("SEND_ENABLED") == "1"
 # A run with no new grooming map still refreshes the forecast when it's older than this.
 REFRESH_HOURS = float(os.environ.get("REFRESH_HOURS", "6"))
-# The daily report goes out at this local time (America/Denver), every day in season.
+# Daily send timing (local, America/Denver):
+#   before OPENING_DAY: every morning at SEND_TIME, grooming map or not;
+#   in season: as soon as a new map AND today's resort snow report are confirmed, from
+#   SEND_EARLIEST; at SEND_LATEST whatever is available goes out.
+OPENING_DAY = date.fromisoformat(os.environ.get("OPENING_DAY", "2026-11-25"))
 SEND_TIME = os.environ.get("SEND_TIME", "07:00")
-# In the half hour before SEND_TIME, refresh anything older than an hour so 7:00 is fresh.
+SEND_EARLIEST = os.environ.get("SEND_EARLIEST", "05:00")
+SEND_LATEST = os.environ.get("SEND_LATEST", "09:00")
+# In the half hour before SEND_TIME, refresh anything older than an hour.
 PRE_SEND_MINUTES = 30
-# If the resort hasn't posted a new map by SEND_TIME, keep checking; at this many minutes
-# past SEND_TIME send anyway (noting there's no new map).
-SEND_FALLBACK_MINUTES = int(os.environ.get("SEND_FALLBACK_MINUTES", "120"))
-# "In season" = the grooming map changed within this many days. Off-season, nothing is sent.
+# After opening: if the map hasn't changed in this many days, the season is over; stay quiet.
 IN_SEASON_DAYS = 3
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 NTFY_SERVER = os.environ.get("NTFY_SERVER", "https://ntfy.sh")
