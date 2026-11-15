@@ -45,12 +45,20 @@ FORECAST_DAYS = 10
 # SNOTEL ground truth. Vail Mountain (10,300 ft) is ~6 miles from Beaver Creek's upper mountain.
 SNOTEL_STATIONS = ["842:CO:SNTL", "415:CO:SNTL"]  # Vail Mountain, Copper Mountain (fallback)
 
-# Cams on the dashboard: image URLs, or Brown Rice player pages (shown as live embeds).
-# The first one is the snow stake. Override with the CAM_URLS repo variable.
-DEFAULT_CAMS = ["https://player.brownrice.com/embed/bcsnowstake2"]
-CAMS = [c.strip() for c in os.environ.get("CAM_URLS", "").split(",") if c.strip()] or DEFAULT_CAMS
-# Still-image URL for the daily stake snapshot archive (empty = no archive).
-STAKE_SNAPSHOT_URL = os.environ.get("STAKE_SNAPSHOT_URL", "")
+# Beaver Creek's cams are Brown Rice streams. Each has a live player page and a
+# still JPEG at /snapshot/<id> (found by `python -m bcbot discover`). First = snow stake.
+BROWNRICE = "https://player.brownrice.com"
+CAM_IDS = [c.strip() for c in os.environ.get("CAM_IDS", "").split(",") if c.strip()] or [
+    "bcsnowstake2:Snow stake",
+    "bcspruce:Spruce Saddle",
+    "bctalons:Talons",
+    "bcmccoy:McCoy Park",
+    "bcredbuffalo:Red Buffalo",
+    "bcvillage:Village",
+]
+CAMS = [{"label": label, "image": f"{BROWNRICE}/snapshot/{cid}", "live": f"{BROWNRICE}/embed/{cid}"}
+        for cid, _, label in (c.partition(":") for c in CAM_IDS)]
+STAKE_SNAPSHOT_URL = os.environ.get("STAKE_SNAPSHOT_URL", CAMS[0]["image"] if CAMS else "")
 
 # Notifications
 DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "https://ysgjay.github.io/beaver-creek-grooming-bot/")

@@ -66,11 +66,11 @@ Real SMS was left out on purpose. Email-to-SMS gateways are shutting down, and T
 - **Grooming map** with tap-to-zoom. **Next 12 hours**: temperature, feels-like, wind, gust, snow, cloud.
 - **Forecast vs. what fell**: the day-before forecast against SNOTEL for the last 14 days.
 - **Archive** of every day. `#day-YYYY-MM-DD` deep links open that day's map and forecast.
-- **Cams**: set repo variable `CAM_URLS` (comma-separated image URLs; the first is the stake cam, which is also archived daily). Branch runs print candidate URLs from the resort site (`python -m bcbot discover`).
+- **Cams**: the resort's own Brown Rice cams. Six show by default (snow stake, Spruce Saddle, Talons, McCoy Park, Red Buffalo, Village), as still snapshots that refresh each minute; tapping one opens the live stream. Each morning's stake snapshot is archived with that day's report. `python -m bcbot discover` lists the cam ids on the resort's page, and the `CAM_IDS` variable overrides the set.
 
 ## Configuration
 Secrets: `BOT_TOKEN`, `NTFY_TOPIC`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `EMAIL_TO`, `GOOGLE_SHEET_ID`.
-Variables: `CAM_URLS`, `SIGNUP_FORM_URL`. Tunables are in `bcbot/config.py` (forecast point, models and weights, SNOTEL stations, powder threshold).
+Variables: `CAM_IDS`, `SIGNUP_FORM_URL`, `STAKE_SNAPSHOT_URL`. Tunables are in `bcbot/config.py` (forecast point, models and weights, SNOTEL stations, powder threshold).
 
 ## Testing
 - `python -m pytest tests`: 19 tests with API-shaped fixtures. They cover the snow ratio, model parsing, the blend, bias and skill, ensemble odds, NWS interval splitting, SNOTEL differencing, verification, resort parsing, PDF rendering, message length, and the full pipeline (sends once per map, dry run, a source outage).

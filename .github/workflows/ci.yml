@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 15
     env:
       DRY_RUN: "1"
-      CAM_URLS: ${{ vars.CAM_URLS }}
+      CAM_IDS: ${{ vars.CAM_IDS }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,9 +29,6 @@ jobs:
         run: python -m pytest -q tests
       - name: Live dry run
         run: python -m bcbot run
-      - name: Candidate cam URLs from the resort site
-        if: always()
-        run: python -m bcbot discover || true
       - name: Build dashboard
         if: always()
         run: python -m bcbot site

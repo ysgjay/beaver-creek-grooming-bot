@@ -154,7 +154,7 @@ def run(dry_run=False, force_send=False):
 
 
 def discover():
-    """Print image URLs on the resort cams page, to fill in CAM_URLS."""
+    """Print cam ids/URLs on the resort cams page, to update CAM_IDS."""
     for url in ["https://www.beavercreek.com/the-mountain/mountain-conditions/mountain-cams.aspx",
                 config.RESORT_SNOW_REPORT_URL]:
         try:
@@ -182,10 +182,7 @@ def _probe_brownrice(cam_id):
             print("      embed ref:", u)
     except Exception as e:
         print("      embed fetch failed:", e)
-    for u in [f"https://player.brownrice.com/snapshot/{cam_id}",
-              f"https://player.brownrice.com/thumbnail/{cam_id}",
-              f"https://snapshots.brownrice.com/{cam_id}.jpg",
-              f"https://cdn.brownrice.com/snapshots/{cam_id}.jpg"]:
+    for u in [f"https://player.brownrice.com/snapshot/{cam_id}"]:
         try:
             r = get(u, timeout=15, retries=0)
             print(f"      {r.status_code} {r.headers.get('Content-Type', '')} {len(r.content)}B {u}")

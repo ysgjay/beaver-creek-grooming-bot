@@ -24,6 +24,6 @@ python -m http.server -d _site    # then open http://localhost:8000
    - `NTFY_TOPIC`: a hard-to-guess topic name, e.g. `bc-groom-7h2k`.
    - `GMAIL_USER` and `GMAIL_APP_PASSWORD`: already set.
    - `EMAIL_TO` and/or `GOOGLE_SHEET_ID`: who gets the email.
-5. Optional variables: `CAM_URLS` (comma-separated cam image URLs) and `SIGNUP_FORM_URL`.
+5. Optional variables: `SIGNUP_FORM_URL`, and `CAM_IDS` to change which resort cams appear.
 
 The report goes out once per new grooming map. To send one on demand, open Actions → Daily grooming report → Run workflow and tick "force send".

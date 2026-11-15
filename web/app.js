@@ -213,12 +213,13 @@
   /* ---------- cams ---------- */
   function renderCams(day) {
     const cams = (cfg && cfg.cams) || [];
-    const items = cams.map((u, i) => ({ src: u, cap: i === 0 ? "Snow stake (live)" : `Cam ${i + 1}`, live: /\/embed\//.test(u) }));
-    if (day.cam) items.unshift({ src: day.cam, cap: "Stake at report time" });
+    const stamp = Math.floor(Date.now() / 60000); // bust caches once a minute
+    const items = cams.map((c) => ({ src: `${c.image}${c.image.includes("?") ? "&" : "?"}t=${stamp}`, cap: c.label, link: c.live }));
+    if (day.cam) items.unshift({ src: day.cam, cap: `Stake at ${day.generated ? day.generated.slice(11, 16) : "report time"}`, link: null });
     $("cams-panel").hidden = !items.length;
-    $("cams").innerHTML = items.map((c) => c.live
-      ? `<figure class="live"><iframe src="${esc(c.src)}" title="${esc(c.cap)}" loading="lazy" allowfullscreen referrerpolicy="origin"></iframe><figcaption>${esc(c.cap)} · <a href="${esc(c.src)}" target="_blank" rel="noopener">open</a></figcaption></figure>`
-      : `<figure><img src="${esc(c.src)}" alt="${esc(c.cap)}" loading="lazy"><figcaption>${esc(c.cap)}</figcaption></figure>`).join("");
+    $("cams").innerHTML = items.map((c) =>
+      `<figure><a ${c.link ? `href="${esc(c.link)}" target="_blank" rel="noopener"` : ""}><img src="${esc(c.src)}" alt="${esc(c.cap)} cam" loading="lazy"></a>` +
+      `<figcaption>${esc(c.cap)}${c.link ? " · live" : ""}</figcaption></figure>`).join("");
   }
 
   /* ---------- archive ---------- */

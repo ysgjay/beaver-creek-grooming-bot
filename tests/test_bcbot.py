@@ -220,6 +220,7 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(nws, "fetch_snowfall", lambda: {"2026-11-15": 1.0})
     monkeypatch.setattr(snotel, "fetch", lambda: {"station": "842:CO:SNTL", "daily": {}, "last_24h": {"snow_in": 0}})
     monkeypatch.setattr(resort, "fetch", lambda: {})
+    monkeypatch.setattr(config, "STAKE_SNAPSHOT_URL", "")
     pdf = {"bytes": make_pdf()}
 
     def fake_groom():
