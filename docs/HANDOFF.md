@@ -43,13 +43,13 @@ Naming (11/15/2026): Chair 0 is the brand (maroon lift-terminal logo); Snow Desk
 | App + functions | Vercel team **0xM Studio** (`team_uluFTokh4wR7JQqU9paCTLf2`), project **snow-desk** (`prj_qwxjIUmKixPpxhQOReFWhcrwICgl`) | Static app in `public/`, Python functions in `api/`. Domain `snow.0xm.studio`; the 0xm.studio DNS is on Vercel. Login protection is on for the vercel.app URLs, not the custom domain. |
 | Scheduler | Cloudflare Worker **snow-desk-cron** (account `52b0eaa0…`, `jay-52b.workers.dev`) | Crons (UTC, never overlapping): `*/5 11-13 * * *`, `*/15 9-10,14-17 * * *`, `0 21 * * *`. Calls `POST https://snow.0xm.studio/api/run` with `Bearer CRON_SECRET`, retrying 3 times. Vercel's own daily cron (14:05 UTC) is the backup. |
 | Public archive | Vercel Blob **snow-desk-archive** (`store_KpKAjFy5KoVso7GY`, public) | `data/latest.json`, `data/days/<date>.json`, `data/months/<yyyy-mm>.json`, `data/forecasts/<date>.json`, `data/verification.json`, `data/state.json`, `maps/<date>.jpg`, `cams/<date>.jpg`. The app reads these through rewrites in `vercel.json`. |
-| Private data | Neon project **snow-desk** (`square-hill-75040371`, us-east-1) | Tables: `subscribers` (double opt-in, token, status, resorts), `push_subscriptions` (resorts), `daily_sends` (once-a-day claim per resort). |
+| Private data | Neon project **snow-desk** (`spring-heart-11973566`, us-east-1), created from Vercel Storage in team 0xM Studio, so it bills through 0xM's Vercel account (Launch plan). Moved Nov 15, 2026 from the old `square-hill-75040371` project, which billed elsewhere. | Tables: `subscribers` (double opt-in, token, status, resorts), `push_subscriptions` (resorts), `daily_sends` (once-a-day claim per resort). |
 | Email | Resend, domain **snow.0xm.studio** (`8a410eb5-…`, verified) | DNS in Vercel: `resend._domainkey.snow` TXT, `send.snow` MX and TXT, `rsend.snow` CNAME. Free plan: 100 emails a day, about 90 subscribers. |
 
 **DNS gotcha:** `snow.0xm.studio` needs its own ALIAS record (`snow` → `cname.vercel-dns-016.com.`), which now exists. The email records under `snow.*` stop 0xm.studio's catch-all `*` record from covering it. Never delete that ALIAS.
 
 ## Vercel environment variables (names only; values live in Vercel)
-- **Storage and data:** `BLOB_READ_WRITE_TOKEN`, `BLOB_PUBLIC_BASE`, `DATABASE_URL`
+- **Storage and data:** `BLOB_READ_WRITE_TOKEN`, `BLOB_PUBLIC_BASE`, and `SNOWDB_DATABASE_URL` (plus the other `SNOWDB_*` variables), which the Vercel Neon integration manages. The code prefers it over the old `DATABASE_URL`, which can be removed once the old project is deleted.
 - **Security:** `CRON_SECRET`, which the Cloudflare Worker also holds
 - **Email:** `RESEND_API_KEY`, the owner's "Snow" send-only key; `EMAIL_FROM`
 - **Sending:** `SEND_ENABLED=1`

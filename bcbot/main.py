@@ -27,6 +27,11 @@ from .util import get, now_local
 log = logging.getLogger("bcbot")
 
 
+def _db_url():
+    from .db import url
+    return url()
+
+
 def _try(name, fn, errors, default=None):
     try:
         return fn()
@@ -263,7 +268,7 @@ def _watchdog(state, now, day_str, send, decision, errors):
 
 def _claim_send(day_str, reason, slug=resorts.DEFAULT):
     """Atomic once-per-day-per-resort guard. Without a database (tests, local runs) it always allows."""
-    if not os.environ.get("DATABASE_URL"):
+    if not _db_url():
         return True
     from . import db
     with db.connect() as conn:
