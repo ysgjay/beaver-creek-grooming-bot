@@ -11,6 +11,7 @@ Each morning, send one report with three things in it: the Beaver Creek grooming
 | Posted the map daily even when it hadn't changed (off-season spam) | Sends once per *new* map (PDF hash), up to 3 checks each morning |
 | One channel's failure stopped the others | Every source and channel is isolated; failures are listed in the data and the job fails only if the core is missing |
 | No history | Every day archived in `data/` and browsable on the dashboard |
+| Map image only | Groomed run names parsed from the PDF and included in the message |
 | Cron turned off by hand at season end (Mar 30) and must be turned back on each season | Can stay enabled all year: off-season, the map doesn't change, so nothing is sent. The daily data commits also keep GitHub's 60-day inactivity shut-off from triggering. |
 | Facebook app secret committed in `get_facebook_token.py` | File removed. **The secret is still in git history, so reset it in the Meta developer console.** |
 
@@ -63,7 +64,7 @@ Real SMS was left out on purpose. Email-to-SMS gateways are shutting down, and T
 ## Dashboard
 - **Summary**: last 24 hours (resort report, else SNOTEL), next 1–5 days, days 6–10 (each with a range), and the odds of a 6"+ day.
 - **10-day bar chart** of the blend, with range whiskers and a tooltip listing each model's number. An expandable table shows every model, day by day, with its learned weight and bias.
-- **Grooming map** with tap-to-zoom. **Next 12 hours**: temperature, feels-like, wind, gust, snow, cloud.
+- **Grooming map** with tap-to-zoom, plus the named runs read from the PDF's text layer (groomers of the day, last night's grooming, morning grooming). A **most-groomed runs** tally covers the last 30 reports. **Next 12 hours**: temperature, feels-like, wind, gust, snow, cloud.
 - **Forecast vs. what fell**: the day-before forecast against SNOTEL for the last 14 days.
 - **Archive** of every day. `#day-YYYY-MM-DD` deep links open that day's map and forecast.
 - **Cams**: the resort's own Brown Rice cams. Six show by default (snow stake, Spruce Saddle, Talons, McCoy Park, Red Buffalo, Village), as still snapshots that refresh each minute; tapping one opens the live stream. Each morning's stake snapshot is archived with that day's report. `python -m bcbot discover` lists the cam ids on the resort's page, and the `CAM_IDS` variable overrides the set.
