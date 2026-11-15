@@ -51,12 +51,12 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
 - **Official snow report:** the beavercreek.com snow report page, embedded `FR.snowReportData` block. Fields read: overnight, 24h, 48h, 7-day, base and season totals, and `LastUpdatedText`, e.g. "Updated November 15, 2026 at 5:34 AM MST".
 - **Snow stake and cams:** Brown Rice cams. `https://player.brownrice.com/snapshot/<id>` gives a still image and `/embed/<id>` the live stream. IDs: `bcsnowstake2` (stake), `bcspruce`, `bctalons`, `bcmccoy`, `bcredbuffalo`, `bcvillage`. The stake snapshot is archived each day.
 - **Forecast:** Open-Meteo, with temperatures corrected to the 10,476 ft forecast point.
-  - Models: GFS, HRRR, NBM, ECMWF, ICON, GEM and UKMO, plus 82 ensemble runs (variations of the models used for ranges and odds). The NWS gridded forecast joins the blend.
+  - Models: GFS, HRRR, NBM, ECMWF (9 km, with the 25 km run as fallback), NAM 3 km, ICON, GEM and UKMO, plus 82 ensemble runs (variations of the models used for ranges and odds). The NWS gridded forecast joins the blend.
   - Ground truth: the Vail Mountain SNOTEL station (842:CO:SNTL).
   - Method, the open-data version of OpenSnow's PEAKS approach:
-    1. A temperature-based snow-to-liquid ratio, about 15:1 in the teens, instead of a flat 7:1.
-    2. Each model's bias and skill learned against SNOTEL over 45 days.
-    3. A weighted blend, plus ensemble ranges and the odds of a 6"+ day.
+    1. A temperature-based snow-to-liquid ratio, about 15:1 in the teens, instead of a flat 7:1. Rain or snow is decided by wet-bulb temperature (temperature plus humidity).
+    2. Each model's bias and skill learned against SNOTEL over 45 days. The bias starts from the model's record over last winter (`data/priors.json`, worked out once a season from Open-Meteo's historical forecast archive), because coarse models run dry on the upper mountain and early season has too few wet days to learn from.
+    3. A weighted blend, then a calibration against Beaver Creek's own reported snowfall (`snow_cal` in `data/verification.json`, between 0.7 and 1.4), plus ensemble ranges and the odds of a 6"+ day. Ensemble runs get the same corrections as the main number.
 
   - Elevation bands: `config.ELEVATION_BANDS` lists base (8,100 ft), mid (10,200 ft) and peak (11,440 ft), all on the mountain. `data/latest.json` carries `bands`: for each one the label, elevation, `now`, the next 12 `hours` (temp, feels, wind, gust) and 10 `days` (high, low, and `snow_pct`, the share of precipitation falling as snow there). The snow totals stay tied to the 10,476 ft forecast point.
   - The NWS grid only counts for days it covers in full (20+ hours), like the models.

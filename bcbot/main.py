@@ -17,7 +17,7 @@ import logging
 import os
 import re
 import sys
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from . import config, forecast, notify, report, resorts, verify
 from .sources import grooming, nws, openmeteo, resort, snotel
@@ -73,6 +73,8 @@ def day_summary(day):
     return {
         "date": day["date"],
         "resort_24h": resort_rep.get("last_24h_in"),
+        # True only when the report is dated that day; a stale report must not score the forecast.
+        "resort_fresh": resort.is_fresh(resort_rep, date.fromisoformat(day["date"])),
         "snotel_24h": obs.get("snow_in"),
         "base_in": resort_rep.get("base_in"),
         "season_in": resort_rep.get("season_in"),
@@ -277,6 +279,38 @@ def send_test(store=None, slug=resorts.DEFAULT):
             "sent": notify.send_all(dict(day, test=True), map_url, slug=slug)}
 
 
+def _terrain_priors(store, today, errors):
+    """{model: bias_ratio} over last winter. Worked out once a season and kept in data/priors.json;
+    a failed attempt is retried on the next day, not on every run."""
+    start, end = verify.prior_season(today)
+    saved = store.get_json("data/priors.json", {}) or {}
+    if saved.get("season") == start.isoformat() and (saved.get("models") or saved.get("tried") == today.isoformat()):
+        return {m: v["bias_ratio"] for m, v in (saved.get("models") or {}).items()}
+    doc = {"season": start.isoformat(), "season_end": end.isoformat(), "tried": today.isoformat(), "models": {}}
+    try:
+        obs = snotel.fetch_daily_precip(start, end + timedelta(days=1))
+        if not obs:
+            raise ValueError("no SNOTEL history")
+        doc["station"] = obs["station"]
+        doc["models"] = verify.terrain_priors(openmeteo.fetch_history(start, end), obs["daily"])
+    except Exception as e:
+        log.warning("terrain priors failed: %s", e)
+        errors.append(f"terrain priors: {e}")
+    store.put_json("data/priors.json", doc)
+    return {m: v["bias_ratio"] for m, v in doc["models"].items()}
+
+
+def _resort_daily(store, today):
+    """{date: inches} of the resort's reported 24h snowfall, from the month files."""
+    out = {}
+    first = today - timedelta(days=verify.WINDOW_DAYS)
+    for ym in sorted({(first + timedelta(days=i)).isoformat()[:7] for i in range(verify.WINDOW_DAYS + 1)}):
+        for d, row in ((store.get_json(f"data/months/{ym}.json", {}) or {}).get("days") or {}).items():
+            if row.get("resort_24h") is not None and row.get("resort_fresh"):
+                out[d] = row["resort_24h"]
+    return out
+
+
 def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_report=None):
     models = _try("open-meteo", openmeteo.fetch_models, errors, {})
     ens = _try("open-meteo ensemble", openmeteo.fetch_ensemble, errors, {})
@@ -287,7 +321,9 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
 
     if obs:
         verification = verify.compute(obs.get("daily", {}),
-                                      lambda d: store.get_json(f"data/forecasts/{d}.json"), today=now.date())
+                                      lambda d: store.get_json(f"data/forecasts/{d}.json"), today=now.date(),
+                                      priors=_terrain_priors(store, now.date(), errors),
+                                      resort_daily=_resort_daily(store, now.date()))
         verification["station"] = obs.get("station")
         store.put_json("data/verification.json", verification)
     else:

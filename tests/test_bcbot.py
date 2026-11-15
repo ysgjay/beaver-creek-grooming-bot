@@ -212,6 +212,162 @@ def test_verification_learns_dry_model(tmp_path):
     assert v["history"][-1]["observed"] == 6
 
 
+def _archive(tmp_path, days=10, liquid=0.25, snow=5.0, snow_cal=None):
+    """Forecasts issued the day before each of the last `days` days, plus matching SNOTEL."""
+    fdir = tmp_path / "forecasts"
+    fdir.mkdir(exist_ok=True)
+    obs = {}
+    for i in range(days):
+        d = TODAY - timedelta(days=days - i)
+        obs[d.isoformat()] = {"precip_in": 0.5, "depth_change_in": 6}
+        doc = {"days": [{"date": d.isoformat(), "snow": snow, "low": 2, "high": 8}],
+               "raw": {"dry": {d.isoformat(): {"liquid": liquid, "snow": 3}}}}
+        if snow_cal:
+            doc["snow_cal"] = snow_cal
+        (fdir / f"{(d - timedelta(days=1)).isoformat()}.json").write_text(json.dumps(doc))
+
+    def load(d):
+        return json.loads((fdir / f"{d}.json").read_text()) if (fdir / f"{d}.json").exists() else None
+    return obs, load
+
+
+def test_terrain_prior_stands_until_recent_days_outweigh_it(tmp_path):
+    # Nothing scored yet: the prior from last winter is the correction.
+    v = verify.compute({}, lambda d: None, today=TODAY, priors={"gfs_seamless": 1.3})
+    assert v["models"]["gfs_seamless"] == {"n": 0, "prior": 1.3, "bias_ratio": 1.3, "skill": 1.0}
+    # One wet day (0.5" seen, 0.5" forecast) only nudges it: (0.5 + 1.3) / (0.5 + 1.0) = 1.2.
+    obs, load = _archive(tmp_path, days=1, liquid=0.5)
+    assert verify.compute(obs, load, today=TODAY, priors={"dry": 1.3})["models"]["dry"]["bias_ratio"] == 1.2
+    # Ten such days: recent evidence wins, (5 + 1.3) / (5 + 1) = 1.05.
+    obs, load = _archive(tmp_path, days=10, liquid=0.5)
+    assert verify.compute(obs, load, today=TODAY, priors={"dry": 1.3})["models"]["dry"]["bias_ratio"] == 1.05
+
+
+def test_terrain_priors_from_last_winter():
+    days = [(date(2025, 12, 1) + timedelta(days=i)).isoformat() for i in range(40)]
+    observed = {d: 0.2 for d in days}
+    out = verify.terrain_priors({"coarse": {d: 0.1 for d in days},          # half of what fell
+                                 "sharp": {d: 0.2 for d in days},
+                                 "short": {d: 0.1 for d in days[:10]},      # too few days to trust
+                                 "wild": {d: 0.01 for d in days}}, observed)
+    assert out["coarse"]["bias_ratio"] == 1.6 and out["coarse"]["n"] == 40  # clamped from 2.0
+    assert out["sharp"]["bias_ratio"] == 1.0
+    assert "short" not in out and "wild" not in out
+    assert verify.prior_season(date(2026, 11, 15)) == (date(2025, 11, 1), date(2026, 4, 30))
+    assert verify.prior_season(date(2027, 2, 1)) == (date(2025, 11, 1), date(2026, 4, 30))
+
+
+def test_history_payload_split_by_model():
+    payload = {"daily": {"time": ["2025-12-01", "2025-12-02"], "precipitation_sum_gfs_seamless": [0.1, None],
+                         "precipitation_sum_ecmwf_ifs": [None, None]}}
+    assert openmeteo.split_history(payload, ["gfs_seamless", "ecmwf_ifs", "gem_seamless"]) == {
+        "gfs_seamless": {"2025-12-01": 0.1}}
+
+
+def test_snow_calibration_against_resort_report(tmp_path):
+    # We forecast 5" a day for 10 days; the resort reported 7" each following morning.
+    obs, load = _archive(tmp_path, days=10, snow=5.0)
+    resort_daily = {(TODAY - timedelta(days=i)).isoformat(): 7.0 for i in range(10)}
+    v = verify.compute(obs, load, today=TODAY, resort_daily=resort_daily)
+    assert v["snow_cal"] == {"ratio": 1.36, "n": 10, "forecast_in": 50.0, "resort_in": 70.0}  # (70+6)/(50+6)
+    assert v["history"][-1]["resort"] == 7.0
+    # No resort reports: no calibration.
+    assert verify.compute(obs, load, today=TODAY)["snow_cal"]["ratio"] == 1.0
+    # Forecasts that were already calibrated are compared before calibration, so it can't compound.
+    obs, load = _archive(tmp_path, days=10, snow=7.0, snow_cal=1.4)
+    assert verify.compute(obs, load, today=TODAY, resort_daily=resort_daily)["snow_cal"]["forecast_in"] == 50.0
+
+
+def test_calibration_and_bias_reach_the_range_too():
+    rows = openmeteo._split_models(openmeteo_payload(["gfs_seamless"], precip=0.01), ["gfs_seamless"])
+    ens = {f"member{i:02d}_gfs025": [{"time": t, "precipitation": 0.01, "temperature_2m": 20} for t in _hours()]
+           for i in range(12)}
+    plain = forecast.build(rows, ensemble_rows=ens, today=TODAY)
+    fixed = forecast.build(rows, ensemble_rows=ens, today=TODAY, verification={
+        "models": {"gfs_seamless": {"bias_ratio": 1.5, "skill": 1.0}}, "snow_cal": {"ratio": 1.2}})
+    assert fixed["snow_cal"] == 1.2
+    assert fixed["days"][0]["snow"] == pytest.approx(plain["days"][0]["snow"] * 1.8, abs=0.1)
+    assert fixed["days"][0]["high"] == pytest.approx(plain["days"][0]["high"] * 1.8, abs=0.1)
+    assert fixed["next_1_5_range"][0] == pytest.approx(plain["next_1_5_range"][0] * 1.8, abs=0.2)
+
+
+def test_coarse_ecmwf_steps_aside_for_the_9km_run():
+    coarse = openmeteo._split_models(openmeteo_payload(["ecmwf_ifs025"], precip=0.01), ["ecmwf_ifs025"])
+    sharp = openmeteo._split_models(openmeteo_payload(["ecmwf_ifs"], precip=0.03), ["ecmwf_ifs"])
+    alone = forecast.build(coarse, today=TODAY)
+    both = forecast.build(coarse | sharp, today=TODAY)
+    assert "ecmwf_ifs025" in alone["days"][0]["models"]
+    assert list(both["days"][0]["models"]) == ["ecmwf_ifs"]
+    assert both["days"][0]["snow"] == pytest.approx(3 * alone["days"][0]["snow"], abs=0.1)
+    assert both["model_labels"]["ecmwf_ifs"] == "ECMWF 9 km"
+
+
+def test_extra_models_never_cost_the_core_ones(monkeypatch):
+    calls = []
+
+    def fake(models, **opts):
+        calls.append(models)
+        if "ecmwf_ifs" in models:
+            raise RuntimeError("unknown model")
+        return {m: [] for m in models}
+    monkeypatch.setattr(openmeteo, "_fetch_models", fake)
+    out = openmeteo.fetch_models()
+    assert len(calls) == 2 and "gfs_seamless" in out and "ecmwf_ifs" not in out
+
+
+def test_humidity_sets_the_rain_snow_line():
+    assert forecast.wet_bulb_f(36, 100) == pytest.approx(36, abs=0.6)
+    assert forecast.wet_bulb_f(36, 30) < 30                      # dry air: far colder wet bulb
+    assert forecast.snow_fraction(36, 30) == 1.0                 # dry Colorado air: snow at 36°F
+    assert forecast.snow_fraction(36, 100) == 0.0                # soaked air: rain at 36°F
+    assert 0.3 < forecast.snow_fraction(34, 95) < 0.8
+    assert forecast.snow_fraction(20, 80) == 1.0
+    assert forecast.snow_fraction(36) == 0.0 and forecast.snow_fraction(31) == 1.0   # no humidity: old rule
+    assert forecast.hourly_snow(0.1, 36, 30) > 0 == forecast.hourly_snow(0.1, 36)
+
+
+def test_ensemble_payload_carries_humidity():
+    hourly = {"time": _hours(1), "precipitation_member01_gfs025": [0.01] * 24,
+              "temperature_2m_member01_gfs025": [35.0] * 24, "relative_humidity_2m_member01_gfs025": [40] * 24,
+              "precipitation_ecmwf_ifs025": [0.0] * 24, "temperature_2m_ecmwf_ifs025": [35.0] * 24}
+    out = openmeteo.split_ensemble({"hourly": hourly})
+    assert out["member01_gfs025"][0]["relative_humidity_2m"] == 40
+    assert forecast._ensemble_parent("member01_gfs025") == "gfs_seamless"
+    assert forecast._ensemble_parent("ecmwf_ifs025") == "ecmwf_ifs025"
+
+
+def test_priors_are_worked_out_once_a_season(tmp_path, monkeypatch):
+    store, calls = LocalStore(tmp_path), []
+    days = [(date(2025, 12, 1) + timedelta(days=i)).isoformat() for i in range(40)]
+
+    def history(start, end):
+        calls.append((start, end))
+        return {"gfs_seamless": {d: 0.1 for d in days}}
+    monkeypatch.setattr(openmeteo, "fetch_history", history)
+    monkeypatch.setattr(snotel, "fetch_daily_precip",
+                        lambda b, e: {"station": "842:CO:SNTL", "daily": {d: 0.13 for d in days}})
+    errors = []
+    assert main._terrain_priors(store, TODAY, errors) == {"gfs_seamless": 1.3}
+    assert main._terrain_priors(store, TODAY + timedelta(days=1), errors) == {"gfs_seamless": 1.3}
+    assert len(calls) == 1 and not errors
+    assert store.get_json("data/priors.json")["season"] == "2025-11-01"
+
+
+def test_failed_priors_retry_the_next_day_not_every_run(tmp_path, monkeypatch):
+    store, calls = LocalStore(tmp_path), []
+
+    def down(b, e):
+        calls.append(b)
+        raise RuntimeError("offline")
+    monkeypatch.setattr(snotel, "fetch_daily_precip", down)
+    errors = []
+    assert main._terrain_priors(store, TODAY, errors) == {}
+    assert main._terrain_priors(store, TODAY, errors) == {}
+    assert len(calls) == 1
+    main._terrain_priors(store, TODAY + timedelta(days=1), errors)
+    assert len(calls) == 2
+
+
 # ---------- resort / grooming ----------
 
 def test_resort_parse():
@@ -269,6 +425,8 @@ def sandbox(tmp_path, monkeypatch):
                         lambda: openmeteo._split_models(openmeteo_payload(models), models))
     monkeypatch.setattr(openmeteo, "fetch_ensemble", lambda: {})
     monkeypatch.setattr(nws, "fetch_snowfall", lambda: {"2026-11-15": 1.0})
+    monkeypatch.setattr(openmeteo, "fetch_history", lambda start, end: {})
+    monkeypatch.setattr(snotel, "fetch_daily_precip", lambda begin, end: {})
     monkeypatch.setattr(openmeteo, "fetch_bands",
                         lambda: openmeteo.split_bands(bands_payload(), config.ELEVATION_BANDS))
     monkeypatch.setattr(snotel, "fetch", lambda: {

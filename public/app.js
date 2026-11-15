@@ -563,9 +563,9 @@
         </details>
         <details><summary>How the forecast is built</summary>
           <ol class="steps">
-            <li>Seven public weather models (NOAA's GFS, HRRR and National Blend, ECMWF, ICON, GEM, UKMO) for this exact spot, with temperature corrected to 10,476 ft. The NWS forecasters' snowfall joins as an eighth voice.</li>
-            <li>Liquid precipitation becomes snow with a temperature-based ratio tuned for dry Colorado snow, about 15 to 1 in the teens.</li>
-            <li>Every model is scored daily against the ${esc(resortInfo().snotel || "nearest")} SNOTEL gauge. Models that run dry here are scaled up, and models that keep missing get less weight.</li>
+            <li>Public weather models (NOAA's GFS, HRRR, NAM and National Blend, ECMWF, ICON, GEM, UKMO) for a point on the upper mountain, not the town below, with temperature corrected to that elevation. The NWS forecasters' snowfall joins as one more voice.</li>
+            <li>Liquid precipitation becomes snow with a temperature-based ratio tuned for dry Colorado snow, about 15 to 1 in the teens. Humidity decides rain or snow near freezing.</li>
+            <li>Every model is scored daily against the ${esc(resortInfo().snotel || "nearest")} SNOTEL gauge, starting from how it did last winter. Models that run dry here are scaled up, and models that keep missing get less weight. The total is then checked against the resort's own snow report.</li>
             <li>High-resolution models lead for 48 hours, global models after that. Ensemble runs give the range and the powder odds.</li>
           </ol>
         </details>
@@ -752,7 +752,7 @@ ${tell}
 
       <section class="card">
         <h2>About the numbers</h2>
-        <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends seven public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own.</p>
+        <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own.</p>
       </section>`;
     wireEmailForm(v);
     wirePush(v);
