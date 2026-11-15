@@ -34,7 +34,7 @@
   function pickResort(slug, remember = true) {
     R.slug = R.list.some((r) => r.slug === slug) ? slug : DEFAULT_RESORT;
     if (remember) { try { localStorage.setItem("resort", R.slug); } catch (e) {} }
-    document.title = `Chair 0 · ${resortInfo().name}`;
+    document.title = `Snow Desk · ${resortInfo().name}`;
     const sel = $("#resort-select");
     if (sel) sel.value = R.slug;
   }
@@ -632,8 +632,8 @@
     const state = $("#push-state", v), btn = $("#push-btn", v), hint = $("#push-hint", v);
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      state.textContent = ios && !standalone ? "Add Chair 0 to your Home Screen to get notifications." : "This browser can't show notifications.";
-      if (ios && !standalone) hint.textContent = "In Safari, tap Share, then Add to Home Screen, then open Chair 0 from your Home Screen and come back here.";
+      state.textContent = ios && !standalone ? "Add Snow Desk to your Home Screen to get notifications." : "This browser can't show notifications.";
+      if (ios && !standalone) hint.textContent = "In Safari, tap Share, then Add to Home Screen, then open Snow Desk from your Home Screen and come back here.";
       return;
     }
     const reg = await navigator.serviceWorker.register("/sw.js").catch(() => null);
@@ -717,7 +717,7 @@
         <p style="margin:0">For a life-threatening emergency, call 911. Tell any lift operator or employee, and they will radio patrol.</p>
         <div class="call-grid"><a class="btn block" href="tel:911">Call 911</a>
           <a class="btn secondary block" href="${esc(r.site)}" target="_blank" rel="noopener">Resort safety info</a></div>
-        <p class="small muted" style="margin:0">Chair 0 doesn't list ${esc(r.name)}'s patrol numbers yet.</p>
+        <p class="small muted" style="margin:0">Snow Desk doesn't list ${esc(r.name)}'s patrol numbers yet.</p>
       </section>${tell}`;
     return `
       <section class="card patrol" aria-labelledby="h-patrol">
@@ -819,7 +819,7 @@ ${tell}
     const tab = (location.hash.slice(1) || "today");
     const name = VIEWS[tab] ? tab : "today";
     document.querySelectorAll(".tabbar a").forEach((a) => { if (a.dataset.tab === name) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
-    $("#subtitle").textContent = { today: S.latest ? fmtDay(S.latest.date) + " · Chair 0" : "Chair 0", calendar: "History", forecast: "Full forecast", help: "Help & ski patrol" }[name];
+    $("#subtitle").textContent = { today: S.latest ? fmtDay(S.latest.date) + " · Snow Desk" : "Chair 0: Snow Desk", calendar: "History", forecast: "Full forecast", help: "Help & ski patrol" }[name];
     const my = ++routing;
     const view = await VIEWS[name]();
     if (my !== routing) return;

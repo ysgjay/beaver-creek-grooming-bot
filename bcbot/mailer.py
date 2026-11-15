@@ -11,7 +11,7 @@ BATCH_MAX = 100
 
 
 def _from():
-    return os.environ.get("EMAIL_FROM", "Chair 0 <report@snow.0xm.studio>")
+    return os.environ.get("EMAIL_FROM", "Snow Desk <report@snow.0xm.studio>")
 
 
 def _post(path, payload):
@@ -119,4 +119,4 @@ def daily_html(day, map_url):
       {chips("Groomers of the day", runs.get("groomers_of_the_day"))}{chips("Groomed overnight", runs.get("overnight"))}{chips("Morning grooming", runs.get("morning"))}{"".join(chips(escape(a), l) for a, l in (runs.get("areas") or {"Groomed": runs.get("groomed")}).items())}
       <p style="margin:16px 0 6px;font-weight:600">Snow forecast: {inch(fc.get('next_1_5'))} next 5 days, {inch(fc.get('next_6_10'))} days 6–10</p>
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed"><tr>{cells}</tr></table>
-      <p style="margin:18px 0 0"><a href="{report.app_url(day)}" style="background:#0a5bd3;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:12px;font-weight:600;display:inline-block">Open Chair 0</a></p>"""
+      <p style="margin:18px 0 0"><a href="{report.app_url(day)}" style="background:#0a5bd3;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:12px;font-weight:600;display:inline-block">Open Snow Desk</a></p>"""

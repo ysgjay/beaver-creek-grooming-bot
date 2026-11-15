@@ -1,4 +1,4 @@
-"""The resorts Chair 0 covers. Each one has its own grooming map, snow report, cams,
+"""The resorts Snow Desk covers. Each one has its own grooming map, snow report, cams,
 forecast point, archive folder, subscribers and once-a-day send.
 
 All five are Vail Resorts' Colorado mountains, which share one website platform (the

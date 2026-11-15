@@ -10,7 +10,7 @@ from bcbot.web import Handler
 from bcbot import db, resorts
 
 PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Choose resorts · Chair 0</title></head>
+<title>Choose resorts · Snow Desk</title></head>
 <body style="margin:0;background:#dcebfa;font:16px/1.5 -apple-system,'Segoe UI',Roboto,sans-serif;color:#0c2a4a">
 <div style="max-width:420px;margin:10vh auto;background:#fff;border-radius:24px;padding:24px">{body}</div></body></html>"""
 BTN = "font:600 16px inherit;background:#0a5bd3;color:#fff;border:0;border-radius:12px;padding:12px 18px;cursor:pointer"
