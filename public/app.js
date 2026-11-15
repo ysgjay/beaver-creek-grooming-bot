@@ -298,7 +298,14 @@
   function openLightbox(src, alt) {
     const ov = $("#overlay");
     ov.innerHTML = `<div class="lightbox" role="dialog" aria-label="${esc(alt)}"><button class="close" type="button">Close</button><div class="scrollbox"><img src="${esc(src)}" alt="${esc(alt)}"></div></div>`;
-    const close = () => { ov.innerHTML = ""; document.removeEventListener("keydown", onKey); };
+    const bd = ov.firstElementChild;
+    // Closing plays the leave transition, then removes only this sheet (a newer one may already be open).
+    const close = () => {
+      document.removeEventListener("keydown", onKey);
+      if (!bd.isConnected || bd.classList.contains("closing")) return;
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) { bd.remove(); return; }
+      bd.classList.add("closing"); setTimeout(() => bd.remove(), 190);
+    };
     const onKey = (e) => { if (e.key === "Escape") close(); };
     $(".close", ov).addEventListener("click", close);
     document.addEventListener("keydown", onKey);
@@ -308,7 +315,13 @@
   function openSheet(title, html, onMount) {
     const ov = $("#overlay");
     ov.innerHTML = `<div class="sheet-backdrop"><div class="sheet" role="dialog" aria-label="${esc(title)}"><div class="sheet-head"><h2>${esc(title)}</h2><button class="btn secondary" type="button" data-close>Done</button></div>${html}</div></div>`;
-    const close = () => { ov.innerHTML = ""; document.removeEventListener("keydown", onKey); };
+    const bd = ov.firstElementChild;
+    const close = () => {
+      document.removeEventListener("keydown", onKey);
+      if (!bd.isConnected || bd.classList.contains("closing")) return;
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) { bd.remove(); return; }
+      bd.classList.add("closing"); setTimeout(() => bd.remove(), 190);
+    };
     const onKey = (e) => { if (e.key === "Escape") close(); };
     ov.querySelector("[data-close]").addEventListener("click", close);
     ov.querySelector(".sheet-backdrop").addEventListener("click", (e) => { if (e.target.classList.contains("sheet-backdrop")) close(); });
@@ -887,7 +900,7 @@
         <p class="small">${votes.length ? `${agree} of ${votes.length} models show ${mark ? `${mark} ${mark === 1 ? "inch" : "inches"} or more` : "some snow"}.` : "No model reaches this day yet."}</p>`;
     };
     const close = () => {
-      if (pop) pop.remove();
+      if (pop) { const old = pop; if (matchMedia("(prefers-reduced-motion: reduce)").matches) old.remove(); else { old.classList.add("closing"); setTimeout(() => old.remove(), 150); } }
       pop = null; open = -1;
       chart.querySelectorAll(".day-hit.sel").forEach((r) => r.classList.remove("sel"));
       document.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", onOutside);
@@ -936,14 +949,16 @@
     v.innerHTML = `
       <section class="card a-hours">
         <div class="card-head"><h2>Next 12 hours</h2><span class="muted small">${rows.length > 1 ? "Temperature at " + rows.map((b) => `${esc(b.label).toLowerCase()} ${bandFt(b)}`).join(", ") + " · wind in mph" : "Wind in mph"}</span></div>
-        <div class="hstrip" role="group" aria-label="Next 12 hours, hour by hour">
+        <div class="hs-wrap">
           <div class="hs-col hs-labels" aria-hidden="true"><span class="t"></span><span class="sn">Snow</span>${rows.length ? rows.map((b) => `<span class="${b === midBand ? "mid" : "tmp"}">${esc(b.label)}</span>`).join("") : '<span class="mid">Temp</span>'}<span class="w">Wind</span></div>
+        <div class="hstrip" role="group" aria-label="Next 12 hours, hour by hour">
           ${hours.map((h) => `<div class="hs-col" tabindex="0" data-tip="${hourLabel(h.time)}: ${rows.length ? rows.map((b) => `${esc(b.label)} ${bandTemp(b, h.time)}`).join(", ") : h.temp + "°"}, feels ${h.feels}°. Wind ${esc(h.dir)} ${h.wind} mph${h.gust != null ? ", gusts " + h.gust : ""}. ${h.snow ? h.snow + " in. snow" : "No snow"}, cloud ${h.cloud}%">
             <span class="t">${hourLabel(h.time)}</span>
             <span class="sn">${h.snow ? `<b>${h.snow}"</b>` : ""}<i class="${h.snow ? "on" : ""}" style="height:${h.snow ? Math.max(3, Math.round((h.snow / snowMax) * 20)) : 2}px"></i></span>
             ${rows.length ? rows.map((b) => `<span class="${b === midBand ? "mid" : "tmp"}">${bandTemp(b, h.time)}</span>`).join("") : `<span class="mid">${h.temp}°</span>`}
             <span class="w">${esc(h.dir)} ${h.wind}</span>
           </div>`).join("")}
+        </div>
         </div>
       </section>
 
