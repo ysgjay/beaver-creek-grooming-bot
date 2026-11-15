@@ -4,9 +4,13 @@ Triggered every 30 minutes through the early morning (Cloudflare cron -> /api/ru
 Vercel). Most runs exit after one cheap check: a full run happens only when the grooming
 map changed, the forecast is older than REFRESH_HOURS, or it's the first run of the day.
 
+Each resort (resorts.py) runs on its own: its own archive folder, state, send rules and
+subscribers. /api/run fans out one function call per resort.
+
 CLI:
-  python -m bcbot run [--force] [--send]   # local run into public/ (no sending unless --send)
-  python -m bcbot discover                 # list the resort's cam ids
+  python -m bcbot run [--resort vail] [--force] [--send]   # local run into public/ (no sending unless --send)
+  python -m bcbot discover [--resort vail]                 # list the resort's cam ids
+  python -m bcbot resorts-json                             # refresh public/resorts.json (the app's list)
 """
 import argparse
 import logging
@@ -15,9 +19,9 @@ import re
 import sys
 from datetime import datetime, timedelta
 
-from . import config, forecast, notify, report, verify
+from . import config, forecast, notify, report, resorts, verify
 from .sources import grooming, nws, openmeteo, resort, snotel
-from .store import get_store
+from .store import get_store, resort_store
 from .util import get, now_local
 
 log = logging.getLogger("bcbot")
@@ -47,12 +51,16 @@ def _snapshot_stake(store, day_str):
         r.raise_for_status()
         if not r.headers.get("Content-Type", "").startswith("image/"):
             raise ValueError(f"not an image: {r.headers.get('Content-Type')}")
-        path = f"cams/{day_str}.jpg"
-        store.put_bytes(path, r.content, "image/jpeg")
-        return path
+        store.put_bytes(f"cams/{day_str}.jpg", r.content, "image/jpeg")
+        return _public(store, f"cams/{day_str}.jpg")
     except Exception as e:
         log.warning("stake snapshot failed: %s", e)
         return None
+
+
+def _public(store, path):
+    """The URL path the app uses for a file this resort's store wrote."""
+    return store.path(path) if hasattr(store, "path") else path
 
 
 def day_summary(day):
@@ -73,6 +81,7 @@ def day_summary(day):
         "featured": runs.get("groomers_of_the_day", []),
         "overnight": runs.get("overnight", []),
         "morning": runs.get("morning", []),
+        "groomed": runs.get("groomed", []),
         "cam": day.get("cam"),
         "next_1_5": fc.get("next_1_5"),
     }
@@ -122,7 +131,7 @@ def _since(iso, ref_iso):
     return datetime.fromisoformat(iso) > datetime.fromisoformat(ref_iso)
 
 
-def send_decision(state, now, *, map_new, resort_fresh, send=True):
+def send_decision(state, now, *, map_new, resort_fresh, send=True, has_map=True):
     """What the daily send should do at `now`. Returns a reason to send, "quiet", or None (not yet).
 
     Pre-season (before OPENING_DAY): every morning at SEND_TIME, map or not.
@@ -130,6 +139,8 @@ def send_decision(state, now, *, map_new, resort_fresh, send=True):
       AND the resort's snow report is dated today. If the report has no readable date, the map
       alone counts from SEND_TIME. At SEND_LATEST, send whatever there is (in season) or stay
       quiet (the resort has stopped posting maps: season over).
+    A resort with no grooming map (has_map=False) sends as soon as today's snow report is
+    posted, and at SEND_LATEST regardless.
     """
     if not send or state.get("last_sent_date") == now.date().isoformat():
         return None
@@ -142,27 +153,42 @@ def send_decision(state, now, *, map_new, resort_fresh, send=True):
     if map_new and resort_fresh is None and now >= _at(now, config.SEND_TIME):
         return "ready (map; report has no date)"
     if now >= _at(now, config.SEND_LATEST):
-        in_season = _hours_since(state.get("last_map_change"), now) <= config.IN_SEASON_DAYS * 24
+        in_season = not has_map or _hours_since(state.get("last_map_change"), now) <= config.IN_SEASON_DAYS * 24
         return "deadline" if in_season else "quiet"
     return None
 
 
-def run(store=None, force=False, send=None, now=None):
-    """One trigger: a cheap check, a full refresh when something changed, and the daily send."""
-    store = store or get_store()
+def run_all(store=None, force=False, send=None, now=None):
+    """Every enabled resort, one after another (local runs and the fallback path)."""
+    out = {}
+    for slug in resorts.enabled():
+        try:
+            out[slug] = run(store, force=force, send=send, now=now, slug=slug)
+        except Exception as e:
+            log.exception("%s run failed", slug)
+            out[slug] = {"status": "error", "error": str(e)}
+    return out
+
+
+def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
+    """One trigger for one resort: a cheap check, a full refresh when something changed,
+    and that resort's daily send."""
+    config.use(slug)
+    store = resort_store(slug, store)
     send = config.SEND_ENABLED if send is None else send
     now = now or now_local()
     day_str = now.date().isoformat()
     errors = []
     state = store.get_json("data/state.json", {}) or {}
 
-    # 1. Cheap check: has the grooming map changed?
-    groom = _try("grooming map", grooming.fetch, errors, None)
+    # 1. Cheap check: has the grooming map changed? (Resorts with no map: nothing to wait for.)
+    has_map = bool(config.GROOMING_PDF_URL)
+    groom = _try("grooming map", grooming.fetch, errors, None) if has_map else None
     map_changed = bool(groom) and groom["hash"] != state.get("last_map_hash")
     last_change = now.isoformat(timespec="minutes") if map_changed else state.get("last_map_change")
     # "New" = changed since the last report went out (or in the last 18 hours if none has).
     ref = state.get("last_sent_at") or (now - timedelta(hours=18)).isoformat(timespec="minutes")
-    map_new = _since(last_change, ref)
+    map_new = _since(last_change, ref) if has_map else True
 
     # 2. Only when a send could happen: is the resort's snow report dated today?
     resort_report, resort_fresh = None, None
@@ -172,7 +198,7 @@ def run(store=None, force=False, send=None, now=None):
         resort_report = resort.fetch()
         resort_fresh = resort.is_fresh(resort_report, now.date())
 
-    decision = send_decision(state, now, map_new=map_new, resort_fresh=resort_fresh, send=send)
+    decision = send_decision(state, now, map_new=map_new, resort_fresh=resort_fresh, send=send, has_map=has_map)
 
     age = _hours_since(state.get("last_full_run"), now)
     new_day = (state.get("last_full_run") or "")[:10] != day_str
@@ -182,7 +208,7 @@ def run(store=None, force=False, send=None, now=None):
 
     if not full and decision is None:
         log.info("nothing new (map unchanged, forecast %.1fh old)", age)
-        return {"status": "skipped", "forecast_age_h": round(age, 1), "map_new": map_new}
+        return {"status": "skipped", "resort": slug, "forecast_age_h": round(age, 1), "map_new": map_new}
 
     if full:
         day = _full_run(store, state, groom, map_changed, now, day_str, errors, resort_report)
@@ -195,11 +221,11 @@ def run(store=None, force=False, send=None, now=None):
         state["last_sent_date"] = day_str
         log.info("season over (no new map in %s days): not sending", config.IN_SEASON_DAYS)
     elif decision and day.get("date") == day_str:
-        if _claim_send(day_str, decision):
+        if _claim_send(day_str, decision, slug):
             g = day.get("grooming", {})
             map_url = f"{config.DASHBOARD_URL.rstrip('/')}/{g['image']}" if g.get("image") else None
             powder = report.powder_alert(day.get("forecast"))
-            delivered = notify.send_all(dict(day, preseason=decision == "preseason", powder=powder), map_url)
+            delivered = notify.send_all(dict(day, preseason=decision == "preseason", powder=powder), map_url, slug=slug)
             day["delivery"] = {"sent_at": now_local().isoformat(timespec="seconds"), "reason": decision,
                                "new_map": map_new, "snow_report_fresh": resort_fresh, "results": delivered}
             store.put_json(f"data/days/{day_str}.json", day)
@@ -210,29 +236,31 @@ def run(store=None, force=False, send=None, now=None):
         log.info("new map is in; waiting for today's snow report")
 
     store.put_json("data/state.json", state)
-    return {"status": "ok", "full_run": full, "map_changed": map_changed, "decision": decision,
+    return {"status": "ok", "resort": slug, "full_run": full, "map_changed": map_changed, "decision": decision,
             "sent": delivered, "errors": errors, "ok": bool(day.get("forecast")) and (groom is not None or not full)}
 
 
-def _claim_send(day_str, reason):
-    """Atomic once-per-day guard. Without a database (tests, local runs) it always allows."""
+def _claim_send(day_str, reason, slug=resorts.DEFAULT):
+    """Atomic once-per-day-per-resort guard. Without a database (tests, local runs) it always allows."""
     if not os.environ.get("DATABASE_URL"):
         return True
     from . import db
     with db.connect() as conn:
-        return db.claim_send(conn, day_str, reason)
+        return db.claim_send(conn, day_str, reason, slug)
 
 
 TEST_MAX_RECIPIENTS = 5
 
 
-def send_test(store=None):
-    """Send the current report now, labeled as a test. Leaves the daily schedule untouched.
+def send_test(store=None, slug=resorts.DEFAULT):
+    """Send one resort's current report now, labeled as a test, to that resort's subscribers.
+    Leaves the daily schedule untouched.
 
     Refuses when there are more than TEST_MAX_RECIPIENTS email subscribers or app
-    subscriptions, so a test can never reach the whole list.
+    subscriptions in total (any resort), so a test can never reach the whole list.
     """
-    store = store or get_store()
+    config.use(slug)
+    store = resort_store(slug, store)
     day = store.get_json("data/latest.json", {}) or {}
     if not day.get("date"):
         return {"status": "error", "error": "no report yet"}
@@ -245,7 +273,8 @@ def send_test(store=None):
                 "error": f"{n} email subscribers, {p} app subscriptions; tests are limited to {TEST_MAX_RECIPIENTS} each"}
     g = day.get("grooming", {})
     map_url = f"{config.DASHBOARD_URL.rstrip('/')}/{g['image']}" if g.get("image") else None
-    return {"status": "ok", "test": True, "sent": notify.send_all(dict(day, test=True), map_url)}
+    return {"status": "ok", "test": True, "resort": slug,
+            "sent": notify.send_all(dict(day, test=True), map_url, slug=slug)}
 
 
 def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_report=None):
@@ -270,11 +299,13 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
 
     prev = store.get_json(f"data/days/{day_str}.json", {}) or {}
     g = dict(prev.get("grooming") or {"new_map": False, "image": state.get("last_map_image")})
+    if not config.GROOMING_PDF_URL:
+        g = {"new_map": False, "image": None, "none": True}  # this resort posts no grooming map
     if groom and not g.get("runs"):
         g["runs"] = groom.get("runs")  # same map as before: still show its run names and date
     if groom and map_changed:
-        path = f"maps/{day_str}.jpg"
-        store.put_bytes(path, groom["jpeg"], "image/jpeg")
+        store.put_bytes(f"maps/{day_str}.jpg", groom["jpeg"], "image/jpeg")
+        path = _public(store, f"maps/{day_str}.jpg")
         g = {"new_map": True, "image": path, "hash": groom["hash"], "runs": groom.get("runs"),
              "last_modified": groom.get("last_modified")}
         state.update(last_map_hash=groom["hash"], last_map_image=path,
@@ -282,6 +313,8 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
 
     day = {
         "date": day_str,
+        "resort_slug": config.RESORT,
+        "resort_name": config.RESORT_NAME,
         "generated": now.isoformat(timespec="minutes"),
         "grooming": g,
         "forecast": {k: v for k, v in (fc or {}).items() if k != "raw"},
@@ -300,10 +333,9 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
     return day
 
 
-def discover():
-    """List the Brown Rice cam ids on the resort's cams page (to update CAM_IDS)."""
-    url = "https://www.beavercreek.com/the-mountain/mountain-conditions/mountain-cams.aspx"
-    html = get(url).text.replace("\\/", "/")
+def discover(slug=resorts.DEFAULT):
+    """List the Brown Rice cam ids on a resort's cams page (to fill in its cams in resorts.py)."""
+    html = get(resorts.get(slug)["cams_page"]).text.replace("\\/", "/")
     for cam_id in sorted(set(re.findall(r"player\.brownrice\.com/embed/([\w-]+)", html))):
         r = get(f"https://player.brownrice.com/snapshot/{cam_id}", timeout=15, retries=0)
         print(f"{cam_id}: snapshot {r.status_code} {r.headers.get('Content-Type', '')}")
@@ -312,16 +344,23 @@ def discover():
 def main(argv=None):
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     ap = argparse.ArgumentParser(prog="bcbot")
-    ap.add_argument("command", choices=["run", "discover"])
+    ap.add_argument("command", choices=["run", "discover", "resorts-json"])
+    ap.add_argument("--resort", choices=sorted(resorts.RESORTS), help="one resort (default: every enabled one)")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--send", action="store_true")
     a = ap.parse_args(argv)
-    if a.command == "discover":
-        discover()
+    if a.command == "resorts-json":  # rewrite public/resorts.json after editing resorts.py
+        import json
+        (config.ROOT / "public" / "resorts.json").write_text(json.dumps(resorts.public_list(), indent=1) + "\n")
         return 0
-    result = run(force=a.force, send=True if a.send else None)
-    print(result)
-    return 0 if result.get("status") == "skipped" or result.get("ok") else 1
+    if a.command == "discover":
+        discover(a.resort or resorts.DEFAULT)
+        return 0
+    send = True if a.send else None
+    results = ({a.resort: run(force=a.force, send=send, slug=a.resort)} if a.resort
+               else run_all(force=a.force, send=send))
+    print(results)
+    return 0 if all(r.get("status") == "skipped" or r.get("ok") for r in results.values()) else 1
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
-# Snow Desk: Beaver Creek
+# Snow Desk: Colorado Vail resorts
 
-Every morning at 7:00 it sends the Beaver Creek grooming report, weather, a multi-model snow forecast and the snow stake cam to people who opted in, by email and app notification, and keeps the history.
+Every morning it sends the grooming report, weather, a multi-model snow forecast and the snow stake cam for Beaver Creek, Vail, Breckenridge, Keystone and Crested Butte to people who opted in (each picks their resorts), by email and app notification, and keeps the history. Resort details: [docs/RESORTS.md](docs/RESORTS.md).
 
 - App: **https://snow.0xm.studio** (Today · Calendar · Forecast · Help)
 - How it works and why: [docs/SPEC.md](docs/SPEC.md)
