@@ -674,7 +674,21 @@
     if (radarMap) { try { radarMap.remove(); } catch {} radarMap = null; }
     if (!card || r?.lat == null || r?.lon == null) { card?.remove(); return; }
     const frames = radarFrames(Date.now()), nowIdx = frames.findIndex((f) => f.layer === "nexrad-n0q");
-    const fmt = new Intl.DateTimeFormat("en-US", { timeZone: r.timezone || S.cfg?.timezone || RESORT_TZ, month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" });
+    const tz = r.timezone || S.cfg?.timezone || RESORT_TZ;
+    const fmt = new Intl.DateTimeFormat("en-US", { timeZone: tz, month: "2-digit", day: "2-digit", hour: "numeric", minute: "2-digit" });
+    // Marks under the slider: an hour ago, now, then each hour ahead, with the clock time written every third hour.
+    // Frames are 5 minutes apart in the past and 30 minutes apart ahead, so marks are placed by frame, not by time.
+    const hourOf = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "numeric", hourCycle: "h23" });
+    const hourLabel = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "numeric" });
+    const at = (i) => `--p:${(i / (frames.length - 1)).toFixed(4)}`;
+    const ticks = frames.map((f, i) => {
+      if (i === 0) return `<span class="lbl" style="${at(i)}">-1h</span>`;
+      if (i === nowIdx) return `<span class="lbl now" style="${at(i)}">Now</span>`;
+      if (i < nowIdx || f.t % 3600000) return "";
+      const h = Number(hourOf.format(new Date(f.t))) % 24;
+      if (h % 3 || i - nowIdx < 5) return `<span style="${at(i)}"></span>`;
+      return `<span class="lbl${h % 6 ? " alt" : ""}" style="${at(i)}">${hourLabel.format(new Date(f.t))}</span>`;
+    }).join("");
     const resortsOnMap = R.list.filter((o) => o.lat != null && o.lon != null);
     const pal = radarPalette();
     radarRamp = pal.ramp;
@@ -686,17 +700,25 @@
       </div>
       <div class="radar-ctl">
         <button class="btn secondary" type="button" id="radar-play">Play</button>
-        <input type="range" id="radar-time" min="0" max="${frames.length - 1}" step="1" value="${nowIdx}" aria-label="Radar time, from an hour ago to 12 hours ahead">
+        <div class="radar-scrub" id="radar-scrub">
+          <output class="radar-bubble" id="radar-bubble" for="radar-time" aria-hidden="true"></output>
+          <input type="range" id="radar-time" min="0" max="${frames.length - 1}" step="1" value="${nowIdx}" aria-label="Radar time, from an hour ago to 12 hours ahead">
+          <div class="radar-ticks" aria-hidden="true">${ticks}</div>
+        </div>
         <button class="btn secondary" type="button" id="radar-now">Now</button>
       </div>
       <p class="muted small radar-note">Slide left for the past hour of radar and right for the next 12 hours from the HRRR model. Mountains block the radar beam, so light snow on the hill can be missing. Use two fingers to move the map.</p>`;
-    const map = $("#radar-map", card), slider = $("#radar-time", card), play = $("#radar-play", card), when = $("#radar-when", card), none = $("#radar-none", card);
+    const map = $("#radar-map", card), slider = $("#radar-time", card), play = $("#radar-play", card), when = $("#radar-when", card), none = $("#radar-none", card), scrub = $("#radar-scrub", card), bubble = $("#radar-bubble", card);
     let cur = -1, timer = null, view = null;   // view = { show(i, prev), preload(i), failed(i) }
     const show = (i) => {
       const prev = cur; cur = i;
       slider.value = i;
       const f = frames[i];
-      when.textContent = `${fmt.format(new Date(f.t)).replace(",", "")} · ${f.kind}`;
+      const stamp = fmt.format(new Date(f.t)).replace(",", "");
+      when.textContent = `${stamp} · ${f.kind}`;
+      bubble.textContent = stamp;
+      scrub.style.setProperty("--p", (i / (frames.length - 1)).toFixed(4));
+      scrub.classList.toggle("future", i > nowIdx);
       slider.setAttribute("aria-valuetext", when.textContent);
       if (view) { view.show(i, prev); none.hidden = !view.failed(i); }
     };
