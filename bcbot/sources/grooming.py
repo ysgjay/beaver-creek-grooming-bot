@@ -1,4 +1,11 @@
-"""Beaver Creek grooming map (Lumiplan PDF) -> JPEG + content hash + any text on the page."""
+"""Lumiplan grooming map PDF -> JPEG + content hash + the run names on the page.
+
+Two layouts are in use:
+  Beaver Creek: section headings ("LAST NIGHT'S GROOMING"...) with number and name on
+    alternating lines.
+  Vail: area headings ("MID-VAIL") with number and name on one line, separated by
+    non-breaking spaces; runs go in `groomed`, by area in `areas`.
+"""
 import hashlib
 import io
 import logging
@@ -35,6 +42,24 @@ _SECTIONS = {
 _DATE = re.compile(r"^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$")
 
 
+_NUM_NAME = re.compile(r"^(\d{1,3})[\s\u00a0]+(\S.*)$")
+
+
+def _parse_area_layout(lines):
+    """Vail-style sheet: 'MID-VAIL', '1\u00a0\u00a0 Ramshorn - Lower', ... (lone numbers are map pins)."""
+    areas, area = {}, None
+    for ln in lines:
+        ln = ln.replace("\u00a0", " ").strip()
+        m = _NUM_NAME.match(ln)
+        if m:
+            areas.setdefault(area or "Groomed", []).append(m.group(2).strip())
+        elif _DATE.match(ln) or ln.isdigit():
+            continue
+        elif ln.isupper() and len(ln) <= 40:
+            area = ln.title()
+    return {"groomed": [r for runs in areas.values() for r in runs], "areas": areas}
+
+
 def parse_runs(lines):
     """Pull the run lists out of the PDF's text layer.
 
@@ -44,6 +69,8 @@ def parse_runs(lines):
     """
     out = {v: [] for v in _SECTIONS.values()}
     out["map_date"] = next((ln for ln in lines if _DATE.match(ln)), None)
+    if not any(ln.upper().replace("\u2019", "'") in _SECTIONS for ln in lines):
+        return out | _parse_area_layout(lines)
     section, expect_name = None, False
     for ln in lines:
         key = _SECTIONS.get(ln.upper().replace("\u2019", "'"))

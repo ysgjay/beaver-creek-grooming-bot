@@ -1,8 +1,8 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v3";
+const SHELL = "shell-v4";
 const DATA = "data-v1";
-const SHELL_FILES = ["/", "/index.html", "/app.js", "/app.css", "/themes.css", "/config.json", "/icon.svg", "/manifest.webmanifest"];
+const SHELL_FILES = ["/", "/index.html", "/app.js", "/app.css", "/themes.css", "/config.json", "/resorts.json", "/icon.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));
@@ -28,7 +28,7 @@ self.addEventListener("fetch", (e) => {
   }).catch(() => caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || caches.match("/index.html"))));
 });
 
-// App notifications: the 7:00 report and powder alerts.
+// App notifications: the morning report (at most one a day; powder alerts ride along).
 self.addEventListener("push", (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: "Snow Desk", body: e.data ? e.data.text() : "" }; }

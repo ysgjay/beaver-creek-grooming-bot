@@ -4,18 +4,38 @@ from datetime import date, datetime
 from . import config
 
 
-def _ordinal(n):
-    return "th" if 11 <= n <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+def resort_name(day):
+    return (day or {}).get("resort_name") or config.RESORT_NAME or "Beaver Creek"
+
+
+def app_url(day=None):
+    """The app, opened on this report's resort (Beaver Creek is the app's default)."""
+    from .resorts import DEFAULT
+    slug = (day or {}).get("resort_slug") or config.RESORT or DEFAULT
+    return config.DASHBOARD_URL if slug == DEFAULT else f"{config.DASHBOARD_URL.rstrip('/')}/?resort={slug}"
+
+
+def mmdd(d):
+    """Dates read as month/day everywhere (Young's preference): 11/15."""
+    d = date.fromisoformat(d) if isinstance(d, str) else d
+    return f"{d.month}/{d.day}"
+
+
+def map_date(text):
+    """The grooming PDF's "November 15, 2026" as 11/15 (unchanged if it doesn't parse)."""
+    try:
+        return mmdd(datetime.strptime(text.strip(), "%B %d, %Y").date())
+    except (AttributeError, ValueError):
+        return text
 
 
 def pretty_date(d):
     d = date.fromisoformat(d) if isinstance(d, str) else d
-    return d.strftime(f"%a %b {d.day}{_ordinal(d.day)}")
+    return f"{d.strftime('%a')} {mmdd(d)}"
 
 
 def short_date(d):
-    d = date.fromisoformat(d) if isinstance(d, str) else d
-    return d.strftime(f"%a {d.day}")
+    return mmdd(d)
 
 
 def _in(x):
@@ -32,9 +52,9 @@ def compose(day):
     fc = day.get("forecast") or {}
     obs = day.get("observed") or {}
     resort = day.get("resort") or {}
-    lines = [f"🎿 Beaver Creek Grooming — {pretty_date(day['date'])}"]
+    lines = [f"🎿 {resort_name(day)} {'Snow' if (day.get('grooming') or {}).get('none') else 'Grooming'} — {pretty_date(day['date'])}"]
     g = day.get("grooming", {})
-    if not g.get("new_map", True):
+    if not g.get("new_map", True) and not g.get("none"):
         lines.append("(No new grooming map posted yet today)")
     runs = g.get("runs") or {}
     if runs.get("groomers_of_the_day"):
@@ -43,6 +63,9 @@ def compose(day):
         lines.append("🚜 Groomed overnight: " + ", ".join(runs["overnight"]))
     if runs.get("morning"):
         lines.append("☀️ Morning grooming: " + ", ".join(runs["morning"]))
+    for area, names in (runs.get("areas") or {"Groomed": runs.get("groomed") or []}).items():
+        if names:
+            lines.append(f"🚜 {area}: " + ", ".join(names))
 
     snow = []
     if resort.get("last_24h_in") is not None:
@@ -72,44 +95,47 @@ def compose(day):
             lines.append(f"{_hour_label(h['time'])}: {h['temp']}° (feels {h['feels']}°), {wind} mph{snow_txt}")
 
     lines.append("")
-    lines.append(f"📊 Forecast, cams & history: {config.DASHBOARD_URL}")
+    lines.append(f"📊 Forecast, cams & history: {app_url(day)}")
     return "\n".join(lines)
 
 
 def subject(day):
     fc = day.get("forecast") or {}
     runs = (day.get("grooming") or {}).get("runs") or {}
-    n = len(runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []))
-    parts = [f"{n} runs groomed" if n else ("No new grooming map" if not (day.get("grooming") or {}).get("new_map") else "Grooming map")]
+    n = len(runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []) + runs.get("groomed", []))
+    g = day.get("grooming") or {}
+    parts = [f"{n} runs groomed" if n else ("Snow report" if g.get("none") else "No new grooming map" if not g.get("new_map") else "Grooming map")]
     if day.get("preseason") and not n:
-        parts = [f"Opens {config.OPENING_DAY.strftime('%b')} {config.OPENING_DAY.day}"]
+        parts = [f"Opens {mmdd(config.OPENING_DAY)}"]
     if fc.get("next_1_5") is not None:
         parts.append(f"{_in(fc['next_1_5'])} next 5 days")
-    return ("Test · " if day.get("test") else "") + f"Beaver Creek {short_date(day['date'])}: " + ", ".join(parts)
+    return ("Test · " if day.get("test") else "") + f"{resort_name(day)} {short_date(day['date'])}: " + ", ".join(parts)
 
 
 def push_payload(day, map_url):
     """Short notification: what's groomed and what's coming. Tapping opens Today."""
     fc = day.get("forecast") or {}
     runs = (day.get("grooming") or {}).get("runs") or {}
-    groomed = runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", [])
+    groomed = runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []) + runs.get("groomed", [])
     rs = day.get("resort") or {}
     r24 = rs.get("last_24h_in", (day.get("observed") or {}).get("snow_in"))
     body = []
+    if day.get("powder"):
+        body.append(day["powder"])
     if groomed:
         body.append("Groomed: " + ", ".join(groomed[:6]) + ("…" if len(groomed) > 6 else ""))
     body.append(f"New snow {_in(r24)} · Next 5 days {_in(fc.get('next_1_5'))}")
-    payload = {"title": ("Test · " if day.get("test") else "") + f"Beaver Creek · {short_date(day['date'])}", "body": "\n".join(body),
-               "url": config.DASHBOARD_URL, "tag": f"report-{day['date']}"}
+    payload = {"title": ("Test · " if day.get("test") else "") + f"{resort_name(day)} · {short_date(day['date'])}", "body": "\n".join(body),
+               "url": app_url(day), "tag": f"report-{day.get('resort_slug') or 'beaver-creek'}-{day['date']}"}
     if map_url:
         payload["image"] = map_url
     return payload
 
 
-def powder_alert(fc):
+def powder_alert(fc, name=None):
     """Short alert text when the next 48h blend crosses the powder threshold, else None."""
     days = (fc or {}).get("days", [])[:2]
     total = sum(d["snow"] for d in days)
     if total >= config.POWDER_ALERT_INCHES:
-        return f"❄️ Powder alert: {total:.0f}\" forecast for Beaver Creek in the next 48 hours."
+        return f"❄️ Powder alert: {total:.0f}\" forecast for {name or config.RESORT_NAME} in the next 48 hours."
     return None

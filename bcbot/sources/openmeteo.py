@@ -99,3 +99,40 @@ def fetch_ensemble():
         if any(r["precipitation"] is not None for r in rows):
             members[member.lstrip("_") or "control"] = rows
     return members
+
+
+BAND_VARS = ["temperature_2m", "apparent_temperature", "precipitation", "wind_speed_10m", "wind_gusts_10m"]
+
+
+def fetch_bands(bands=None):
+    """Hourly weather at each elevation band (base / mid / peak) in one request.
+
+    Returns {band key: [hour dicts]}. Uses Open-Meteo's best-match model; each band's
+    temperature is lapse-rate corrected to that band's own elevation.
+    """
+    bands = list(bands or config.ELEVATION_BANDS)
+    params = _base_params() | {
+        "latitude": ",".join(f"{b['lat']:.4f}" for b in bands),
+        "longitude": ",".join(f"{b['lon']:.4f}" for b in bands),
+        "elevation": ",".join(str(round(b["elevation_ft"] * 0.3048)) for b in bands),
+        "hourly": ",".join(BAND_VARS),
+    }
+    r = get(FORECAST_URL, params=params)
+    r.raise_for_status()
+    return split_bands(r.json(), bands)
+
+
+def split_bands(payload, bands):
+    """Open-Meteo answers several locations with a list, in request order (one location: a dict)."""
+    locations = payload if isinstance(payload, list) else [payload]
+    out = {}
+    for band, loc in zip(bands, locations):
+        hourly = loc.get("hourly", {})
+        temps = hourly.get("temperature_2m")
+        if not temps:
+            continue
+        out[band["key"]] = [
+            {"time": t} | {v: (hourly[v][i] if hourly.get(v) and i < len(hourly[v]) else None) for v in BAND_VARS}
+            for i, t in enumerate(hourly.get("time", []))
+        ]
+    return out

@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta
 import pymupdf
 import pytest
 
-from bcbot import config, forecast, main, notify, report, verify
+from bcbot import config, forecast, main, notify, report, resorts, verify
 from bcbot.store import BlobStore, LocalStore
 from bcbot.sources import grooming, nws, openmeteo, resort, snotel
 
@@ -130,6 +130,50 @@ def test_nws_intervals_split_across_local_days():
     assert out["2026-11-16"] == pytest.approx(1.0)
 
 
+def test_nws_leaves_out_partly_covered_days():
+    # The grid starts mid-afternoon: today has 8 hours left, tomorrow is complete.
+    vals = [{"validTime": "2026-11-15T23:00:00+00:00/PT8H", "value": 25.4},   # 16:00-24:00 MST
+            {"validTime": "2026-11-16T07:00:00+00:00/P1D", "value": 50.8}]    # all of 11/16 MST
+    out = nws.daily_from_intervals(vals, min_hours=nws.MIN_HOURS)
+    assert "2026-11-15" not in out
+    assert out["2026-11-16"] == pytest.approx(2.0)
+
+
+# ---------- elevation bands ----------
+
+def bands_payload(temps=(38.0, 30.0, 24.0), precip=0.02):
+    times = _hours()
+    return [{"hourly": {"time": times, "temperature_2m": [t] * len(times),
+                        "apparent_temperature": [t - 8] * len(times), "precipitation": [precip] * len(times),
+                        "wind_speed_10m": [10] * len(times), "wind_gusts_10m": [20] * len(times)}}
+            for t in temps]
+
+
+def test_bands_are_on_the_mountain_and_ordered_by_elevation():
+    fts = [b["elevation_ft"] for b in config.ELEVATION_BANDS]
+    assert fts == sorted(fts) and fts[0] >= 8000        # Avon, the town below, is 7,430 ft
+    assert [b["key"] for b in config.ELEVATION_BANDS] == ["base", "mid", "peak"]
+
+
+def test_band_outlook_temps_and_rain_snow_split():
+    rows = openmeteo.split_bands(bands_payload(), config.ELEVATION_BANDS)
+    out = forecast.band_outlook(rows, now=datetime(2026, 11, 15, 6, 20, tzinfo=config.TZ))
+    base, mid, peak = out
+    assert (base["label"], base["elevation_ft"]) == ("Base", 8100)
+    assert [b["now"]["temp"] for b in out] == [38, 30, 24]
+    assert len(mid["hours"]) == 12 and mid["hours"][0]["time"] == "2026-11-15T06:00"
+    assert peak["days"][0] == {"date": "2026-11-15", "high": 24, "low": 24, "snow_pct": 100}
+    assert base["days"][0]["snow_pct"] == 0             # rain in the village, snow up top
+    assert len(base["days"]) == 10
+
+
+def test_band_outlook_skips_missing_band_and_dry_days():
+    rows = openmeteo.split_bands(bands_payload(precip=0.0)[:2], config.ELEVATION_BANDS)
+    out = forecast.band_outlook(rows, now=datetime(2026, 11, 15, 6, 0, tzinfo=config.TZ))
+    assert [b["key"] for b in out] == ["base", "mid"]
+    assert out[0]["days"][0]["snow_pct"] is None
+
+
 # ---------- SNOTEL ----------
 
 def test_snotel_daily_differences():
@@ -204,11 +248,11 @@ def test_compose_subject_and_push_payload():
                               "wind": 12, "gust": 25, "snow": 0} for h in range(6, 18)]},
     }
     text = report.compose(day)
-    assert "Sun Nov 15th" in text and "Snowiest day: Sat 21" in text and "6a: 18°" in text
+    assert "Sun 11/15" in text and "Snowiest day: 11/21" in text and "6a: 18°" in text
     assert len(text) < 1500
-    assert report.subject(day) == 'Beaver Creek Sun 15: Grooming map, 3" next 5 days'
+    assert report.subject(day) == 'Beaver Creek 11/15: Grooming map, 3" next 5 days'
     payload = report.push_payload(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
-    assert payload["title"] == "Beaver Creek · Sun 15" and "New snow 3\"" in payload["body"]
+    assert payload["title"] == "Beaver Creek · 11/15" and "New snow 3\"" in payload["body"]
     assert payload["image"].endswith(".jpg") and payload["url"].startswith("https://")
 
 
@@ -225,13 +269,15 @@ def sandbox(tmp_path, monkeypatch):
                         lambda: openmeteo._split_models(openmeteo_payload(models), models))
     monkeypatch.setattr(openmeteo, "fetch_ensemble", lambda: {})
     monkeypatch.setattr(nws, "fetch_snowfall", lambda: {"2026-11-15": 1.0})
+    monkeypatch.setattr(openmeteo, "fetch_bands",
+                        lambda: openmeteo.split_bands(bands_payload(), config.ELEVATION_BANDS))
     monkeypatch.setattr(snotel, "fetch", lambda: {
         "station": "842:CO:SNTL", "last_24h": {"snow_in": 0},
         "daily": {"2026-11-13": {"precip_in": 0.4, "depth_change_in": 5, "depth_in": 8},
                   "2026-11-14": {"precip_in": 0.0, "depth_change_in": -1, "depth_in": 7}}})
     monkeypatch.setattr(resort, "fetch", lambda: {"last_24h_in": 0.0, "base_in": 4.0, "season_in": 10.0})
-    monkeypatch.setattr(config, "STAKE_SNAPSHOT_URL", "")
-    monkeypatch.setattr(config, "OPENING_DAY", date(2026, 11, 1))   # these tests are in season
+    monkeypatch.setitem(resorts.RESORTS["beaver-creek"], "cams", [])  # no stake snapshot fetch
+    monkeypatch.setitem(resorts.RESORTS["beaver-creek"], "opening_day", date(2026, 11, 1).isoformat())   # these tests are in season
     pdf = {"bytes": make_pdf()}
 
     def fake_groom():
@@ -242,8 +288,7 @@ def sandbox(tmp_path, monkeypatch):
                 "text_lines": text.splitlines(), "last_modified": None}
     monkeypatch.setattr(grooming, "fetch", fake_groom)
     sent = []
-    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: sent.append((report.compose(day), channels)) or {"email": "ok"})
-    monkeypatch.setattr(notify, "alert", lambda text: sent.append((text, ["alert"])) or {})
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None: sent.append((report.compose(day), channels)) or {"email": "ok"})
     return store, tmp_path, pdf, sent
 
 
@@ -453,7 +498,7 @@ def test_daily_email_is_personal_with_one_click_unsubscribe(monkeypatch):
     day = {"date": "2026-11-15", "grooming": {"new_map": True, "runs": {"overnight": ["Flint"], "morning": []}},
            "forecast": {"days": [{"date": "2026-11-15", "snow": 3.0, "low": 1, "high": 6}], "next_1_5": 3, "next_6_10": 1}}
     html = mailer.daily_html(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
-    assert "Flint" in html and "maps/2026-11-15.jpg" in html and "Beaver Creek · Sun, Nov 15" in html
+    assert "Flint" in html and "maps/2026-11-15.jpg" in html and "Beaver Creek · Sun 11/15" in html
     assert mailer.send_daily(recipients, "Subject", html, "text") == 150
     assert [len(b) for _, b in calls] == [100, 50] and all(u.endswith("/emails/batch") for u, _ in calls)
     first = calls[0][1][0]
@@ -475,22 +520,88 @@ def test_send_test_labels_and_leaves_schedule_alone(sandbox, monkeypatch):
     main.run(store=store, send=False, now=at(5, 45))
     state_before = store.get_json("data/state.json")
     monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
-    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("a@example.com", "t")])
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn, resort=None: [("a@example.com", "t")])
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn, resort=None: [{"endpoint": "https://push.example/1"}])
     captured = []
-    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: captured.append(day) or {"email": "sent to 1"})
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None: captured.append(day) or {"email": "sent to 1"})
     r = main.send_test(store)
     assert r["status"] == "ok" and captured[0]["test"] is True
     assert report.subject(captured[0]).startswith("Test · Beaver Creek")
     assert store.get_json("data/state.json") == state_before          # schedule untouched
-    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("x@example.com", "t")] * 6)
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn, resort=None: [("x@example.com", "t")] * 6)
     assert main.send_test(store)["status"] == "refused"
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn, resort=None: [("a@example.com", "t")])
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn, resort=None: [{"endpoint": "https://push.example/1"}] * 6)
+    assert main.send_test(store)["status"] == "refused"                 # app subscribers are protected too
+    assert len(captured) == 1
+
+
+# ---------- app notifications end to end (fake push service, fake database) ----------
+
+def test_push_needs_the_vercel_key(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "postgres://test")
+    monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
+    assert notify.push({"date": "2026-11-15"}, None, "beaver-creek") == "skipped (push not configured)"
+
+
+def test_public_key_is_derived_from_the_private_key(monkeypatch):
+    from bcbot import webpush as w
+    priv, pub = w.generate_vapid_keys()
+    monkeypatch.setenv("VAPID_PRIVATE_KEY", priv)
+    assert w.vapid_public_b64(w.app_key()) == pub
+    monkeypatch.delenv("VAPID_PRIVATE_KEY")
+    assert w.app_key() is None
+
+
+def test_daily_push_is_one_encrypted_notification_with_the_powder_alert(monkeypatch):
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from bcbot import webpush as w
+    priv, pub = w.generate_vapid_keys()
+    monkeypatch.setenv("VAPID_PRIVATE_KEY", priv)
+    monkeypatch.setenv("DATABASE_URL", "postgres://test")
+    browsers = [ec.generate_private_key(ec.SECP256R1()) for _ in range(2)]
+    subs = [{"endpoint": f"https://push.example/{i}", "p256dh": w.b64u(w._public_bytes(b)), "auth": w.b64u(bytes([i]) * 16)}
+            for i, b in enumerate(browsers)]
+    results, posts = [], []
+
+    class R:
+        def __init__(self, code): self.status_code = code
+
+    class FakeHTTP:
+        def post(self, url, data=None, timeout=None, headers=None):
+            posts.append((url, data, headers))
+            return R(201 if url.endswith("/0") else 410)
+    monkeypatch.setattr(notify, "http", lambda: FakeHTTP())
+    monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn, resort=None: subs)
+    monkeypatch.setattr("bcbot.db.record_push_result", lambda conn, endpoint, status: results.append((endpoint, status)))
+
+    day = {"date": "2026-11-15", "grooming": {"runs": {"overnight": ["Flint"]}}, "forecast": {"next_1_5": 8},
+           "powder": report.powder_alert({"days": [{"snow": 5}, {"snow": 4}]})}
+    assert notify.push(day, None, "beaver-creek") == "1 delivered, 1 expired, 0 failed"
+    assert len(posts) == 2 and results == [("https://push.example/0", 201), ("https://push.example/1", 410)]
+    url, body, headers = posts[0]
+    assert headers["Content-Encoding"] == "aes128gcm" and headers["Authorization"].endswith("k=" + pub)
+    payload = json.loads(w.decrypt(body, browsers[0], subs[0]["auth"]))
+    assert payload["body"].startswith("❄️ Powder alert: 9\"") and "Flint" in payload["body"]
+
+
+def test_powder_alert_never_adds_a_second_notification(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    days = []
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None: days.append(day) or {"push": "ok"})
+    monkeypatch.setattr(report, "powder_alert", lambda fc, name=None: "❄️ Powder alert")
+    main.run(store=store, send=True, now=at(7))
+    main.run(store=store, send=True, now=at(8))
+    assert len(days) == 1 and days[0]["powder"] == "❄️ Powder alert"
+
 
 
 # ---------- pre-season and "send as soon as confirmed" ----------
 
 def test_preseason_sends_daily_at_seven_without_a_new_map(sandbox, monkeypatch):
     store, root, pdf, sent = sandbox
-    monkeypatch.setattr(config, "OPENING_DAY", date(2026, 11, 25))
+    monkeypatch.setitem(resorts.RESORTS["beaver-creek"], "opening_day", date(2026, 11, 25).isoformat())
     main.run(store=store, send=True, now=at(6, 0, day=14))
     main.run(store=store, send=True, now=at(7, 0, day=14))
     assert len(reports(sent)) == 1                               # Nov 14 at 7:00
@@ -499,7 +610,7 @@ def test_preseason_sends_daily_at_seven_without_a_new_map(sandbox, monkeypatch):
     main.run(store=store, send=True, now=at(7, 0))
     main.run(store=store, send=True, now=at(7, 15))
     assert len(reports(sent)) == 2                               # Nov 15 at 7:00, once
-    assert report.subject({"date": "2026-11-15", "preseason": True, "grooming": {}}).startswith("Beaver Creek Sun 15: Opens Nov 25")
+    assert report.subject({"date": "2026-11-15", "preseason": True, "grooming": {}}).startswith("Beaver Creek 11/15: Opens 11/25")
 
 
 def test_sends_as_soon_as_map_and_todays_snow_report_are_confirmed(sandbox, monkeypatch):
@@ -538,3 +649,115 @@ def test_real_beaver_creek_report_timestamp():
     r = resort.parse(html)
     assert r["updated_time"] == "5:34 AM"
     assert resort.is_fresh(r, D(2026, 11, 15)) is True and resort.is_fresh(r, D(2026, 11, 16)) is False
+
+
+# ---------- several resorts ----------
+
+def test_resort_store_keeps_beaver_creek_paths_and_nests_the_others(tmp_path):
+    from bcbot.store import resort_store
+    base = LocalStore(tmp_path)
+    assert resort_store("beaver-creek", base).path("data/latest.json") == "data/latest.json"
+    vail = resort_store("vail", base)
+    assert vail.path("data/latest.json") == "data/vail/latest.json"
+    assert vail.path("maps/2026-11-15.jpg") == "maps/vail/2026-11-15.jpg"
+    vail.put_json("data/state.json", {"x": 1})
+    assert (tmp_path / "data/vail/state.json").exists() and not (tmp_path / "data/state.json").exists()
+
+
+def test_use_switches_every_per_resort_setting():
+    try:
+        r = config.use("vail")
+        assert config.RESORT_NAME == "Vail" and config.GROOMING_PDF_URL.endswith("vail-mountain-grooming-map.pdf")
+        assert config.RESORT_SNOW_REPORT_URL.startswith("https://www.vail.com/") and config.LAT == r["lat"]
+        assert config.TZ.key == "America/Denver"
+    finally:
+        config.use("beaver-creek")
+    assert config.RESORT_NAME == "Beaver Creek" and "beaver-creek" in config.GROOMING_PDF_URL
+
+
+def test_each_resort_has_its_own_archive_state_and_send(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    monkeypatch.setitem(resorts.RESORTS["vail"], "opening_day", "2026-11-01")
+    slugs = []
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None:
+                        slugs.append((slug, report.subject(day), map_url)) or {"email": "ok"})
+    main.run(store=store, send=True, now=at(7), slug="beaver-creek")
+    main.run(store=store, send=True, now=at(7), slug="vail")
+    main.run(store=store, send=True, now=at(8), slug="vail")          # once a day per resort
+    assert [s for s, _, _ in slugs] == ["beaver-creek", "vail"]
+    assert slugs[1][1].startswith("Vail 11/15") and "/maps/vail/2026-11-15.jpg" in slugs[1][2]
+    vail_day = json.loads((root / "data/vail/latest.json").read_text())
+    assert vail_day["resort_slug"] == "vail" and vail_day["grooming"]["image"] == "maps/vail/2026-11-15.jpg"
+    assert (root / "maps/vail/2026-11-15.jpg").exists() and (root / "maps/2026-11-15.jpg").exists()
+    assert json.loads((root / "data/state.json").read_text())["last_sent_date"] == "2026-11-15"
+    assert json.loads((root / "data/vail/state.json").read_text())["last_sent_date"] == "2026-11-15"
+
+
+def test_resort_opening_days_are_independent(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    monkeypatch.setitem(resorts.RESORTS["vail"], "opening_day", "2026-11-25")   # Vail pre-season, BC open
+    main.run(store=store, send=True, now=at(7), slug="vail")
+    main.run(store=store, send=True, now=at(7), slug="beaver-creek")
+    assert json.loads((root / "data/vail/latest.json").read_text())["delivery"]["reason"] == "preseason"
+    assert json.loads((root / "data/latest.json").read_text())["delivery"]["reason"] == "ready (map; report has no date)"
+
+
+def test_run_all_covers_enabled_resorts(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    monkeypatch.setenv("RESORTS", "beaver-creek,vail,nope")
+    assert resorts.enabled() == ["beaver-creek", "vail"]
+    out = main.run_all(store=store, send=False, now=at(6))
+    assert set(out) == {"beaver-creek", "vail"} and all(r["status"] == "ok" for r in out.values())
+
+
+def test_signup_input_only_keeps_enabled_resorts(monkeypatch):
+    monkeypatch.setenv("RESORTS", "beaver-creek,vail")
+    assert resorts.valid(["vail", "vail", "keystone", "x", "beaver-creek"]) == ["vail", "beaver-creek"]
+    assert resorts.valid(None) == []
+
+
+def test_resort_link_and_names_in_messages():
+    day = {"date": "2026-11-15", "resort_slug": "vail", "resort_name": "Vail", "grooming": {"new_map": True}}
+    assert report.app_url(day).endswith("/?resort=vail")
+    assert report.push_payload(day, None)["url"].endswith("?resort=vail")
+    assert report.push_payload(day, None)["tag"] == "report-vail-2026-11-15"
+    assert report.app_url({"date": "2026-11-15", "resort_slug": "beaver-creek"}) == config.DASHBOARD_URL
+
+
+def test_daily_email_has_a_choose_resorts_link(monkeypatch):
+    from bcbot import mailer
+    posted = []
+    monkeypatch.setattr(mailer, "_post", lambda path, payload: posted.append(payload))
+    mailer.send_daily([("a@example.com", "tok")], "s", "<p>x</p>", "x")
+    assert "/api/resorts?t=tok" in posted[0][0]["html"] and "/api/resorts?t=tok" in posted[0][0]["text"]
+
+
+def test_public_resorts_json_matches_resorts_py(monkeypatch):
+    monkeypatch.delenv("RESORTS", raising=False)
+    assert json.loads((config.ROOT / "public/resorts.json").read_text()) == resorts.public_list()
+
+
+def test_claim_is_per_day_and_resort():
+    from bcbot import db
+    calls = []
+
+    class Cur:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def execute(self, sql, args): calls.append((sql, args))
+        def fetchone(self): return ("2026-11-15",)
+
+    class Conn:
+        def cursor(self): return Cur()
+    assert db.claim_send(Conn(), "2026-11-15", "ready", "vail")
+    assert "ON CONFLICT (day, resort)" in calls[0][0] and calls[0][1] == ("2026-11-15", "vail", "ready")
+
+
+def test_every_resort_is_complete():
+    for slug in resorts.RESORTS:
+        r = resorts.get(slug)
+        fts = [b["elevation_ft"] for b in r["bands"]]
+        assert [b["key"] for b in r["bands"]] == ["base", "mid", "peak"] and fts == sorted(fts), slug
+        assert fts[0] < r["elevation_ft"] <= fts[2], slug          # forecast point is on the mountain
+        assert r["snotel"] and r["tz"] == "America/Denver" and r["opening_day"], slug
+        assert r["snow_report"].startswith(r["site"] + "/the-mountain/mountain-conditions/"), slug

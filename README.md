@@ -1,6 +1,6 @@
-# Snow Desk: Beaver Creek
+# Snow Desk: Colorado Vail resorts
 
-Every morning at 7:00 it sends the Beaver Creek grooming report, weather, a multi-model snow forecast and the snow stake cam to people who opted in, by email and app notification, and keeps the history.
+Every morning it sends the grooming report, weather, a multi-model snow forecast and the snow stake cam for Beaver Creek, Vail, Breckenridge, Keystone and Crested Butte to people who opted in (each picks their resorts), by email and app notification, and keeps the history. Resort details: [docs/RESORTS.md](docs/RESORTS.md).
 
 - App: **https://snow.0xm.studio** (Today · Calendar · Forecast · Help)
 - How it works and why: [docs/SPEC.md](docs/SPEC.md)
@@ -11,7 +11,7 @@ Every morning at 7:00 it sends the Beaver Creek grooming report, weather, a mult
 | Scheduler | Cloudflare Worker `snow-desk-cron` | Cron every 15 min from 2 to 10 a.m. MT, plus 2 p.m. Each call retries 3 times, and failures can alert your phone (`ADMIN_NTFY_TOPIC`). |
 | Pipeline | Vercel Python function `api/run.py` | Fetches sources, builds the forecast, saves the archive, sends notifications |
 | Archive | Vercel Blob `snow-desk-archive` | JSON and images on a CDN; the app reads them same-origin via rewrites |
-| Subscribers | Neon Postgres `snow-desk` (private) | Opted-in emails, app push subscriptions, and the push signing keys |
+| Subscribers | Neon Postgres `snow-desk` (private) | Opted-in emails and app push subscriptions (the push signing key is a Vercel env var) |
 | Email | Resend, from `report@snow.0xm.studio` | Its own subdomain (SPF, DKIM, bounce handling verified), so its reputation is separate from 0xm.studio mail |
 | App | Vercel static (`public/`) on `snow.0xm.studio` | Phone-first app, 10 themes, works offline |
 | Backup trigger | Vercel cron (daily 7:05 a.m. MST) | In case the Worker is down. Sending can never happen twice. |

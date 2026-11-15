@@ -1,0 +1,180 @@
+{
+ "default": "beaver-creek",
+ "resorts": [
+  {
+   "slug": "beaver-creek",
+   "name": "Beaver Creek",
+   "timezone": "America/Denver",
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://player.brownrice.com/snapshot/bcsnowstake2",
+     "live": "https://player.brownrice.com/embed/bcsnowstake2"
+    },
+    {
+     "label": "Spruce Saddle",
+     "image": "https://player.brownrice.com/snapshot/bcspruce",
+     "live": "https://player.brownrice.com/embed/bcspruce"
+    },
+    {
+     "label": "Talons",
+     "image": "https://player.brownrice.com/snapshot/bctalons",
+     "live": "https://player.brownrice.com/embed/bctalons"
+    },
+    {
+     "label": "McCoy Park",
+     "image": "https://player.brownrice.com/snapshot/bcmccoy",
+     "live": "https://player.brownrice.com/embed/bcmccoy"
+    },
+    {
+     "label": "Red Buffalo",
+     "image": "https://player.brownrice.com/snapshot/bcredbuffalo",
+     "live": "https://player.brownrice.com/embed/bcredbuffalo"
+    },
+    {
+     "label": "Village",
+     "image": "https://player.brownrice.com/snapshot/bcvillage",
+     "live": "https://player.brownrice.com/embed/bcvillage"
+    }
+   ],
+   "patrol": {
+    "emergency": "(970) 754-6911",
+    "non_emergency": "(970) 754-6610",
+    "security": "(970) 754-5848",
+    "checked": "11/15/2026"
+   },
+   "snotel": "Vail Mountain",
+   "site": "https://www.beavercreek.com"
+  },
+  {
+   "slug": "vail",
+   "name": "Vail",
+   "timezone": "America/Denver",
+   "cams": [
+    {
+     "label": "Snow stake (summit)",
+     "image": "https://player.brownrice.com/snapshot/vailsnowsummit",
+     "live": "https://player.brownrice.com/embed/vailsnowsummit"
+    },
+    {
+     "label": "Eagle's Nest",
+     "image": "https://player.brownrice.com/snapshot/vaileaglesnest",
+     "live": "https://player.brownrice.com/embed/vaileaglesnest"
+    },
+    {
+     "label": "Back Bowls",
+     "image": "https://player.brownrice.com/snapshot/vailch21",
+     "live": "https://player.brownrice.com/embed/vailch21"
+    },
+    {
+     "label": "Sun Up Bowl",
+     "image": "https://player.brownrice.com/snapshot/vailch11",
+     "live": "https://player.brownrice.com/embed/vailch11"
+    },
+    {
+     "label": "Gore Range",
+     "image": "https://player.brownrice.com/snapshot/vailch2",
+     "live": "https://player.brownrice.com/embed/vailch2"
+    }
+   ],
+   "patrol": null,
+   "snotel": "Vail Mountain",
+   "site": "https://www.vail.com"
+  },
+  {
+   "slug": "breckenridge",
+   "name": "Breckenridge",
+   "timezone": "America/Denver",
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://cache.snow.com/Mtncams/BreckSnowStake.jpg",
+     "live": null
+    },
+    {
+     "label": "Peak 9",
+     "image": "https://player.brownrice.com/snapshot/breckenridge10",
+     "live": "https://player.brownrice.com/embed/breckenridge10"
+    },
+    {
+     "label": "Peak 8 from Peak 9",
+     "image": "https://player.brownrice.com/snapshot/breckenridge9",
+     "live": "https://player.brownrice.com/embed/breckenridge9"
+    },
+    {
+     "label": "Peak 7",
+     "image": "https://player.brownrice.com/snapshot/breckenridge7",
+     "live": "https://player.brownrice.com/embed/breckenridge7"
+    }
+   ],
+   "patrol": null,
+   "snotel": "Copper Mountain",
+   "site": "https://www.breckenridge.com"
+  },
+  {
+   "slug": "keystone",
+   "name": "Keystone",
+   "timezone": "America/Denver",
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://cache.snow.com/Mtncams/KeySnowStake.jpg",
+     "live": null
+    },
+    {
+     "label": "Dercum Mountain",
+     "image": "https://player.brownrice.com/snapshot/keystonedercum",
+     "live": "https://player.brownrice.com/embed/keystonedercum"
+    },
+    {
+     "label": "North Peak",
+     "image": "https://player.brownrice.com/snapshot/keystonenorthpeak",
+     "live": "https://player.brownrice.com/embed/keystonenorthpeak"
+    },
+    {
+     "label": "Bergman",
+     "image": "https://player.brownrice.com/snapshot/keystonebergman",
+     "live": "https://player.brownrice.com/embed/keystonebergman"
+    },
+    {
+     "label": "River Run",
+     "image": "https://player.brownrice.com/snapshot/keystoneriverrun",
+     "live": "https://player.brownrice.com/embed/keystoneriverrun"
+    },
+    {
+     "label": "Lakeside Village",
+     "image": "https://player.brownrice.com/snapshot/keystonelakeside",
+     "live": "https://player.brownrice.com/embed/keystonelakeside"
+    }
+   ],
+   "patrol": null,
+   "snotel": "Grizzly Peak",
+   "site": "https://www.keystoneresort.com"
+  },
+  {
+   "slug": "crested-butte",
+   "name": "Crested Butte",
+   "timezone": "America/Denver",
+   "cams": [
+    {
+     "label": "Base",
+     "image": "https://player.brownrice.com/snapshot/Crestedbuttebase",
+     "live": "https://player.brownrice.com/embed/Crestedbuttebase"
+    },
+    {
+     "label": "Umbrella Bar, Ten Peaks",
+     "image": "https://player.brownrice.com/snapshot/Crestedbuttebar",
+     "live": "https://player.brownrice.com/embed/Crestedbuttebar"
+    },
+    {
+     "label": "Paradise Warming House",
+     "image": "https://player.brownrice.com/snapshot/Crestedbuttewarm",
+     "live": "https://player.brownrice.com/embed/Crestedbuttewarm"
+    }
+   ],
+   "patrol": null,
+   "snotel": "Butte",
+   "site": "https://www.skicb.com"
+  }
+ ]
+}
