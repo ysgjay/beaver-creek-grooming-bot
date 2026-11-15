@@ -250,7 +250,22 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .radar-none { position: absolute; inset: auto 0 22px 0; margin: 0; text-align: center; }
 .radar-none[hidden] { display: none; }
 .radar-ctl { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-.radar-ctl input { flex: 1; min-width: 0; height: 32px; accent-color: var(--accent); }
+/* The time slider is a progress bar: filled up to the frame showing, with the date and time riding above the thumb
+   and hour marks underneath. --p is the frame's position from 0 to 1; the 9px terms keep marks under the thumb's centre. */
+.radar-scrub { --p: 0; --x: calc(9px + var(--p) * (100% - 18px)); position: relative; flex: 1; min-width: 0; padding: 19px 0 15px; }
+.radar-scrub input { display: block; width: 100%; height: 20px; margin: 0; padding: 0; background: none; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.radar-scrub input::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--accent) var(--x), var(--line) var(--x)); }
+.radar-scrub input::-moz-range-track { height: 8px; border-radius: 4px; background: var(--line); }
+.radar-scrub input::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--accent); }
+.radar-scrub input::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -5px; border-radius: 50%; border: 2px solid var(--surface); background: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, .3); }
+.radar-scrub input::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--surface); background: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, .3); }
+.radar-scrub input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.radar-bubble { position: absolute; top: 0; left: clamp(42px, var(--x), calc(100% - 42px)); transform: translateX(-50%); padding: 1px 6px; border-radius: 6px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; line-height: 16px; white-space: nowrap; font-variant-numeric: tabular-nums; pointer-events: none; }
+.radar-ticks { position: absolute; left: 0; right: 0; bottom: 0; height: 17px; pointer-events: none; }
+.radar-ticks span { --x: calc(9px + var(--p) * (100% - 18px)); position: absolute; top: 0; left: var(--x); width: 1px; height: 4px; background: var(--ink-2); opacity: .6; }
+.radar-ticks .lbl { width: auto; height: auto; padding-top: 5px; background: linear-gradient(var(--ink-2), var(--ink-2)) top center / 1px 5px no-repeat; transform: translateX(-50%); color: var(--ink-2); font-size: 10px; line-height: 12px; white-space: nowrap; opacity: 1; }
+.radar-ticks .now { color: var(--ink); font-weight: 700; }
+@media (max-width: 699px) { .radar-ticks .alt { font-size: 0; padding-top: 4px; background-size: 1px 4px; opacity: .6; } }
 .radar-ctl .btn { min-height: 40px; padding: 6px 14px; }
 .radar-note { margin: 8px 0 0; }
 
