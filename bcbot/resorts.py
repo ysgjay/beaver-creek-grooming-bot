@@ -41,47 +41,65 @@ RESORTS = {
     "vail": {
         "name": "Vail",
         "site": "https://www.vail.com",
+        # Area headings ("MID-VAIL") instead of Beaver Creek's sections; see sources/grooming.py.
         "grooming_pdf": "https://grooming.lumiplan.pro/vail-mountain-grooming-map.pdf",
-        # Mid-Vail / Two Elk ridge, upper mountain.
+        # Upper mountain near Mid-Vail, by the Vail Mountain SNOTEL (39.618, -106.380, 10,290 ft).
         "lat": 39.6145, "lon": -106.3720, "elevation_ft": 10350,
-        "snotel": ["842:CO:SNTL", "415:CO:SNTL"],  # Vail Mountain sits on the ski area
+        "snotel": ["842:CO:SNTL", "415:CO:SNTL"],  # Vail Mountain, Copper Mountain
         "snotel_label": "Vail Mountain",
-        "cams": [],
+        "cams": _cams([("vailsnowsummit", "Snow stake (summit)"), ("vaileaglesnest", "Eagle's Nest"),
+                       ("vailch21", "Back Bowls"), ("vailch11", "Sun Up Bowl"), ("vailch2", "Gore Range")]),
         "patrol": None,
-        "enabled": False,
+        "tz": "America/Denver",
+        "opening_day": "2026-11-13",
+        "enabled": True,
     },
     "breckenridge": {
         "name": "Breckenridge",
         "site": "https://www.breckenridge.com",
-        "grooming_pdf": None,
-        "lat": 39.4760, "lon": -106.0790, "elevation_ft": 11000,
-        "snotel": ["531:CO:SNTL", "415:CO:SNTL"],  # Hoosier Pass, Copper Mountain
-        "snotel_label": "Hoosier Pass",
-        "cams": [],
+        "grooming_pdf": None,  # no Lumiplan map found (Nov 2026): snow report, cams and forecast only
+        # Peak 8 mid-mountain, where the official snow stake is (11,237 ft).
+        "lat": 39.4790, "lon": -106.0820, "elevation_ft": 11237,
+        "snotel": ["415:CO:SNTL", "531:CO:SNTL"],  # Copper Mountain, Hoosier Pass
+        "snotel_label": "Copper Mountain",
+        "cams": [{"label": "Snow stake", "image": "https://cache.snow.com/Mtncams/BreckSnowStake.jpg", "live": None}]
+                + _cams([("breckenridge10", "Peak 9"), ("breckenridge9", "Peak 8 from Peak 9"), ("breckenridge7", "Peak 7")]),
         "patrol": None,
-        "enabled": False,
+        "tz": "America/Denver",
+        "opening_day": "2026-11-06",
+        "enabled": True,
     },
     "keystone": {
         "name": "Keystone",
         "site": "https://www.keystoneresort.com",
         "grooming_pdf": None,
-        "lat": 39.5950, "lon": -105.9440, "elevation_ft": 11200,
+        # Dercum Mountain, upper mountain.
+        "lat": 39.5960, "lon": -105.9450, "elevation_ft": 11000,
         "snotel": ["505:CO:SNTL", "415:CO:SNTL"],  # Grizzly Peak, Copper Mountain
         "snotel_label": "Grizzly Peak",
-        "cams": [],
+        "cams": [{"label": "Snow stake", "image": "https://cache.snow.com/Mtncams/KeySnowStake.jpg", "live": None}]
+                + _cams([("keystonedercum", "Dercum Mountain"), ("keystonenorthpeak", "North Peak"),
+                         ("keystonebergman", "Bergman"), ("keystoneriverrun", "River Run"), ("keystonelakeside", "Lakeside Village")]),
         "patrol": None,
-        "enabled": False,
+        "tz": "America/Denver",
+        "opening_day": "2026-11-01",  # opened in October "as conditions allow"; any earlier date works
+        "enabled": True,
     },
     "crested-butte": {
         "name": "Crested Butte",
         "site": "https://www.skicb.com",
+        "snow_report_path": "/the-mountain/mountain-conditions/weather-report.aspx",  # differs from the others
         "grooming_pdf": None,
-        "lat": 38.8990, "lon": -106.9650, "elevation_ft": 10500,
+        # Upper mountain above the base, by the Butte SNOTEL (38.894, -106.953, 10,190 ft).
+        "lat": 38.8930, "lon": -106.9710, "elevation_ft": 10500,
         "snotel": ["380:CO:SNTL"],  # Butte
         "snotel_label": "Butte",
-        "cams": [],
+        "cams": _cams([("Crestedbuttebase", "Base"), ("Crestedbuttebar", "Umbrella Bar, Ten Peaks"),
+                       ("Crestedbuttewarm", "Paradise Warming House")]),  # no snow stake cam
         "patrol": None,
-        "enabled": False,
+        "tz": "America/Denver",
+        "opening_day": "2026-11-25",
+        "enabled": True,
     },
 }
 
@@ -99,7 +117,7 @@ def get(slug):
     if slug not in RESORTS:
         raise KeyError(f"unknown resort {slug!r}")
     r = dict(RESORTS[slug], slug=slug)
-    r["snow_report"] = r["site"] + SNOW_REPORT_PATH
+    r["snow_report"] = r["site"] + r.get("snow_report_path", SNOW_REPORT_PATH)
     r["cams_page"] = r["site"] + CAMS_PATH
     r["elevation_m"] = round(r["elevation_ft"] * 0.3048)
     r.setdefault("tz", "America/Denver")

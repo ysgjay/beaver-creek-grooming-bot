@@ -116,7 +116,7 @@ def daily_html(day, map_url):
       <p style="margin:2px 0 14px;color:#4a6382">New snow {inch(r24)} · Base {inch(rs.get('base_in'))} · {escape(weather)}{f" · Snow report {escape(rs['updated_time'])}" if rs.get('updated_time') else ""}</p>
       {f'<a href="{report.app_url(day)}"><img src="{map_url}" alt="Grooming map" width="520" style="width:100%;max-width:520px;border-radius:12px;display:block"></a>' if map_url else ''}
       {f'<p style="margin:6px 0 0;color:#4a6382;font-size:13px">Map dated {escape(report.map_date(runs["map_date"]))}{"" if (day.get("grooming") or {}).get("new_map") else " · no new map posted today"}</p>' if runs.get("map_date") else ''}
-      {chips("Groomers of the day", runs.get("groomers_of_the_day"))}{chips("Groomed overnight", runs.get("overnight"))}{chips("Morning grooming", runs.get("morning"))}
+      {chips("Groomers of the day", runs.get("groomers_of_the_day"))}{chips("Groomed overnight", runs.get("overnight"))}{chips("Morning grooming", runs.get("morning"))}{"".join(chips(escape(a), l) for a, l in (runs.get("areas") or {"Groomed": runs.get("groomed")}).items())}
       <p style="margin:16px 0 6px;font-weight:600">Snow forecast: {inch(fc.get('next_1_5'))} next 5 days, {inch(fc.get('next_6_10'))} days 6–10</p>
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed"><tr>{cells}</tr></table>
       <p style="margin:18px 0 0"><a href="{report.app_url(day)}" style="background:#0a5bd3;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:12px;font-weight:600;display:inline-block">Open Snow Desk</a></p>"""

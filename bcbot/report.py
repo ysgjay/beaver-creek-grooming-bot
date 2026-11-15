@@ -52,9 +52,9 @@ def compose(day):
     fc = day.get("forecast") or {}
     obs = day.get("observed") or {}
     resort = day.get("resort") or {}
-    lines = [f"🎿 {resort_name(day)} Grooming — {pretty_date(day['date'])}"]
+    lines = [f"🎿 {resort_name(day)} {'Snow' if (day.get('grooming') or {}).get('none') else 'Grooming'} — {pretty_date(day['date'])}"]
     g = day.get("grooming", {})
-    if not g.get("new_map", True):
+    if not g.get("new_map", True) and not g.get("none"):
         lines.append("(No new grooming map posted yet today)")
     runs = g.get("runs") or {}
     if runs.get("groomers_of_the_day"):
@@ -63,6 +63,9 @@ def compose(day):
         lines.append("🚜 Groomed overnight: " + ", ".join(runs["overnight"]))
     if runs.get("morning"):
         lines.append("☀️ Morning grooming: " + ", ".join(runs["morning"]))
+    for area, names in (runs.get("areas") or {"Groomed": runs.get("groomed") or []}).items():
+        if names:
+            lines.append(f"🚜 {area}: " + ", ".join(names))
 
     snow = []
     if resort.get("last_24h_in") is not None:
@@ -99,8 +102,9 @@ def compose(day):
 def subject(day):
     fc = day.get("forecast") or {}
     runs = (day.get("grooming") or {}).get("runs") or {}
-    n = len(runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []))
-    parts = [f"{n} runs groomed" if n else ("No new grooming map" if not (day.get("grooming") or {}).get("new_map") else "Grooming map")]
+    n = len(runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []) + runs.get("groomed", []))
+    g = day.get("grooming") or {}
+    parts = [f"{n} runs groomed" if n else ("Snow report" if g.get("none") else "No new grooming map" if not g.get("new_map") else "Grooming map")]
     if day.get("preseason") and not n:
         parts = [f"Opens {mmdd(config.OPENING_DAY)}"]
     if fc.get("next_1_5") is not None:
@@ -112,7 +116,7 @@ def push_payload(day, map_url):
     """Short notification: what's groomed and what's coming. Tapping opens Today."""
     fc = day.get("forecast") or {}
     runs = (day.get("grooming") or {}).get("runs") or {}
-    groomed = runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", [])
+    groomed = runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []) + runs.get("groomed", [])
     rs = day.get("resort") or {}
     r24 = rs.get("last_24h_in", (day.get("observed") or {}).get("snow_in"))
     body = []

@@ -110,13 +110,14 @@
     if (r && r.snotel_24h != null) return r.snotel_24h;
     return null;
   }
-  const groomedRuns = (r) => r ? [...(r.featured || []), ...(r.overnight || []), ...(r.morning || [])] : [];
+  const groomedRuns = (r) => r ? [...(r.featured || []), ...(r.overnight || []), ...(r.morning || []), ...(r.groomed || [])] : [];
 
   /* ---------------- shared pieces ---------------- */
   function runsBlock(runs) {
     if (!runs) return "";
     const groups = [["Groomers of the day", runs.groomers_of_the_day || runs.featured, "featured"],
-      ["Groomed overnight", runs.overnight, ""], ["Morning grooming", runs.morning, ""]].filter(([, l]) => l && l.length);
+      ["Groomed overnight", runs.overnight, ""], ["Morning grooming", runs.morning, ""],
+      ...(runs.areas ? Object.entries(runs.areas).map(([a, l]) => [a, l, ""]) : [["Groomed", runs.groomed, ""]])].filter(([, l]) => l && l.length);
     if (!groups.length) return `<p class="muted small">No run names listed on this map.</p>`;
     return `<div class="runs">${groups.map(([t, l, cls]) =>
       `<div><h3>${t}</h3><ul class="chips ${cls}">${l.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></div>`).join("")}</div>`;
@@ -309,7 +310,7 @@
     v.innerHTML = `
       ${S.offline ? `<p class="offline">You're offline. Showing the report saved on ${fmtDay(L.date)}.</p>` : ""}
       <div class="status-line">
-        <span class="pill ${g.new_map ? "" : "quiet"}">${g.new_map ? "New grooming report" : "No new grooming report yet"}</span>
+        ${g.none ? "" : `<span class="pill ${g.new_map ? "" : "quiet"}">${g.new_map ? "New grooming report" : "No new grooming report yet"}</span>`}
         <span>${sentAt ? `Sent ${sentAt}` : `Updated ${isToday ? "" : fmtDay(L.date) + " "}${(L.generated || "").slice(11, 16)}`}</span>
         ${rs.updated_time ? `<span>· Snow report ${esc(rs.updated_time)}</span>` : ""}
       </div>
@@ -324,13 +325,13 @@
         ${now ? `<div class="hours">${L.hourly.hours.slice(1).map((h) => `<div class="hour"><span class="t">${hourLabel(h.time)}</span><span class="temp">${h.temp}°</span><span class="small">${esc(h.dir)} ${h.wind}</span>${h.snow ? `<span class="num small">${h.snow}"</span>` : ""}</div>`).join("")}</div>` : ""}
       </section>
 
-      <section class="card" aria-labelledby="h-groom">
+      ${g.none ? "" : `<section class="card" aria-labelledby="h-groom">
         <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="muted small">${g.runs?.map_date ? esc(mapDate(g.runs.map_date)) : ""}</span></div>
         <div class="groom">
           ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="${esc(resortInfo().name)} grooming map" decoding="async"></button>` : `<p class="muted">No grooming map yet.</p>`}
           ${runsBlock(g.runs)}
         </div>
-      </section>
+      </section>`}
 
       <section class="card" aria-labelledby="h-fc">
         <div class="card-head"><h2 id="h-fc">Snow forecast</h2><a class="link" href="#forecast">Full forecast</a></div>
@@ -493,7 +494,7 @@
         <div><span class="label">Forecast then</span><span class="mid">${inch(r.next_1_5)}</span><span class="sub">next 5 days</span></div>
       </div>
       ${r.map ? `<button class="map-btn" type="button" data-map="${esc(r.map)}"><img src="/${esc(r.map)}" alt="Grooming map for ${fmtDay(d)}" loading="lazy"></button>` : `<p class="muted small">No grooming map saved for this day.</p>`}
-      ${runsBlock({ groomers_of_the_day: r.featured, overnight: r.overnight, morning: r.morning })}
+      ${runsBlock({ groomers_of_the_day: r.featured, overnight: r.overnight, morning: r.morning, groomed: r.groomed })}
       <div id="day-hourly"></div>
       ${r.cam ? `<div class="cam-main"><img src="/${esc(r.cam)}" alt="Snow stake on ${fmtDay(d)}" loading="lazy"><span class="cap">Snow stake</span></div>` : ""}`;
     const rec = S.latest?.date === d ? S.latest : await getJSON(`/data/days/${d}.json`);

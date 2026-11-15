@@ -81,6 +81,7 @@ def day_summary(day):
         "featured": runs.get("groomers_of_the_day", []),
         "overnight": runs.get("overnight", []),
         "morning": runs.get("morning", []),
+        "groomed": runs.get("groomed", []),
         "cam": day.get("cam"),
         "next_1_5": fc.get("next_1_5"),
     }
@@ -130,7 +131,7 @@ def _since(iso, ref_iso):
     return datetime.fromisoformat(iso) > datetime.fromisoformat(ref_iso)
 
 
-def send_decision(state, now, *, map_new, resort_fresh, send=True):
+def send_decision(state, now, *, map_new, resort_fresh, send=True, has_map=True):
     """What the daily send should do at `now`. Returns a reason to send, "quiet", or None (not yet).
 
     Pre-season (before OPENING_DAY): every morning at SEND_TIME, map or not.
@@ -138,6 +139,8 @@ def send_decision(state, now, *, map_new, resort_fresh, send=True):
       AND the resort's snow report is dated today. If the report has no readable date, the map
       alone counts from SEND_TIME. At SEND_LATEST, send whatever there is (in season) or stay
       quiet (the resort has stopped posting maps: season over).
+    A resort with no grooming map (has_map=False) sends as soon as today's snow report is
+    posted, and at SEND_LATEST regardless.
     """
     if not send or state.get("last_sent_date") == now.date().isoformat():
         return None
@@ -150,7 +153,7 @@ def send_decision(state, now, *, map_new, resort_fresh, send=True):
     if map_new and resort_fresh is None and now >= _at(now, config.SEND_TIME):
         return "ready (map; report has no date)"
     if now >= _at(now, config.SEND_LATEST):
-        in_season = _hours_since(state.get("last_map_change"), now) <= config.IN_SEASON_DAYS * 24
+        in_season = not has_map or _hours_since(state.get("last_map_change"), now) <= config.IN_SEASON_DAYS * 24
         return "deadline" if in_season else "quiet"
     return None
 
@@ -178,13 +181,14 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
     errors = []
     state = store.get_json("data/state.json", {}) or {}
 
-    # 1. Cheap check: has the grooming map changed?
-    groom = _try("grooming map", grooming.fetch, errors, None)
+    # 1. Cheap check: has the grooming map changed? (Resorts with no map: nothing to wait for.)
+    has_map = bool(config.GROOMING_PDF_URL)
+    groom = _try("grooming map", grooming.fetch, errors, None) if has_map else None
     map_changed = bool(groom) and groom["hash"] != state.get("last_map_hash")
     last_change = now.isoformat(timespec="minutes") if map_changed else state.get("last_map_change")
     # "New" = changed since the last report went out (or in the last 18 hours if none has).
     ref = state.get("last_sent_at") or (now - timedelta(hours=18)).isoformat(timespec="minutes")
-    map_new = _since(last_change, ref)
+    map_new = _since(last_change, ref) if has_map else True
 
     # 2. Only when a send could happen: is the resort's snow report dated today?
     resort_report, resort_fresh = None, None
@@ -194,7 +198,7 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
         resort_report = resort.fetch()
         resort_fresh = resort.is_fresh(resort_report, now.date())
 
-    decision = send_decision(state, now, map_new=map_new, resort_fresh=resort_fresh, send=send)
+    decision = send_decision(state, now, map_new=map_new, resort_fresh=resort_fresh, send=send, has_map=has_map)
 
     age = _hours_since(state.get("last_full_run"), now)
     new_day = (state.get("last_full_run") or "")[:10] != day_str
@@ -294,6 +298,8 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
 
     prev = store.get_json(f"data/days/{day_str}.json", {}) or {}
     g = dict(prev.get("grooming") or {"new_map": False, "image": state.get("last_map_image")})
+    if not config.GROOMING_PDF_URL:
+        g = {"new_map": False, "image": None, "none": True}  # this resort posts no grooming map
     if groom and not g.get("runs"):
         g["runs"] = groom.get("runs")  # same map as before: still show its run names and date
     if groom and map_changed:
