@@ -98,12 +98,15 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
 - **Logs:** Vercel → snow-desk → Logs, and the Cloudflare Worker logs.
 
 ## Open items / to do
-1. **Reset the Facebook app secret.** It was committed in the old `get_facebook_token.py` and is still in git history.
-2. **Delete the full-access Resend key** saved in the Claude Code cloud "Default" environment (api.resend.com network secret). Setup no longer needs it; the app uses the owner's send-only "Snow" key.
-3. **Retire the old pieces:** the GitHub Actions secrets (`BOT_TOKEN`, Gmail, Instagram), the old Telegram bot and channel, and the unused personal cloud environment "beaver-creek-grooming-bot".
-4. **Optional:** add `ADMIN_NTFY_TOPIC` to the Worker to get a phone alert if a trigger fails.
-5. **Next season:** set each resort's opening day for 2027 (`opening_day` in `bcbot/resorts.py`, or the `OPENING_DAY*` env vars). Any date before it gets daily pre-season reports, so set it close to when you want those to begin. Also note that the crons are in UTC, so in daylight time the windows shift an hour later in local time.
-6. **Ideas parked as GitHub issues #1–3** (label `idea`): a one-sentence verdict at the top of Today, grouping groomed runs by mountain area, and the season shown as a snow pit.
-7. **Reference artifacts:**
+1. **Old services retired (Nov 15, 2026):**
+   - Resend: the "Snow" key the app uses is now send-only, and no key on the team has full access. A copy of that key is still saved as a network secret in the Claude Code cloud "Default" environment; the app doesn't need it.
+   - GitHub Actions secrets: `BOT_TOKEN`, `GMAIL_*` and `INSTAGRAM_*` deleted. The only workflow is `ci.yml`, which uses no secrets.
+   - The personal cloud environment "beaver-creek-grooming-bot" is archived.
+   - Facebook: no longer used, so the old app secret in git history was left as is.
+2. **Still to do by hand:** delete the old Telegram bot in @BotFather (`/deletebot`) and the old Telegram channel. Optionally delete the leftover GitHub secrets `GOOGLE_SHEET_ID`, `SMS_RECIPIENTS` and `TWILIO_*`, which nothing uses.
+3. **Optional:** add `ADMIN_NTFY_TOPIC` to the Worker to get a phone alert if a trigger fails.
+4. **Next season:** set each resort's opening day for 2027 (`opening_day` in `bcbot/resorts.py`, or the `OPENING_DAY*` env vars). Any date before it gets daily pre-season reports, so set it close to when you want those to begin. Also note that the crons are in UTC, so in daylight time the windows shift an hour later in local time.
+5. **Ideas parked as GitHub issues #1–3** (label `idea`): a one-sentence verdict at the top of Today, grouping groomed runs by mountain area, and the season shown as a snow pit.
+6. **Reference artifacts:**
    - Theme gallery: https://claude.ai/artifact/JKiXvakBJAFPDMGPLnjcTN
    - Bluebird studies (finishes and chart designs): https://claude.ai/artifact/37NRmiA9Ksjsa5oS6afgYN
