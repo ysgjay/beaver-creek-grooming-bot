@@ -46,6 +46,7 @@ def _split_models(payload, models):
         suffix = "" if len(models) == 1 else f"_{m}"
         cols = {v: hourly.get(v + suffix) for v in HOURLY_VARS}
         if cols["precipitation"] is None or cols["temperature_2m"] is None:
+            log.warning("Open-Meteo sent no %s columns (keys: %s)", m, sorted(k for k in hourly if m in k)[:6])
             continue
         rows = []
         for i, t in enumerate(times):
@@ -55,6 +56,8 @@ def _split_models(payload, models):
             rows.append(row)
         if any(r["precipitation"] is not None for r in rows):
             out[m] = rows
+        else:
+            log.warning("Open-Meteo sent only empty precipitation for %s (%d hours)", m, len(rows))
     return out
 
 
