@@ -19,12 +19,17 @@ Every morning at 7:00 it sends the Beaver Creek grooming report, weather, a mult
 GitHub only stores the code and runs the unit tests. Vercel deploys from it.
 
 ## When the report goes out
-At **7:00 a.m. Mountain time** (`SEND_TIME`), every day in season, with daylight saving handled.
-- **Fresh data at 7:00:** a full refresh runs in the half hour before, so the send takes seconds.
-- **Map not posted yet:** if today's map isn't up at 7:00, it checks every 15 minutes and sends the moment it appears.
-- **Fallback:** at 9:00 (`SEND_FALLBACK_MINUTES`) it sends anyway, noting there's no new map.
-- **Off-season:** when the map hasn't changed in 3 days, nothing is sent.
-- **Delivery stamp:** each send records its time, and the app shows "Sent 7:00".
+- **Before opening day** (`OPENING_DAY`, Nov 25): every morning at **7:00 a.m.** MT, with the forecast and stake cam, map or not.
+- **In season:** **as soon as both are confirmed**, from 5:00 a.m.:
+  1. a new grooming map since the last report (the Lumiplan PDF's fingerprint changed; it's usually posted the evening before), and
+  2. the resort's snow report dated today (its `LastUpdatedText`, e.g. "Updated November 15, 2026 at 5:34 AM MST").
+
+  The bot checks every 5 minutes from 4 to 7 a.m., so the report lands within about 5 minutes of both being published.
+- **Fallbacks:** if the snow report ever carries no readable date, the new map alone triggers the send from 7:00. At 9:00, whatever is available goes out. After the season, once the map hasn't changed in 3 days, it goes quiet.
+- **Exactly once a day:** the database records a claim on each day's send, so retries, the backup trigger, or two triggers at the same moment can't send twice.
+- **Delivery stamp:** each report records when and why it was sent, and the app shows "Sent 5:41" and "Snow report 5:34 AM".
+
+To send a labeled test now: `https://snow-desk-cron.jay-52b.workers.dev/?key=<CRON_SECRET>&test=1` (it refuses once there are more than 5 subscribers).
 
 ## Who gets it
 - **Email:** people sign up on the app's Help page and must confirm with the link in their inbox (double opt-in). Every report is sent to each person individually, with a one-tap unsubscribe link and the standard one-click unsubscribe headers that Gmail and Apple Mail show as an Unsubscribe button. Resend's free plan allows 100 emails a day, roughly 90 subscribers.
