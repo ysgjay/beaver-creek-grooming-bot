@@ -13,7 +13,7 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name=
 <title>Choose resorts · Chair 0</title></head>
 <body style="margin:0;background:#dcebfa;font:16px/1.5 -apple-system,'Segoe UI',Roboto,sans-serif;color:#0c2a4a">
 <div style="max-width:420px;margin:10vh auto;background:#fff;border-radius:24px;padding:24px">{body}</div></body></html>"""
-BTN = "font:600 16px inherit;background:#7b1e2e;color:#fff;border:0;border-radius:12px;padding:12px 18px;cursor:pointer"
+BTN = "font:600 16px inherit;background:#0a5bd3;color:#fff;border:0;border-radius:12px;padding:12px 18px;cursor:pointer"
 
 
 class handler(Handler):
@@ -27,11 +27,11 @@ class handler(Handler):
             f'<p style="margin:0 0 12px;color:#4a6382">One email per resort, each once a day.</p>{note}'
             f'<form method="post" action="/api/resorts?t={escape(token)}">{boxes}'
             f'<button style="{BTN};margin-top:16px">Save</button></form>'
-            f'<p style="margin:16px 0 0;font-size:13px"><a href="/api/unsubscribe?t={escape(token)}" style="color:#7b1e2e">Unsubscribe from all</a></p>'))
+            f'<p style="margin:16px 0 0;font-size:13px"><a href="/api/unsubscribe?t={escape(token)}" style="color:#0a5bd3">Unsubscribe from all</a></p>'))
 
     def _missing(self):
         self.reply(200, PAGE.format(body='<h1 style="margin:0 0 8px;font-size:22px">Link not recognized</h1>'
-                                         '<p style="margin:0">It may be unsubscribed. <a href="/#help" style="color:#7b1e2e">Sign up again</a></p>'), "text/html")
+                                         '<p style="margin:0">It may be unsubscribed. <a href="/#help" style="color:#0a5bd3">Sign up again</a></p>'), "text/html")
 
     def do_GET(self):
         token = self.query("t")
