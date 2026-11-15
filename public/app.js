@@ -939,6 +939,20 @@
       $("#fc-votes", v).appendChild(votesChart(days, labels));
       dayVotes($(".a-ten", v), days, labels, (fc.models_used || []).length);
     }
+    // From tablet width up the detail sections open as pop-ups, so the row stays put and the page doesn't grow.
+    $(".a-more", v)?.addEventListener("click", (e) => {
+      const sum = e.target.closest("summary");
+      if (!sum || !matchMedia("(min-width: 900px)").matches) return;
+      e.preventDefault();
+      const box = sum.parentElement.cloneNode(true);
+      box.querySelector("summary").remove();
+      openSheet(sum.textContent, `<div class="more-body">${box.innerHTML}</div>`, (ov) => {
+        ov.querySelector(".sheet").classList.add("wide");
+        const votes = ov.querySelector("#fc-votes");
+        if (votes) { votes.removeAttribute("id"); votes.innerHTML = ""; votes.appendChild(votesChart(days, labels)); }
+        ov.querySelector("[data-close]").focus();
+      });
+    });
     bindTips($(".hstrip", v));
     mountRadar($("#radar-card", v));
     return v;

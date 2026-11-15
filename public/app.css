@@ -429,6 +429,10 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   /* Pop-ups open in the middle of the screen instead of sliding up from the bottom. */
   .sheet-backdrop { align-items: center; padding: 24px; }
   .sheet { max-width: 760px; border-radius: 18px; padding: 16px; }
+  .sheet.wide { max-width: 980px; }
+  .more-body { display: flex; flex-direction: column; gap: 8px; }
+  .more-body th, .more-body td { padding-inline: 6px; font-size: 13px; }
+  .a-more summary { list-style: none; } .a-more summary::-webkit-details-marker { display: none; }
 }
 
 /* ================= Desktop: 1200px and wider =================
