@@ -223,6 +223,8 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors):
 
     prev = store.get_json(f"data/days/{day_str}.json", {}) or {}
     g = dict(prev.get("grooming") or {"new_map": False, "image": state.get("last_map_image")})
+    if groom and not g.get("runs"):
+        g["runs"] = groom.get("runs")  # same map as before: still show its run names and date
     if groom and map_changed:
         path = f"maps/{day_str}.jpg"
         store.put_bytes(path, groom["jpeg"], "image/jpeg")

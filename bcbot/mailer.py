@@ -1,5 +1,6 @@
 """Email through Resend, from report@snow.0xm.studio (its own subdomain, own reputation)."""
 import os
+from datetime import date as _d
 from html import escape
 
 from . import config
@@ -90,7 +91,6 @@ def daily_html(day, map_url):
         t = min(1, d["snow"] / 10)
         bg = "#eef5fd" if d["snow"] < 0.1 else f"rgba(10,91,211,{0.16 + t * 0.84:.2f})"
         ink = "#ffffff" if t > 0.5 else "#0c2a4a"
-        from datetime import date as _d
         dd = _d.fromisoformat(d["date"])
         cells += (f'<td style="padding:2px;text-align:center"><div style="background:{bg};color:{ink};border-radius:7px;padding:8px 0;font-weight:600;font-family:Menlo,monospace;font-size:13px">'
                   f'{"–" if d["snow"] < 0.1 else (round(d["snow"]) if d["snow"] >= 1 else round(d["snow"], 1))}</div>'
@@ -99,9 +99,10 @@ def daily_html(day, map_url):
     now = hours[0] if hours else None
     weather = f"{now['temp']}°F, feels {now['feels']}°, {now['dir']} {now['wind']} mph" if now else ""
     return f"""
-      <h1 style="margin:0;font-size:22px">Beaver Creek · {escape(day['date'])}</h1>
+      <h1 style="margin:0;font-size:22px">Beaver Creek · {_d.fromisoformat(day['date']).strftime('%a, %b ') + str(_d.fromisoformat(day['date']).day)}</h1>
       <p style="margin:2px 0 14px;color:#4a6382">New snow {inch(r24)} · Base {inch(rs.get('base_in'))} · {escape(weather)}</p>
       {f'<a href="{config.DASHBOARD_URL}"><img src="{map_url}" alt="Grooming map" width="520" style="width:100%;max-width:520px;border-radius:12px;display:block"></a>' if map_url else ''}
+      {f'<p style="margin:6px 0 0;color:#4a6382;font-size:13px">Map dated {escape(runs["map_date"])}{"" if (day.get("grooming") or {}).get("new_map") else " · no new map posted today"}</p>' if runs.get("map_date") else ''}
       {chips("Groomers of the day", runs.get("groomers_of_the_day"))}{chips("Groomed overnight", runs.get("overnight"))}{chips("Morning grooming", runs.get("morning"))}
       <p style="margin:16px 0 6px;font-weight:600">Snow forecast: {inch(fc.get('next_1_5'))} next 5 days, {inch(fc.get('next_6_10'))} days 6–10</p>
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed"><tr>{cells}</tr></table>

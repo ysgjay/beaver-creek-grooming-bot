@@ -296,7 +296,8 @@ def test_late_map_sends_the_moment_it_appears(sandbox):
     main.run(store=store, send=True, now=at(6, 0, day=14))         # yesterday's map
     sent.clear()
     main.run(store=store, send=True, now=at(5, 45))                # same map today -> not new
-    assert store.get_json("data/latest.json")["grooming"]["new_map"] is False
+    g = store.get_json("data/latest.json")["grooming"]
+    assert g["new_map"] is False and g["runs"]["overnight"] == ["Flint"]   # run names carried over
     main.run(store=store, send=True, now=at(7, 0))
     main.run(store=store, send=True, now=at(7, 15))
     assert reports(sent) == []                                     # waiting for today's map
@@ -450,7 +451,7 @@ def test_daily_email_is_personal_with_one_click_unsubscribe(monkeypatch):
     day = {"date": "2026-11-15", "grooming": {"new_map": True, "runs": {"overnight": ["Flint"], "morning": []}},
            "forecast": {"days": [{"date": "2026-11-15", "snow": 3.0, "low": 1, "high": 6}], "next_1_5": 3, "next_6_10": 1}}
     html = mailer.daily_html(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
-    assert "Flint" in html and "maps/2026-11-15.jpg" in html
+    assert "Flint" in html and "maps/2026-11-15.jpg" in html and "Beaver Creek · Sun, Nov 15" in html
     assert mailer.send_daily(recipients, "Subject", html, "text") == 150
     assert [len(b) for _, b in calls] == [100, 50] and all(u.endswith("/emails/batch") for u, _ in calls)
     first = calls[0][1][0]
