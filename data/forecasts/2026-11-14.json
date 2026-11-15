@@ -12,7 +12,7 @@
    "low": 0.2,
    "high": 2.2,
    "models": {
-    "ncep_nbm_conus": 0.3,
+    "ncep_nbm_conus": 0.4,
     "gfs_hrrr": 0.1,
     "ecmwf_ifs025": 0.5,
     "gfs_seamless": 0.1,
@@ -155,13 +155,13 @@
  ],
  "next_1_5": 1.2,
  "next_1_5_range": [
-  0.4,
-  8.5
+  1.2,
+  5.9
  ],
  "next_6_10": 3.9,
  "next_6_10_range": [
-  0.6,
-  16.2
+  1.5,
+  13.3
  ],
  "powder_odds_pct": 0,
  "ensemble_members": 82,
@@ -188,8 +188,8 @@
  "raw": {
   "ncep_nbm_conus": {
    "2026-11-14": {
-    "snow": 0.3,
-    "liquid": 0.05
+    "snow": 0.4,
+    "liquid": 0.06
    },
    "2026-11-15": {
     "snow": 0.0,
