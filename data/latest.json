@@ -1,6 +1,6 @@
 {
  "date": "2026-11-14",
- "generated": "2026-11-14T21:59-07:00",
+ "generated": "2026-11-14T22:00-07:00",
  "grooming": {
   "new_map": true,
   "image": "data/maps/2026-11-14.jpg",
@@ -211,16 +211,6 @@
   "model": "gfs_hrrr",
   "hours": [
    {
-    "time": "2026-11-14T21:00",
-    "temp": 29,
-    "feels": 23,
-    "wind": 3,
-    "gust": 6,
-    "dir": "NNW",
-    "cloud": 100,
-    "snow": 0.0
-   },
-   {
     "time": "2026-11-14T22:00",
     "temp": 28,
     "feels": 20,
@@ -328,6 +318,16 @@
     "gust": 2,
     "dir": "SSE",
     "cloud": 17,
+    "snow": 0.0
+   },
+   {
+    "time": "2026-11-15T09:00",
+    "temp": 28,
+    "feels": 23,
+    "wind": 1,
+    "gust": 4,
+    "dir": "W",
+    "cloud": 9,
     "snow": 0.0
    }
   ]
