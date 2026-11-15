@@ -64,7 +64,7 @@
   --texture: none; color-scheme: dark;
 }
 
-/* No choice made yet: follow the phone. Light = Corduroy, dark = Night Cat. */
+/* No choice made yet: the app sets Amber Lens as the starting theme (see index.html). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     --radius: 12px; --card-border: 1px solid color-mix(in oklab, var(--accent) 22%, transparent);

@@ -46,6 +46,12 @@ class LocalStore:
     def exists(self, path):
         return (self.root / path).exists()
 
+    def get_bytes(self, path):
+        try:
+            return (self.root / path).read_bytes()
+        except FileNotFoundError:
+            return None
+
 
 class BlobStore:
     API = "https://vercel.com/api/blob/"
@@ -71,6 +77,10 @@ class BlobStore:
 
     def exists(self, path):
         return http().head(self._url(path), timeout=20).status_code == 200
+
+    def get_bytes(self, path):
+        r = http().get(self._url(path), timeout=30)
+        return r.content if r.ok else None
 
     def put_json(self, path, obj):
         self.put_bytes(path, json.dumps(obj, separators=(",", ":")).encode(), "application/json", JSON_MAX_AGE)

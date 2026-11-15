@@ -240,10 +240,18 @@ def sandbox(tmp_path, monkeypatch):
     return store, tmp_path, pdf, sent
 
 
-def test_pipeline_full_run_writes_archive_and_sends_once(sandbox):
+def reports(sent):
+    return [t for t, ch in sent if ch is None]
+
+
+def at(h, m=0, day=15):
+    return datetime(2026, 11, day, h, m, tzinfo=config.TZ)
+
+
+def test_early_run_archives_but_waits_for_send_time(sandbox):
     store, root, pdf, sent = sandbox
-    r = main.run(store=store, send=True, now=NOW)
-    assert r["status"] == "ok" and r["ok"] and r["map_changed"]
+    r = main.run(store=store, send=True, now=at(5, 45))
+    assert r["status"] == "ok" and r["map_changed"] and reports(sent) == []
     latest = store.get_json("data/latest.json")
     assert latest["grooming"]["new_map"] and latest["forecast"]["days"]
     assert (root / "maps/2026-11-15.jpg").exists()
@@ -251,34 +259,72 @@ def test_pipeline_full_run_writes_archive_and_sends_once(sandbox):
     assert month["days"]["2026-11-15"]["overnight"] == ["Flint"]
     assert month["days"]["2026-11-13"]["snotel_new_in"] == 5      # SNOTEL fills past days
     assert month["days"]["2026-11-14"]["snotel_new_in"] == 0.0    # settling is not negative snow
-    reports = [t for t, ch in sent if ch is None]
-    assert len(reports) == 1 and "Groomed overnight: Flint" in reports[0]
-
-    # 30 minutes later, same map: cheap skip, nothing written or sent
-    r2 = main.run(store=store, send=True, now=NOW + timedelta(minutes=30))
-    assert r2["status"] == "skipped"
-    assert len([1 for _, ch in sent if ch is None]) == 1
-
-    # A new map later the same morning updates the archive but doesn't send twice
-    pdf["bytes"] = make_pdf("Updated map")
-    r3 = main.run(store=store, send=True, now=NOW + timedelta(hours=1))
-    assert r3["map_changed"] and len([1 for _, ch in sent if ch is None]) == 1
+    # 6:15: nothing changed and not yet in the pre-send window -> cheap skip
+    assert main.run(store=store, send=True, now=at(6, 15))["status"] == "skipped"
 
 
-def test_pipeline_refreshes_stale_forecast_without_new_map(sandbox):
+def test_sends_at_seven_exactly_once(sandbox):
     store, root, pdf, sent = sandbox
-    main.run(store=store, send=False, now=NOW)
-    r = main.run(store=store, send=False, now=NOW + timedelta(hours=config.REFRESH_HOURS + 0.1))
-    assert r["status"] == "ok" and not r["map_changed"]
-    assert sent == []  # send disabled
+    main.run(store=store, send=True, now=at(5, 45))
+    r = main.run(store=store, send=True, now=at(7, 0))
+    assert r["sent"] is not None and len(reports(sent)) == 1
+    assert "Groomed overnight: Flint" in reports(sent)[0]
+    d = store.get_json("data/latest.json")["delivery"]
+    assert d["scheduled"].endswith("07:00") and d["new_map"]
+    # retries, the backup cron, and later triggers never send twice
+    for t in [at(7, 0), at(7, 15), at(9, 0), at(14, 0)]:
+        main.run(store=store, send=True, now=t)
+    pdf["bytes"] = make_pdf("Updated map")   # even a new map later that day
+    main.run(store=store, send=True, now=at(8, 30))
+    assert len(reports(sent)) == 1
 
 
-def test_pipeline_new_day_runs_and_sending_enabled_later_catches_up(sandbox):
+def test_pre_send_window_refreshes_stale_data(sandbox):
     store, root, pdf, sent = sandbox
-    main.run(store=store, send=False, now=NOW)       # deployed with sending off
+    main.run(store=store, send=True, now=at(5, 0))
+    r = main.run(store=store, send=True, now=at(6, 45))   # 1h45 old, inside the 30-min window
+    assert r["status"] == "ok" and r["full_run"] and reports(sent) == []
+
+
+def test_late_map_sends_the_moment_it_appears(sandbox):
+    store, root, pdf, sent = sandbox
+    main.run(store=store, send=True, now=at(6, 0, day=14))         # yesterday's map
+    sent.clear()
+    main.run(store=store, send=True, now=at(5, 45))                # same map today -> not new
+    assert store.get_json("data/latest.json")["grooming"]["new_map"] is False
+    main.run(store=store, send=True, now=at(7, 0))
+    main.run(store=store, send=True, now=at(7, 15))
+    assert reports(sent) == []                                     # waiting for today's map
+    pdf["bytes"] = make_pdf("Today's map")
+    main.run(store=store, send=True, now=at(7, 30))
+    assert len(reports(sent)) == 1
+
+
+def test_fallback_sends_without_new_map_in_season(sandbox):
+    store, root, pdf, sent = sandbox
+    main.run(store=store, send=True, now=at(6, 0, day=14))
+    sent.clear()
+    for t in [at(5, 45), at(7, 0), at(8, 45)]:
+        main.run(store=store, send=True, now=t)
+    assert reports(sent) == []
+    main.run(store=store, send=True, now=at(9, 0))
+    assert len(reports(sent)) == 1 and "No new grooming map" in reports(sent)[0]
+
+
+def test_off_season_sends_nothing(sandbox):
+    store, root, pdf, sent = sandbox
+    main.run(store=store, send=True, now=at(6, 0, day=10))         # map last changed 5 days ago
+    sent.clear()
+    for t in [at(5, 45), at(7, 0), at(9, 0), at(9, 15)]:
+        main.run(store=store, send=True, now=t)
+    assert reports(sent) == []
+
+
+def test_sending_disabled_never_sends(sandbox):
+    store, root, pdf, sent = sandbox
+    for t in [at(5, 45), at(7, 0), at(9, 0)]:
+        main.run(store=store, send=False, now=t)
     assert sent == []
-    main.run(store=store, send=True, now=NOW + timedelta(hours=config.REFRESH_HOURS + 1), force=True)
-    assert len([1 for _, ch in sent if ch is None]) == 1  # today's map still goes out once
 
 
 def test_pipeline_survives_source_outage(sandbox, monkeypatch):
@@ -288,8 +334,8 @@ def test_pipeline_survives_source_outage(sandbox, monkeypatch):
         raise RuntimeError("down")
     monkeypatch.setattr(nws, "fetch_snowfall", boom)
     monkeypatch.setattr(snotel, "fetch", boom)
-    r = main.run(store=store, send=True, now=NOW)
-    assert r["ok"]
+    r = main.run(store=store, send=True, now=at(7, 0))
+    assert r["ok"] and len(reports(sent)) == 1
     assert any("nws" in e for e in store.get_json("data/latest.json")["errors"])
 
 

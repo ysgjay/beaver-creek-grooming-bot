@@ -1,26 +1,50 @@
 // Cloudflare Worker (free plan): the scheduler.
-// Cron fires every 30 minutes from 3:00 to 9:30 a.m. Mountain time and once mid-afternoon,
-// and calls the Vercel function, which does the work and decides whether anything changed.
-// Waiting on the fetch doesn't count toward the Worker's CPU limit.
+//
+// Cron fires every 15 minutes from 09:00 to 17:45 UTC (2-10 a.m. MST, 3-11 a.m. MDT) and once
+// at 21:00 UTC. Cloudflare cron runs on the minute, unlike GitHub Actions' best-effort
+// schedule. Each tick calls the Vercel function, which decides what to do:
+// mostly a cheap "nothing changed", a full refresh before 7:00, and the 7:00 send.
+//
+// Reliability: 3 attempts with backoff per tick. If all fail, it pushes an alert to
+// ADMIN_NTFY_TOPIC (optional). The send itself is idempotent on the Vercel side, so
+// retries and the Vercel backup cron can never double-send.
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(trigger(env, event.cron));
+    ctx.waitUntil(trigger(env, `cron ${event.cron}`));
   },
-  // GET /?key=<CRON_SECRET>&force=1 runs it by hand (handy after a deploy).
+  // GET /?key=<CRON_SECRET>[&force=1] runs it by hand. GET /status shows the last result.
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.searchParams.get("key") !== env.CRON_SECRET) return new Response("Not found", { status: 404 });
     const res = await trigger(env, "manual", url.searchParams.get("force") === "1");
-    return new Response(res, { headers: { "content-type": "application/json" } });
+    return new Response(JSON.stringify(res), { headers: { "content-type": "application/json" } });
   },
 };
 
 async function trigger(env, why, force = false) {
-  const res = await fetch(`${env.RUN_URL}${force ? "?force=1" : ""}`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${env.CRON_SECRET}`, "User-Agent": "snow-desk-cron" },
-  });
-  const body = await res.text();
-  console.log(why, res.status, body.slice(0, 500));
-  return body;
+  let last = { status: 0, body: "" };
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(`${env.RUN_URL}${force ? "?force=1" : ""}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${env.CRON_SECRET}`, "User-Agent": "snow-desk-cron" },
+      });
+      last = { status: res.status, body: (await res.text()).slice(0, 800) };
+      console.log(why, `attempt ${attempt}`, last.status, last.body);
+      if (res.ok) return { ok: true, attempt, ...last };
+      if (res.status === 401) break; // wrong secret: retrying won't help
+    } catch (e) {
+      last = { status: 0, body: String(e) };
+      console.log(why, `attempt ${attempt} error`, last.body);
+    }
+    await new Promise((r) => setTimeout(r, attempt * 15000));
+  }
+  if (env.ADMIN_NTFY_TOPIC) {
+    await fetch(`https://ntfy.sh/${env.ADMIN_NTFY_TOPIC}`, {
+      method: "POST",
+      headers: { Title: "Snow Desk run failed", Tags: "warning", Priority: "4" },
+      body: `${why}: HTTP ${last.status} ${last.body}`.slice(0, 1000),
+    }).catch(() => {});
+  }
+  return { ok: false, ...last };
 }

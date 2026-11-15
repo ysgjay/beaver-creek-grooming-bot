@@ -63,6 +63,15 @@ DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "https://snow.0xm.studio/")
 SEND_ENABLED = os.environ.get("SEND_ENABLED") == "1"
 # A run with no new grooming map still refreshes the forecast when it's older than this.
 REFRESH_HOURS = float(os.environ.get("REFRESH_HOURS", "6"))
+# The daily report goes out at this local time (America/Denver), every day in season.
+SEND_TIME = os.environ.get("SEND_TIME", "07:00")
+# In the half hour before SEND_TIME, refresh anything older than an hour so 7:00 is fresh.
+PRE_SEND_MINUTES = 30
+# If the resort hasn't posted a new map by SEND_TIME, keep checking; at this many minutes
+# past SEND_TIME send anyway (noting there's no new map).
+SEND_FALLBACK_MINUTES = int(os.environ.get("SEND_FALLBACK_MINUTES", "120"))
+# "In season" = the grooming map changed within this many days. Off-season, nothing is sent.
+IN_SEASON_DAYS = 3
 TELEGRAM_BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "@bcskireport")
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")

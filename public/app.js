@@ -36,7 +36,7 @@
     { id: "bluebird", name: "Bluebird", mood: "Cloudless morning after a storm", bg: "#dcebfa", ac: "#0a5bd3", font: "Outfit:wght@700" },
     { id: "glade", name: "Glade", mood: "Spruce shade and low sun", bg: "#12261e", ac: "#f2c14e", font: "Bitter:wght@700" },
   ];
-  const loadedFonts = new Set(["Barlow+Condensed:wght@700", "Saira+Condensed:wght@700"]);
+  const loadedFonts = new Set(["Barlow:wght@700"]);
   function applyTheme(id) {
     const t = THEMES.find((x) => x.id === id) || THEMES[0];
     if (t.id === "auto") delete document.documentElement.dataset.theme;
@@ -52,7 +52,20 @@
     if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#eef2f5";
     try { localStorage.setItem("theme", t.id); } catch (e) {}
   }
-  function currentTheme() { try { return localStorage.getItem("theme") || "auto"; } catch (e) { return "auto"; } }
+  function currentTheme() { try { return localStorage.getItem("theme") || "amberlens"; } catch (e) { return "amberlens"; } }
+  const MATERIALS = [
+    { id: "flat", name: "Flat", mood: "Solid cards, the fastest" },
+    { id: "glass", name: "Glass", mood: "Clear panes over an alpenglow ridge" },
+    { id: "frost", name: "Frost", mood: "Frosted, grainy, like a cold window" },
+    { id: "ice", name: "Ice", mood: "Crisp edges with a blue sheen" },
+    { id: "powder", name: "Powder", mood: "Falling flakes, snow-capped cards" },
+  ];
+  function currentMaterial() { try { return localStorage.getItem("material") || "flat"; } catch (e) { return "flat"; } }
+  function applyMaterial(id) {
+    if (id === "flat") delete document.documentElement.dataset.material;
+    else document.documentElement.dataset.material = id;
+    try { localStorage.setItem("material", id); } catch (e) {}
+  }
 
   /* ---------------- state ---------------- */
   const S = { latest: null, verification: null, cfg: null, months: {}, offline: false, cal: { mode: "month", month: null, sel: null } };
@@ -165,46 +178,44 @@
     const isToday = L.date === todayIso();
     const now = (L.hourly?.hours || [])[0];
 
+    const sentAt = L.delivery?.sent_at ? L.delivery.sent_at.slice(11, 16) : null;
     v.innerHTML = `
       ${S.offline ? `<p class="offline">You're offline. Showing the report saved on ${fmtDay(L.date)}.</p>` : ""}
-      <div class="status">
+      <div class="status-line">
         <span class="pill ${g.new_map ? "" : "quiet"}">${g.new_map ? "New grooming report" : "No new grooming report yet"}</span>
-        <span>Updated ${isToday ? "" : fmtDay(L.date) + " "}${(L.generated || "").slice(11, 16)}</span>
+        <span>${sentAt ? `Sent ${sentAt}` : `Updated ${isToday ? "" : fmtDay(L.date) + " "}${(L.generated || "").slice(11, 16)}`}</span>
       </div>
 
-      <section class="card" aria-labelledby="h-snow">
-        <div class="card-head"><h2 id="h-snow">Snow</h2><span class="muted small">${rs.last_24h_in != null ? "Resort report" : obs.station ? "Vail Mtn SNOTEL" : ""}</span></div>
-        <div class="snow-grid">
-          <div><span class="label">Last 24 hrs</span><span class="big">${inch(r24)}</span></div>
-          <div><span class="label">Base</span><span class="mid">${inch(rs.base_in)}</span></div>
-          <div><span class="label">Season</span><span class="mid">${inch(rs.season_in)}</span></div>
+      <section class="card" aria-label="Conditions">
+        <div class="cond">
+          <div><span class="label">New 24h</span><span class="big">${inch(r24)}</span></div>
+          <div><span class="label">Base</span><span class="mid">${inch(rs.base_in)}</span><span class="sub">Season ${inch(rs.season_in)}</span></div>
+          <div><span class="label">Now</span><span class="mid">${now ? now.temp + "°" : "–"}</span><span class="sub">${now ? `Feels ${now.feels}°` : ""}</span></div>
+          <div><span class="label">Wind</span><span class="mid">${now ? now.wind : "–"}</span><span class="sub">${now ? `${esc(now.dir)} g${now.gust ?? "–"}` : ""}</span></div>
         </div>
+        ${now ? `<div class="hours">${L.hourly.hours.slice(1).map((h) => `<div class="hour"><span class="t">${hourLabel(h.time)}</span><span class="temp">${h.temp}°</span><span class="small">${esc(h.dir)} ${h.wind}</span>${h.snow ? `<span class="num small">${h.snow}"</span>` : ""}</div>`).join("")}</div>` : ""}
       </section>
 
       <section class="card" aria-labelledby="h-groom">
-        <div class="card-head"><h2 id="h-groom">Grooming report</h2><span class="muted small">${g.runs?.map_date ? "Map dated " + esc(g.runs.map_date) : ""}</span></div>
-        ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="Beaver Creek grooming map" decoding="async"></button>` : `<p class="muted">No grooming map yet.</p>`}
-        ${runsBlock(g.runs)}
-      </section>
-
-      <section class="card" aria-labelledby="h-wx">
-        <div class="card-head"><h2 id="h-wx">Weather</h2><span class="muted small">At 10,476 ft</span></div>
-        ${now ? `<div class="now"><span class="big">${now.temp}°</span><span class="muted">Feels ${now.feels}° · ${esc(now.dir)} ${now.wind} mph${now.gust ? `, gusts ${now.gust}` : ""} · ${now.cloud}% cloud</span></div>
-        <div class="hours">${L.hourly.hours.map((h) => `<div class="hour"><span class="t">${hourLabel(h.time)}</span><span class="temp">${h.temp}°</span><span>${esc(h.dir)} ${h.wind}</span>${h.snow ? `<span class="num">${h.snow}"</span>` : ""}</div>`).join("")}</div>` : `<p class="muted">No hourly weather.</p>`}
+        <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="muted small">${g.runs?.map_date ? esc(g.runs.map_date) : ""}</span></div>
+        <div class="groom">
+          ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="Beaver Creek grooming map" decoding="async"></button>` : `<p class="muted">No grooming map yet.</p>`}
+          ${runsBlock(g.runs)}
+        </div>
       </section>
 
       <section class="card" aria-labelledby="h-fc">
-        <div class="card-head"><h2 id="h-fc">Forecast</h2><span class="muted small">Next 5 days ${inch(fc.next_1_5)}${fc.next_1_5_range ? ` (likely ${inch(fc.next_1_5_range[0])}–${inch(fc.next_1_5_range[1])})` : ""}</span></div>
+        <div class="card-head"><h2 id="h-fc">Snow forecast</h2><a class="link" href="#forecast">Full forecast</a></div>
+        <div class="status-line"><span>Next 5 days <strong class="num">${inch(fc.next_1_5)}</strong>${fc.next_1_5_range ? ` (likely ${inch(fc.next_1_5_range[0])}–${inch(fc.next_1_5_range[1])})` : ""}</span><span>· Days 6–10 <strong class="num">${inch(fc.next_6_10)}</strong></span></div>
         <div id="fc-mini"></div>
-        <a class="btn secondary block" href="#forecast">Full forecast</a>
       </section>
 
       <section class="card" aria-labelledby="h-cam">
-        <div class="card-head"><h2 id="h-cam">Snow stake</h2><span class="muted small">Tap a cam to switch</span></div>
+        <div class="card-head"><h2 id="h-cam">Snow stake</h2><span class="muted small">Tap to switch cams</span></div>
         <div id="cams"></div>
       </section>`;
 
-    if (fc.days?.length) $("#fc-mini", v).appendChild(snowChart(fc.days.slice(0, 5), { height: 170 }));
+    if (fc.days?.length) $("#fc-mini", v).appendChild(snowChart(fc.days, { height: 140 }));
     const mb = $("#map-open", v);
     if (mb) mb.addEventListener("click", () => openLightbox("/" + g.image, "Grooming map"));
     renderCams($("#cams", v), L);
@@ -220,9 +231,9 @@
     let sel = 0;
     const draw = () => {
       const c = items[sel];
-      el.innerHTML = `<div class="cam-main"><img src="${esc(c.src)}" alt="${esc(c.label)} cam" decoding="async"><span class="cap">${esc(c.label)}</span></div>
-        ${c.live ? `<a class="btn secondary block" href="${esc(c.live)}" target="_blank" rel="noopener">Watch ${esc(c.label)} live</a>` : ""}
-        <div class="cam-row" style="margin-top:8px">${items.map((it, i) => `<button type="button" data-i="${i}" aria-pressed="${i === sel}"><img src="${esc(it.src)}" alt="" loading="lazy"><span>${esc(it.label)}</span></button>`).join("")}</div>`;
+      const inner = `<img src="${esc(c.src)}" alt="${esc(c.label)} cam" decoding="async"><span class="cap">${esc(c.label)}${c.live ? " · tap for live video" : ""}</span>`;
+      el.innerHTML = (c.live ? `<a class="cam-main" style="display:block" href="${esc(c.live)}" target="_blank" rel="noopener">${inner}</a>` : `<div class="cam-main">${inner}</div>`) + `
+        <div class="cam-row" style="margin-top:6px">${items.map((it, i) => `<button type="button" data-i="${i}" aria-pressed="${i === sel}"><img src="${esc(it.src)}" alt="" loading="lazy"><span>${esc(it.label)}</span></button>`).join("")}</div>`;
       el.querySelectorAll(".cam-row button").forEach((b) => b.addEventListener("click", () => { sel = +b.dataset.i; draw(); }));
     };
     draw();
@@ -472,13 +483,21 @@
 
   /* ---------------- theme sheet ---------------- */
   function showThemes() {
-    const cur = currentTheme();
-    openSheet("Theme", `<div class="theme-grid">${THEMES.map((t) =>
+    const cur = currentTheme(), curM = currentMaterial();
+    openSheet("Look", `<h3>Finish</h3><div class="seg" style="grid-template-columns:repeat(5,1fr)">${MATERIALS.map((m) =>
+      `<button type="button" data-material-id="${m.id}" aria-pressed="${m.id === curM}" title="${m.mood}">${m.name}</button>`).join("")}</div>
+      <h3>Colors</h3><div class="theme-grid">${THEMES.map((t) =>
       `<button class="theme-opt" type="button" data-theme-id="${t.id}" aria-pressed="${t.id === cur}"><span class="swatch" style="--sw-bg:${t.bg};--sw-ac:${t.ac}"></span><span><strong>${t.name}</strong><br><span class="small muted">${t.mood}</span></span></button>`).join("")}</div>`,
-    (ov) => ov.querySelectorAll("[data-theme-id]").forEach((b) => b.addEventListener("click", () => {
-      applyTheme(b.dataset.themeId);
-      ov.querySelectorAll("[data-theme-id]").forEach((x) => x.setAttribute("aria-pressed", x === b));
-    })));
+    (ov) => {
+      ov.querySelectorAll("[data-theme-id]").forEach((b) => b.addEventListener("click", () => {
+        applyTheme(b.dataset.themeId);
+        ov.querySelectorAll("[data-theme-id]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+      }));
+      ov.querySelectorAll("[data-material-id]").forEach((b) => b.addEventListener("click", () => {
+        applyMaterial(b.dataset.materialId);
+        ov.querySelectorAll("[data-material-id]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+      }));
+    });
   }
   $("#theme-btn").addEventListener("click", showThemes);
 
@@ -499,6 +518,7 @@
 
   async function boot() {
     applyTheme(currentTheme());
+    applyMaterial(currentMaterial());
     const [latest, cfg] = await Promise.all([getJSON("/data/latest.json", { fresh: true }), getJSON("/config.json")]);
     S.latest = latest; S.cfg = cfg;
     if (!latest) {

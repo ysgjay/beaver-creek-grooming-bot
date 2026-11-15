@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Snow Desk · Beaver Creek</title>
 <meta name="description" content="Beaver Creek's grooming report, weather, snow forecast and snow stake cam, every morning.">
-<meta name="theme-color" content="#eef2f5">
+<meta name="theme-color" content="#3a2410">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon-180.png">
@@ -13,11 +13,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>
   // Apply the saved theme before first paint so there's no flash.
-  try { var t = localStorage.getItem("theme"); if (t && t !== "auto") document.documentElement.dataset.theme = t; } catch (e) {}
+  // Amber Lens is the starting theme; "auto" follows the phone (Corduroy / Night Cat).
+  (function () { var t = "amberlens", m = "flat";
+    try { t = localStorage.getItem("theme") || t; m = localStorage.getItem("material") || m; } catch (e) {}
+    if (t !== "auto") document.documentElement.dataset.theme = t;
+    if (m !== "flat") document.documentElement.dataset.material = m; })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500;600&family=Barlow+Condensed:wght@700&family=Saira+Condensed:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500;600&family=Barlow:wght@600;700&display=swap">
 <link rel="preload" href="/data/latest.json" as="fetch" crossorigin>
 <link rel="stylesheet" href="/themes.css">
 <link rel="stylesheet" href="/app.css">

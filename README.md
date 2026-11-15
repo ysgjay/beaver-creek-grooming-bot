@@ -9,13 +9,21 @@ Every morning it gets the Beaver Creek grooming report, weather, a multi-model s
 ## Where it runs (all free tiers, no GitHub at runtime)
 | Piece | Service | What it does |
 |---|---|---|
-| Scheduler | Cloudflare Worker `snow-desk-cron` | Cron every 30 min, 3:00–9:30 a.m. MT, plus 2 p.m.; calls `/api/run` |
+| Scheduler | Cloudflare Worker `snow-desk-cron` | Cron every 15 min from 2 to 10 a.m. MT, plus 2 p.m. Each call retries 3 times, and failures can alert your phone (`ADMIN_NTFY_TOPIC`). |
 | Pipeline | Vercel Python function `api/run.py` | Fetches sources, builds the forecast, saves the archive, sends notifications |
 | Archive | Vercel Blob `snow-desk-archive` | JSON and images on a CDN; the app reads them same-origin via rewrites |
 | App | Vercel static (`public/`) on `snow.0xm.studio` | Phone-first app, 10 themes, works offline |
-| Backup trigger | Vercel cron (daily 5:35 a.m. MT) | In case the Worker is down |
+| Backup trigger | Vercel cron (daily 7:05 a.m. MST) | In case the Worker is down. Sending can never happen twice. |
 
 GitHub only stores the code and runs the unit tests. Vercel deploys from it.
+
+## When the report goes out
+At **7:00 a.m. Mountain time** (`SEND_TIME`), every day in season, with daylight saving handled.
+- **Fresh data at 7:00:** a full refresh runs in the half hour before, so the send takes seconds.
+- **Map not posted yet:** if today's map isn't up at 7:00, it checks every 15 minutes and sends the moment it appears.
+- **Fallback:** at 9:00 (`SEND_FALLBACK_MINUTES`) it sends anyway, noting there's no new map.
+- **Off-season:** when the map hasn't changed in 3 days, nothing is sent.
+- **Delivery stamp:** each send records its time, and the app shows "Sent 7:00".
 
 ## Settings (Vercel project `snow-desk` → Environment Variables)
 | Variable | Status |
