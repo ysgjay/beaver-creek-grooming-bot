@@ -551,9 +551,10 @@
   }
 
   /* ---------------- RADAR ---------------- */
-  // No map library: a fixed grid of 256px map tiles, placed so the resort sits in the middle of the card.
+  // A vector map (MapLibre, vendored in /vendor, with OpenFreeMap's keyless style) repainted in the theme's colours.
+  // If the library, WebGL or the style can't load, it falls back to a fixed grid of 256px image tiles.
   // Past frames are NEXRAD composites and future frames are HRRR simulated radar, both from Iowa State's Mesonet tile cache.
-  const RADAR = { z: 7, cols: 4, rows: 3, src: "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", base: "https://tile.openstreetmap.org" };
+  const RADAR = { z: 7, cols: 4, rows: 3, src: "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", base: "https://tile.openstreetmap.org", style: "https://tiles.openfreemap.org/styles/positron" };
   const worldPx = (lat, lon, z) => { const n = 256 * 2 ** z, sn = Math.sin(lat * Math.PI / 180); return [(lon + 180) / 360 * n, (0.5 - Math.log((1 + sn) / (1 - sn)) / (4 * Math.PI)) * n]; };
   function radarFrames(now) {
     const p2 = (n) => String(n).padStart(2, "0");
@@ -570,42 +571,139 @@
     }
     return out;
   }
-  function mountRadar(card) {
-    const r = resortInfo();
-    if (!card || r?.lat == null || r?.lon == null) { card?.remove(); return; }
-    const { z, cols, rows } = RADAR, [px, py] = worldPx(r.lat, r.lon, z);
-    const tx = Math.floor(px / 256), ty = Math.floor(py / 256);
-    const x0 = tx - (px / 256 - tx >= 0.5 ? 1 : 2), y0 = ty - 1;
-    const pos = `left:calc(50% - ${(px - x0 * 256).toFixed(1)}px);top:calc(50% - ${(py - y0 * 256).toFixed(1)}px)`;
-    const tiles = (url) => { let s = ""; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) s += `<img src="${url}/${z}/${x0 + i}/${y0 + j}.png" alt="" decoding="async" draggable="false">`; return s; };
-    const frames = radarFrames(Date.now()), nowIdx = frames.findIndex((f) => f.layer === "nexrad-n0q");
-    const fmt = new Intl.DateTimeFormat("en-US", { timeZone: r.timezone || S.cfg?.timezone || RESORT_TZ, month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" });
-    // Every resort gets a marker and a name. Resorts sit close together, so each label takes the first
-    // side (above, below, right, left) where it doesn't cover a label or marker already placed.
-    const placed = [], hit = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
-    const spots = R.list.filter((o) => o.lat != null && o.lon != null).map((o) => {
-      const [ox, oy] = worldPx(o.lat, o.lon, z);
-      return { o, x: ox - px, y: oy - py, me: o.slug === r.slug };
-    }).sort((a, b) => b.me - a.me);
-    spots.forEach((s) => placed.push([s.x - 7, s.y - 7, s.x + 7, s.y + 7]));
-    const dots = spots.map((s) => {
-      const w = s.o.name.length * 6.2 + 10, h = w / 2, boxes = {
+  // Each resort is a marker with its name. Resorts sit close together, so each label takes the first side
+  // (above, below, right, left, then further out) where it doesn't cover a label or marker already placed.
+  // `spots` are {name, x, y, me} in pixels; returns the side for each, selected resort first.
+  function labelSides(spots) {
+    const hit = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+    const placed = spots.map((s) => [s.x - 7, s.y - 7, s.x + 7, s.y + 7]);
+    const out = new Map();
+    [...spots].sort((a, b) => b.me - a.me).forEach((s) => {
+      const w = s.name.length * 6.2 + 10, h = w / 2, boxes = {
         n: [s.x - h, s.y - 26, s.x + h, s.y - 11], s: [s.x - h, s.y + 11, s.x + h, s.y + 26],
         e: [s.x + 11, s.y - 8, s.x + 11 + w, s.y + 8], w: [s.x - 11 - w, s.y - 8, s.x - 11, s.y + 8],
         s2: [s.x - h, s.y + 27, s.x + h, s.y + 42], n2: [s.x - h, s.y - 42, s.x + h, s.y - 27],
       };
       const side = Object.keys(boxes).find((k) => !placed.some((p) => hit(boxes[k], p))) || "n";
       placed.push(boxes[side]);
-      return `<span class="radar-dot${s.me ? " me" : ""}" style="left:calc(50% + ${s.x.toFixed(1)}px);top:calc(50% + ${s.y.toFixed(1)}px)"><b class="${side}">${esc(s.o.name)}</b></span>`;
-    }).join("");
+      out.set(s, side);
+    });
+    return out;
+  }
+
+  // ---- One-colour look: the map and the radar both take their colours from the theme. ----
+  const rgbOf = (c) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(c).trim()); const n = m ? parseInt(m[1], 16) : 0x808080; return [n >> 16, (n >> 8) & 255, n & 255]; };
+  const hexOf = (c) => "#" + c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+  const mixRgb = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+  const MAROON = [123, 30, 46];
+  function radarPalette() {
+    const cs = getComputedStyle(document.documentElement), v = (n) => rgbOf(cs.getPropertyValue(n));
+    const bg = v("--bg"), ink = v("--ink"), white = [255, 255, 255], black = [0, 0, 0];
+    let accent = v("--accent");
+    const dark = (0.299 * bg[0] + 0.587 * bg[1] + 0.114 * bg[2]) < 110;
+    // The resort markers are maroon, so a maroon theme accent would hide them in the radar: use blue there.
+    if (Math.hypot(...accent.map((c, i) => c - MAROON[i])) < 60) accent = [10, 91, 211];
+    const ramp = dark
+      ? [mixRgb(bg, accent, 0.36), mixRgb(bg, accent, 0.55), mixRgb(bg, accent, 0.75), mixRgb(bg, accent, 0.92), mixRgb(accent, white, 0.4)]
+      : [mixRgb(white, accent, 0.3), mixRgb(white, accent, 0.5), mixRgb(white, accent, 0.72), accent, mixRgb(accent, black, 0.35)];
+    const map = dark
+      ? { land: bg, hills: mixRgb(bg, ink, 0.07), water: mixRgb(bg, black, 0.35), roads: mixRgb(bg, ink, 0.26), lines: mixRgb(bg, ink, 0.14), labels: mixRgb(bg, ink, 0.66), halo: bg }
+      : { land: mixRgb(bg, white, 0.55), hills: mixRgb(bg, white, 0.12), water: mixRgb(bg, ink, 0.07), roads: mixRgb(bg, ink, 0.24), lines: mixRgb(bg, ink, 0.1), labels: mixRgb(bg, ink, 0.68), halo: mixRgb(bg, white, 0.55) };
+    return { dark, ramp, map: Object.fromEntries(Object.entries(map).map(([k, c]) => [k, hexOf(c)])), pin: dark ? hexOf(accent) : hexOf(MAROON) };
+  }
+  // How strong an echo is, 0 to 1, from its colour in the standard radar palette. That palette runs
+  // cyan, blue, green, yellow, orange, red, magenta, and is not ordered by brightness, so this goes by hue.
+  function echoStrength(r, g, b) {
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, val = mx / 255;
+    if (mx === 0 || d / mx < 0.2) return 0.05;
+    let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h = (h * 60 + 360) % 360;
+    const dim = (span) => Math.min(1, Math.max(0, (1 - val) / span));
+    if (h >= 165 && h < 255) return 0.05 + 0.30 * (h - 165) / 90;   // cyan to blue: light
+    if (h >= 75 && h < 165) return 0.35 + 0.22 * dim(0.45);         // greens: moderate
+    if (h >= 45 && h < 75) return 0.57 + 0.13 * dim(0.3);           // yellows
+    if (h >= 15 && h < 45) return 0.74;                             // orange
+    if (h < 15 || h >= 330) return 0.8 + 0.12 * dim(0.3);           // reds: heavy
+    return 0.96;                                                    // magenta and beyond
+  }
+  // Repaint one radar tile in the theme's ramp. Throws if the tile can't be read (blocked cross-origin).
+  let radarRamp = null;
+  function recolorRadar(bitmap) {
+    const c = document.createElement("canvas"); c.width = bitmap.width; c.height = bitmap.height;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(bitmap, 0, 0);
+    const img = ctx.getImageData(0, 0, c.width, c.height), px = img.data, ramp = radarRamp;
+    for (let i = 0; i < px.length; i += 4) {
+      if (!px[i + 3]) continue;
+      const t = echoStrength(px[i], px[i + 1], px[i + 2]) * (ramp.length - 1), k = Math.min(ramp.length - 2, Math.floor(t)), f = t - k;
+      px[i] = ramp[k][0] + (ramp[k + 1][0] - ramp[k][0]) * f;
+      px[i + 1] = ramp[k][1] + (ramp[k + 1][1] - ramp[k][1]) * f;
+      px[i + 2] = ramp[k][2] + (ramp[k + 1][2] - ramp[k][2]) * f;
+    }
+    // Blend each pixel with its neighbours (alpha-weighted), so blocks soften and lone specks of noise fade.
+    const w = c.width, h = c.height, src = new Float32Array(px.length), tmp = new Float32Array(px.length);
+    for (let i = 0; i < px.length; i += 4) { const a = px[i + 3] / 255; src[i] = px[i] * a; src[i + 1] = px[i + 1] * a; src[i + 2] = px[i + 2] * a; src[i + 3] = px[i + 3]; }
+    const pass = (from, to, step, len, lines, lineStep) => {
+      for (let l = 0; l < lines; l++) for (let k = 0; k < len; k++) {
+        const i = l * lineStep + k * step, a = k > 0 ? i - step : i, b = k < len - 1 ? i + step : i;
+        for (let ch = 0; ch < 4; ch++) to[i + ch] = (from[a + ch] + 2 * from[i + ch] + from[b + ch]) / 4;
+      }
+    };
+    pass(src, tmp, 4, w, h, w * 4); pass(tmp, src, w * 4, h, w, 4);
+    for (let i = 0; i < px.length; i += 4) { const a = src[i + 3] / 255; if (a > 0) { px[i] = src[i] / a; px[i + 1] = src[i + 1] / a; px[i + 2] = src[i + 2] / a; } px[i + 3] = src[i + 3]; }
+    ctx.putImageData(img, 0, 0);
+    return c;
+  }
+  // The map library is only fetched when the Forecast tab is opened.
+  let mapLib = null;
+  const loadMapLib = () => mapLib || (mapLib = new Promise((ok, fail) => {
+    const ready = (gl) => {
+      // Radar tiles go through this so they can be repainted before the map draws them.
+      gl.addProtocol("radarmono", async (params, abort) => {
+        const res = await fetch(params.url.replace("radarmono://", "https://"), { signal: abort.signal });
+        if (!res.ok) throw new Error(`radar tile ${res.status}`);
+        const canvas = recolorRadar(await createImageBitmap(await res.blob()));
+        return { data: await createImageBitmap(canvas) };
+      });
+      ok(gl);
+    };
+    if (window.maplibregl) return ready(window.maplibregl);
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "/vendor/maplibre-gl.css"; document.head.appendChild(css);
+    const js = document.createElement("script"); js.src = "/vendor/maplibre-gl.js";
+    js.onload = () => (window.maplibregl ? ready(window.maplibregl) : fail(new Error("map library missing")));
+    js.onerror = () => { mapLib = null; fail(new Error("map library failed to load")); };
+    document.head.appendChild(js);
+  }));
+  // Repaint the vector style in the theme's colours. Layers are matched by type and name, so a change
+  // in the style's layer list degrades to that layer's own colour, not to an error.
+  function themeStyle(style, c) {
+    (style.layers || []).forEach((l) => {
+      const p = (l.paint = l.paint || {});
+      if (l.type === "background") p["background-color"] = c.land;
+      else if (l.type === "fill") { p["fill-color"] = /water|ocean|lake/.test(l.id) ? c.water : /building/.test(l.id) ? c.lines : c.hills; delete p["fill-pattern"]; delete p["fill-outline-color"]; }
+      else if (l.type === "line") p["line-color"] = /water/.test(l.id) ? c.water : /boundary|admin/.test(l.id) ? c.lines : c.roads;
+      else if (l.type === "symbol") { p["text-color"] = c.labels; p["text-halo-color"] = c.halo; delete p["icon-color"]; }
+    });
+    return style;
+  }
+  // Used when the vector style can't be fetched: the standard street map, drained of colour by the renderer.
+  const rasterStyle = (c, dark) => ({ version: 8, sources: { osm: { type: "raster", tiles: [`${RADAR.base}/{z}/{x}/{y}.png`], tileSize: 256, maxzoom: 19, attribution: "© OpenStreetMap" } },
+    layers: [{ id: "bg", type: "background", paint: { "background-color": c.land } }, { id: "osm", type: "raster", source: "osm", paint: { "raster-saturation": -1, "raster-contrast": -0.25, "raster-opacity": dark ? 0.25 : 0.7 } }] });
+
+  let radarMap = null;
+  function mountRadar(card) {
+    const r = resortInfo();
+    if (radarMap) { try { radarMap.remove(); } catch {} radarMap = null; }
+    if (!card || r?.lat == null || r?.lon == null) { card?.remove(); return; }
+    const frames = radarFrames(Date.now()), nowIdx = frames.findIndex((f) => f.layer === "nexrad-n0q");
+    const fmt = new Intl.DateTimeFormat("en-US", { timeZone: r.timezone || S.cfg?.timezone || RESORT_TZ, month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" });
+    const resortsOnMap = R.list.filter((o) => o.lat != null && o.lon != null);
+    const pal = radarPalette();
+    radarRamp = pal.ramp;
     card.innerHTML = `
       <div class="card-head"><h2>Radar</h2><span class="muted small" id="radar-when" aria-live="polite"></span></div>
-      <div class="radar-map" id="radar-map">
-        <div class="radar-tiles radar-base" style="${pos}">${tiles(RADAR.base)}</div>
-        <div class="radar-tint"></div>
-        <svg class="radar-defs" aria-hidden="true"><filter id="radar-soft" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="2.4"/><feComponentTransfer><feFuncA type="linear" slope="2.6"/></feComponentTransfer></filter></svg>
-        ${dots}
-        <span class="radar-attr">© OpenStreetMap · NOAA, Iowa State Mesonet</span>
+      <div class="radar-map${pal.dark ? " dark" : ""}" id="radar-map" style="--radar-land:${pal.map.land};--radar-pin:${pal.pin}">
+        <span class="radar-legend" id="radar-legend" hidden>Light <i style="background:linear-gradient(90deg, ${pal.ramp.map(hexOf).join(", ")})"></i> Heavy</span>
         <p class="radar-none muted small" id="radar-none" hidden>No radar image for this time.</p>
       </div>
       <div class="radar-ctl">
@@ -613,30 +711,16 @@
         <input type="range" id="radar-time" min="0" max="${frames.length - 1}" step="1" value="${nowIdx}" aria-label="Radar time, from an hour ago to 12 hours ahead">
         <button class="btn secondary" type="button" id="radar-now">Now</button>
       </div>
-      <p class="muted small radar-note">Slide left for the past hour of radar and right for the next 12 hours from the HRRR model. Mountains block the radar beam, so light snow on the hill can be missing.</p>`;
+      <p class="muted small radar-note">Slide left for the past hour of radar and right for the next 12 hours from the HRRR model. Mountains block the radar beam, so light snow on the hill can be missing. Use two fingers to move the map.</p>`;
     const map = $("#radar-map", card), slider = $("#radar-time", card), play = $("#radar-play", card), when = $("#radar-when", card), none = $("#radar-none", card);
-    map.querySelectorAll(".radar-base img").forEach((im) => im.addEventListener("error", () => { im.style.visibility = "hidden"; }));
-    const layers = new Map();
-    let cur = -1, timer = null;
-    const layerFor = (i) => {
-      if (layers.has(i)) return layers.get(i);
-      const el = document.createElement("div");
-      el.className = "radar-tiles radar-frame"; el.style.cssText = pos; el.innerHTML = tiles(`${RADAR.src}/${frames[i].layer}`);
-      el.failed = 0;
-      el.querySelectorAll("img").forEach((im) => im.addEventListener("error", () => { im.style.visibility = "hidden"; el.failed++; if (i === cur) none.hidden = el.failed < cols * rows; }));
-      map.insertBefore(el, map.querySelector(".radar-dot, .radar-attr"));
-      layers.set(i, el);
-      return el;
-    };
+    let cur = -1, timer = null, view = null;   // view = { show(i, prev), preload(i), failed(i) }
     const show = (i) => {
-      const el = layerFor(i);
-      if (cur >= 0 && cur !== i) layers.get(cur).classList.remove("on");
-      el.classList.add("on"); cur = i;
-      none.hidden = el.failed < cols * rows;
+      const prev = cur; cur = i;
       slider.value = i;
       const f = frames[i];
       when.textContent = `${fmt.format(new Date(f.t)).replace(",", "")} · ${f.kind}`;
       slider.setAttribute("aria-valuetext", when.textContent);
+      if (view) { view.show(i, prev); none.hidden = !view.failed(i); }
     };
     const stop = () => { clearInterval(timer); timer = null; play.textContent = "Play"; };
     play.addEventListener("click", () => {
@@ -647,13 +731,112 @@
         if (!card.isConnected) return stop();
         const next = (cur + 1) % frames.length;
         show(next);
-        layerFor((next + 1) % frames.length);   // start loading the frame after this one
+        view?.preload((next + 1) % frames.length);   // start loading the frame after this one
         if (next === frames.length - 1) stop();
       }, 700);
     });
     slider.addEventListener("input", () => { stop(); show(Number(slider.value)); });
     $("#radar-now", card).addEventListener("click", () => { stop(); show(nowIdx); });
     show(nowIdx);
+    const refresh = () => { if (view) none.hidden = !view.failed(cur); };
+    const start = (v) => { if (!card.isConnected) return; view = v; view.show(cur, -1); refresh(); };
+    radarVector(map, r, resortsOnMap, frames, refresh, pal).then(start).catch(() => { if (card.isConnected) start(radarTiles(map, r, resortsOnMap, frames, refresh)); });
+  }
+
+  // Sharp vector map (MapLibre + OpenFreeMap, no API key) that can be moved and zoomed.
+  async function radarVector(map, r, list, frames, refresh, pal) {
+    const gl = await loadMapLib();
+    let style = rasterStyle(pal.map, pal.dark);
+    try {
+      const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
+      const res = await fetch(RADAR.style, { signal: ctl.signal });
+      clearTimeout(t);
+      if (res.ok) style = themeStyle(await res.json(), pal.map);
+    } catch {}
+    if (!map.isConnected) throw new Error("card closed");
+    const holder = document.createElement("div"); holder.className = "radar-gl"; map.prepend(holder);
+    let m;
+    try {
+      m = new gl.Map({ container: holder, style, center: [r.lon, r.lat], zoom: 6.4, minZoom: 4, maxZoom: 10, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, attributionControl: { compact: true } });
+      radarMap = m;
+      m.touchZoomRotate.disableRotation();
+      await new Promise((ok, fail) => { m.once("load", ok); m.on("error", (e) => { if (!m.loaded() && !e.sourceId) fail(e.error || new Error("map failed")); }); setTimeout(() => fail(new Error("map timed out")), 12000); });
+    } catch (e) {
+      try { m?.remove(); } catch {}
+      radarMap = null; holder.remove();
+      throw e;
+    }
+    // Show every resort at once.
+    const b = new gl.LngLatBounds(); list.forEach((o) => b.extend([o.lon, o.lat]));
+    if (list.length > 1) m.fitBounds(b, { padding: { top: 48, bottom: 36, left: 64, right: 64 }, maxZoom: 7.5, duration: 0 });
+    const pins = list.map((o) => {
+      const el = document.createElement("div"); el.className = "radar-pin";
+      el.innerHTML = `<span class="radar-dot${o.slug === r.slug ? " me" : ""}"><b>${esc(o.name)}</b></span>`;
+      new gl.Marker({ element: el, anchor: "center" }).setLngLat([o.lon, o.lat]).addTo(m);
+      return { o, label: el.querySelector("b") };
+    });
+    const relabel = () => {
+      const spots = pins.map((p) => { const pt = m.project([p.o.lon, p.o.lat]); return { p, name: p.o.name, x: pt.x, y: pt.y, me: p.o.slug === r.slug }; });
+      labelSides(spots).forEach((side, s) => { s.p.label.className = side; });
+    };
+    relabel(); m.on("zoomend", relabel); m.on("resize", relabel);
+    // Radar frames are image layers under the map's labels, repainted in the theme's ramp on the way in.
+    // Tiles stop at zoom 6 and are smoothed as they are enlarged, which turns the square radar pixels into soft shapes.
+    const under = (m.getStyle().layers.find((l) => l.type === "symbol") || {}).id;
+    const added = new Set(), failed = new Set();
+    const id = (i) => `radar-${i}`;
+    const add = (i) => {
+      if (added.has(i) || radarMap !== m) return;
+      added.add(i);
+      m.addSource(id(i), { type: "raster", tiles: [`${RADAR.src.replace("https://", "radarmono://")}/${frames[i].layer}/{z}/{x}/{y}.png`], tileSize: 256, maxzoom: 6, attribution: "NOAA, Iowa State Mesonet" });
+      m.addLayer({ id: id(i), type: "raster", source: id(i), paint: { "raster-opacity": 0, "raster-opacity-transition": { duration: 0 }, "raster-resampling": "linear", "raster-fade-duration": 0 } }, under);
+    };
+    const frameOf = (e) => { const n = /^radar-(\d+)$/.exec(e.sourceId || e.source?.id || ""); return n ? Number(n[1]) : null; };
+    m.on("error", (e) => { const i = frameOf(e); if (i != null) { failed.add(i); refresh(); } });
+    m.on("data", (e) => { const i = frameOf(e); if (i != null && e.tile && failed.delete(i)) refresh(); });
+    $("#radar-legend", map.parentNode).hidden = false;
+    const tuck = () => map.querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");   // start as the small (i) button
+    tuck(); m.once("idle", tuck);
+    return {
+      show(i, prev) { if (radarMap !== m) return; add(i); if (prev >= 0 && prev !== i && added.has(prev)) m.setPaintProperty(id(prev), "raster-opacity", 0); m.setPaintProperty(id(i), "raster-opacity", 0.88); },
+      preload: add,
+      failed: (i) => failed.has(i),
+    };
+  }
+
+  // Fallback when the map library or WebGL isn't available: a fixed grid of 256px image tiles centred on the resort.
+  function radarTiles(map, r, list, frames, refresh) {
+    const { z, cols, rows } = RADAR, [px, py] = worldPx(r.lat, r.lon, z);
+    const tx = Math.floor(px / 256), ty = Math.floor(py / 256);
+    const x0 = tx - (px / 256 - tx >= 0.5 ? 1 : 2), y0 = ty - 1;
+    const pos = `left:calc(50% - ${(px - x0 * 256).toFixed(1)}px);top:calc(50% - ${(py - y0 * 256).toFixed(1)}px)`;
+    const tiles = (url) => { let s = ""; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) s += `<img src="${url}/${z}/${x0 + i}/${y0 + j}.png" alt="" decoding="async" draggable="false">`; return s; };
+    const spots = list.map((o) => { const [ox, oy] = worldPx(o.lat, o.lon, z); return { name: o.name, x: ox - px, y: oy - py, me: o.slug === r.slug }; });
+    const sides = labelSides(spots);
+    const dots = spots.map((s) => `<span class="radar-dot${s.me ? " me" : ""}" style="left:calc(50% + ${s.x.toFixed(1)}px);top:calc(50% + ${s.y.toFixed(1)}px)"><b class="${sides.get(s)}">${esc(s.name)}</b></span>`).join("");
+    map.insertAdjacentHTML("afterbegin", `
+        <div class="radar-tiles radar-base" style="${pos}">${tiles(RADAR.base)}</div>
+        <div class="radar-tint"></div>
+        <svg class="radar-defs" aria-hidden="true"><filter id="radar-soft" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="2.4"/><feComponentTransfer><feFuncA type="linear" slope="2.6"/></feComponentTransfer></filter></svg>
+        ${dots}
+        <span class="radar-attr">© OpenStreetMap · NOAA, Iowa State Mesonet</span>`);
+    map.querySelectorAll(".radar-base img").forEach((im) => im.addEventListener("error", () => { im.style.visibility = "hidden"; }));
+    const layers = new Map();
+    const layerFor = (i) => {
+      if (layers.has(i)) return layers.get(i);
+      const el = document.createElement("div");
+      el.className = "radar-tiles radar-frame"; el.style.cssText = pos; el.innerHTML = tiles(`${RADAR.src}/${frames[i].layer}`);
+      el.failed = 0;
+      el.querySelectorAll("img").forEach((im) => im.addEventListener("error", () => { im.style.visibility = "hidden"; el.failed++; refresh(); }));
+      map.insertBefore(el, map.querySelector(".radar-dot, .radar-attr"));
+      layers.set(i, el);
+      return el;
+    };
+    return {
+      show(i, prev) { const el = layerFor(i); if (prev >= 0 && prev !== i) layers.get(prev)?.classList.remove("on"); el.classList.add("on"); },
+      preload: layerFor,
+      failed: (i) => (layers.get(i)?.failed || 0) >= cols * rows,
+    };
   }
 
   /* ---------------- FORECAST ---------------- */
