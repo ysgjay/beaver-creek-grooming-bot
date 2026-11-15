@@ -16,12 +16,18 @@ CONFIRMS_PER_HOUR_CAP = 10  # protects the daily email quota (Resend free plan: 
 CONFIRMS_PER_DAY_CAP = 25   # shared with the morning reports) from sign-up abuse
 
 
+def url():
+    """The 0xM Neon database (SNOWDB_DATABASE_URL, set by the Vercel Neon integration),
+    falling back to the original DATABASE_URL."""
+    return os.environ.get("SNOWDB_DATABASE_URL") or os.environ.get("DATABASE_URL") or ""
+
+
 @contextmanager
 def connect():
-    url = os.environ.get("DATABASE_URL")
-    if not url:
-        raise RuntimeError("DATABASE_URL is not set")
-    with psycopg.connect(url, connect_timeout=10, autocommit=True) as conn:
+    url_ = url()
+    if not url_:
+        raise RuntimeError("SNOWDB_DATABASE_URL / DATABASE_URL is not set")
+    with psycopg.connect(url_, connect_timeout=10, autocommit=True) as conn:
         yield conn
 
 

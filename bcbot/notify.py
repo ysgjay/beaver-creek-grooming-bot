@@ -10,11 +10,15 @@ import os
 from . import config, db, mailer, report, webpush
 from .util import http
 
+
+def _db_url():
+    return db.url()
+
 log = logging.getLogger(__name__)
 
 
 def email(day, map_url, slug):
-    if not (os.environ.get("RESEND_API_KEY") and os.environ.get("DATABASE_URL")):
+    if not (os.environ.get("RESEND_API_KEY") and _db_url()):
         return "skipped (email not configured)"
     with db.connect() as conn:
         recipients = db.active_subscribers(conn, slug)
@@ -27,7 +31,7 @@ def email(day, map_url, slug):
 def push(day, map_url, slug):
     """One notification per send. The powder alert, if any, rides along in it (never a second push)."""
     key = webpush.app_key()
-    if not (os.environ.get("DATABASE_URL") and key):
+    if not (_db_url() and key):
         return "skipped (push not configured)"
     return _push_all(report.push_payload(day, map_url), key, slug)
 

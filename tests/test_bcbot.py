@@ -696,7 +696,7 @@ def test_daily_email_is_personal_with_one_click_unsubscribe(monkeypatch):
 
 
 def test_notify_skips_unconfigured_channels(monkeypatch):
-    for k in ["RESEND_API_KEY", "DATABASE_URL", "NTFY_TOPIC"]:
+    for k in ["RESEND_API_KEY", "DATABASE_URL", "SNOWDB_DATABASE_URL", "NTFY_TOPIC"]:
         monkeypatch.delenv(k, raising=False)
     r = notify.send_all({"date": "2026-11-15"}, None)
     assert r == {"email": "skipped (email not configured)", "push": "skipped (push not configured)", "ntfy": "skipped"}
