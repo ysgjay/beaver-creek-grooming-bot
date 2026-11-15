@@ -56,6 +56,9 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
     2. Each model's bias and skill learned against SNOTEL over 45 days.
     3. A weighted blend, plus ensemble ranges and the odds of a 6"+ day.
 
+  - Elevation bands: `config.ELEVATION_BANDS` lists base (8,100 ft), mid (10,200 ft) and peak (11,440 ft), all on the mountain. `data/latest.json` carries `bands`: for each one the label, elevation, `now`, the next 12 `hours` (temp, feels, wind, gust) and 10 `days` (high, low, and `snow_pct`, the share of precipitation falling as snow there). The snow totals stay tied to the 10,476 ft forecast point.
+  - The NWS grid only counts for days it covers in full (20+ hours), like the models.
+
   Details are in `docs/SPEC.md`.
 
 ## When the report goes out (`bcbot/main.py`, `send_decision`)

@@ -20,6 +20,11 @@ def _cams(ids):
             for cid, label in ids]
 
 
+def _bands(base, mid, peak):
+    return [{"key": k, "label": k.title(), "lat": la, "lon": lo, "elevation_ft": ft}
+            for k, (la, lo, ft, _where) in zip(("base", "mid", "peak"), (base, mid, peak))]
+
+
 RESORTS = {
     "beaver-creek": {
         "name": "Beaver Creek",
@@ -27,6 +32,9 @@ RESORTS = {
         "grooming_pdf": "https://grooming.lumiplan.pro/beaver-creek-grooming-map.pdf",
         # Upper mountain, the elevation OpenSnow uses (10,476 ft).
         "lat": 39.5893, "lon": -106.5214, "elevation_ft": 10476,
+        # Base / mid / peak points on the mountain (never the town). Elevation is what temps are corrected to.
+        "bands": _bands((39.6042, -106.5165, 8100, "Beaver Creek Village"), (39.5893, -106.5214, 10200, "Spruce Saddle level"),
+                        (39.5730, -106.5300, 11440, "summit")),
         "snotel": ["842:CO:SNTL", "415:CO:SNTL"],  # Vail Mountain, Copper Mountain
         "snotel_label": "Vail Mountain",
         "cams": _cams([("bcsnowstake2", "Snow stake"), ("bcspruce", "Spruce Saddle"), ("bctalons", "Talons"),
@@ -45,6 +53,8 @@ RESORTS = {
         "grooming_pdf": "https://grooming.lumiplan.pro/vail-mountain-grooming-map.pdf",
         # Upper mountain near Mid-Vail, by the Vail Mountain SNOTEL (39.618, -106.380, 10,290 ft).
         "lat": 39.6145, "lon": -106.3720, "elevation_ft": 10350,
+        "bands": _bands((39.6400, -106.3740, 8120, "Vail Village"), (39.6170, -106.3700, 10250, "Mid-Vail"),
+                        (39.6060, -106.3550, 11570, "summit")),
         "snotel": ["842:CO:SNTL", "415:CO:SNTL"],  # Vail Mountain, Copper Mountain
         "snotel_label": "Vail Mountain",
         "cams": _cams([("vailsnowsummit", "Snow stake (summit)"), ("vaileaglesnest", "Eagle's Nest"),
@@ -60,6 +70,8 @@ RESORTS = {
         "grooming_pdf": None,  # no Lumiplan map found (Nov 2026): snow report, cams and forecast only
         # Peak 8 mid-mountain, where the official snow stake is (11,237 ft).
         "lat": 39.4790, "lon": -106.0820, "elevation_ft": 11237,
+        "bands": _bands((39.4800, -106.0670, 9600, "Peak 9 base"), (39.4790, -106.0820, 11237, "Peak 8 snow stake"),
+                        (39.4700, -106.1000, 12998, "Imperial summit")),
         "snotel": ["415:CO:SNTL", "531:CO:SNTL"],  # Copper Mountain, Hoosier Pass
         "snotel_label": "Copper Mountain",
         "cams": [{"label": "Snow stake", "image": "https://cache.snow.com/Mtncams/BreckSnowStake.jpg", "live": None}]
@@ -75,6 +87,8 @@ RESORTS = {
         "grooming_pdf": None,
         # Dercum Mountain, upper mountain.
         "lat": 39.5960, "lon": -105.9450, "elevation_ft": 11000,
+        "bands": _bands((39.6050, -105.9440, 9280, "River Run"), (39.5920, -105.9440, 10600, "Dercum mid"),
+                        (39.5870, -105.9430, 11640, "Dercum summit")),
         "snotel": ["505:CO:SNTL", "415:CO:SNTL"],  # Grizzly Peak, Copper Mountain
         "snotel_label": "Grizzly Peak",
         "cams": [{"label": "Snow stake", "image": "https://cache.snow.com/Mtncams/KeySnowStake.jpg", "live": None}]
@@ -92,6 +106,8 @@ RESORTS = {
         "grooming_pdf": None,
         # Upper mountain above the base, by the Butte SNOTEL (38.894, -106.953, 10,190 ft).
         "lat": 38.8930, "lon": -106.9710, "elevation_ft": 10500,
+        "bands": _bands((38.8990, -106.9650, 9375, "base area"), (38.8930, -106.9710, 10500, "mid-mountain"),
+                        (38.8840, -106.9830, 12162, "summit")),
         "snotel": ["380:CO:SNTL"],  # Butte
         "snotel_label": "Butte",
         "cams": _cams([("Crestedbuttebase", "Base"), ("Crestedbuttebar", "Umbrella Bar, Ten Peaks"),

@@ -15,6 +15,8 @@ TZ = ZoneInfo("America/Denver")
 # Forecast point, grooming PDF and snow report: set per resort by use() at the bottom.
 RESORT = RESORT_NAME = GROOMING_PDF_URL = RESORT_SNOW_REPORT_URL = None
 LAT = LON = ELEVATION_M = ELEVATION_FT = None
+# Elevation bands (base / mid / peak) shown beside the forecast: per resort, in resorts.py.
+ELEVATION_BANDS = []
 
 # Deterministic models pulled from Open-Meteo. Key = Open-Meteo model id.
 # base weights: (days 1-2, days 3+). The weights are the "prior"; verification
@@ -87,7 +89,7 @@ def use(slug):
     """Point every per-resort setting at `slug`. Returns the resort dict."""
     from . import resorts
     global RESORT, RESORT_NAME, LAT, LON, ELEVATION_M, ELEVATION_FT, GROOMING_PDF_URL
-    global RESORT_SNOW_REPORT_URL, SNOTEL_STATIONS, CAMS, STAKE_SNAPSHOT_URL, TZ, OPENING_DAY
+    global RESORT_SNOW_REPORT_URL, SNOTEL_STATIONS, CAMS, STAKE_SNAPSHOT_URL, TZ, OPENING_DAY, ELEVATION_BANDS
     r = resorts.get(slug)
     TZ = ZoneInfo(r["tz"])  # send times, "today" and every date are in the resort's own zone
     OPENING_DAY = r["opening_day"]
@@ -96,6 +98,7 @@ def use(slug):
     GROOMING_PDF_URL = r["grooming_pdf"]
     RESORT_SNOW_REPORT_URL = r["snow_report"]
     SNOTEL_STATIONS = r["snotel"]
+    ELEVATION_BANDS = r["bands"]
     if slug == resorts.DEFAULT and _CAMS_ENV:
         CAMS = _cams_from_ids(_CAMS_ENV)
     else:

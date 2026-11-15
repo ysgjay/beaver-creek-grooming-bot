@@ -130,6 +130,50 @@ def test_nws_intervals_split_across_local_days():
     assert out["2026-11-16"] == pytest.approx(1.0)
 
 
+def test_nws_leaves_out_partly_covered_days():
+    # The grid starts mid-afternoon: today has 8 hours left, tomorrow is complete.
+    vals = [{"validTime": "2026-11-15T23:00:00+00:00/PT8H", "value": 25.4},   # 16:00-24:00 MST
+            {"validTime": "2026-11-16T07:00:00+00:00/P1D", "value": 50.8}]    # all of 11/16 MST
+    out = nws.daily_from_intervals(vals, min_hours=nws.MIN_HOURS)
+    assert "2026-11-15" not in out
+    assert out["2026-11-16"] == pytest.approx(2.0)
+
+
+# ---------- elevation bands ----------
+
+def bands_payload(temps=(38.0, 30.0, 24.0), precip=0.02):
+    times = _hours()
+    return [{"hourly": {"time": times, "temperature_2m": [t] * len(times),
+                        "apparent_temperature": [t - 8] * len(times), "precipitation": [precip] * len(times),
+                        "wind_speed_10m": [10] * len(times), "wind_gusts_10m": [20] * len(times)}}
+            for t in temps]
+
+
+def test_bands_are_on_the_mountain_and_ordered_by_elevation():
+    fts = [b["elevation_ft"] for b in config.ELEVATION_BANDS]
+    assert fts == sorted(fts) and fts[0] >= 8000        # Avon, the town below, is 7,430 ft
+    assert [b["key"] for b in config.ELEVATION_BANDS] == ["base", "mid", "peak"]
+
+
+def test_band_outlook_temps_and_rain_snow_split():
+    rows = openmeteo.split_bands(bands_payload(), config.ELEVATION_BANDS)
+    out = forecast.band_outlook(rows, now=datetime(2026, 11, 15, 6, 20, tzinfo=config.TZ))
+    base, mid, peak = out
+    assert (base["label"], base["elevation_ft"]) == ("Base", 8100)
+    assert [b["now"]["temp"] for b in out] == [38, 30, 24]
+    assert len(mid["hours"]) == 12 and mid["hours"][0]["time"] == "2026-11-15T06:00"
+    assert peak["days"][0] == {"date": "2026-11-15", "high": 24, "low": 24, "snow_pct": 100}
+    assert base["days"][0]["snow_pct"] == 0             # rain in the village, snow up top
+    assert len(base["days"]) == 10
+
+
+def test_band_outlook_skips_missing_band_and_dry_days():
+    rows = openmeteo.split_bands(bands_payload(precip=0.0)[:2], config.ELEVATION_BANDS)
+    out = forecast.band_outlook(rows, now=datetime(2026, 11, 15, 6, 0, tzinfo=config.TZ))
+    assert [b["key"] for b in out] == ["base", "mid"]
+    assert out[0]["days"][0]["snow_pct"] is None
+
+
 # ---------- SNOTEL ----------
 
 def test_snotel_daily_differences():
@@ -225,6 +269,8 @@ def sandbox(tmp_path, monkeypatch):
                         lambda: openmeteo._split_models(openmeteo_payload(models), models))
     monkeypatch.setattr(openmeteo, "fetch_ensemble", lambda: {})
     monkeypatch.setattr(nws, "fetch_snowfall", lambda: {"2026-11-15": 1.0})
+    monkeypatch.setattr(openmeteo, "fetch_bands",
+                        lambda: openmeteo.split_bands(bands_payload(), config.ELEVATION_BANDS))
     monkeypatch.setattr(snotel, "fetch", lambda: {
         "station": "842:CO:SNTL", "last_24h": {"snow_in": 0},
         "daily": {"2026-11-13": {"precip_in": 0.4, "depth_change_in": 5, "depth_in": 8},
@@ -705,3 +751,13 @@ def test_claim_is_per_day_and_resort():
         def cursor(self): return Cur()
     assert db.claim_send(Conn(), "2026-11-15", "ready", "vail")
     assert "ON CONFLICT (day, resort)" in calls[0][0] and calls[0][1] == ("2026-11-15", "vail", "ready")
+
+
+def test_every_resort_is_complete():
+    for slug in resorts.RESORTS:
+        r = resorts.get(slug)
+        fts = [b["elevation_ft"] for b in r["bands"]]
+        assert [b["key"] for b in r["bands"]] == ["base", "mid", "peak"] and fts == sorted(fts), slug
+        assert fts[0] < r["elevation_ft"] <= fts[2], slug          # forecast point is on the mountain
+        assert r["snotel"] and r["tz"] == "America/Denver" and r["opening_day"], slug
+        assert r["snow_report"].startswith(r["site"] + "/the-mountain/mountain-conditions/"), slug

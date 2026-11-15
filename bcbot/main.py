@@ -281,6 +281,7 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
     models = _try("open-meteo", openmeteo.fetch_models, errors, {})
     ens = _try("open-meteo ensemble", openmeteo.fetch_ensemble, errors, {})
     nws_daily = _try("nws", nws.fetch_snowfall, errors, {})
+    band_rows = _try("open-meteo bands", openmeteo.fetch_bands, errors, {})
     obs = _try("snotel", snotel.fetch, errors, {})
     resort_report = resort_report if resort_report is not None else resort.fetch()
 
@@ -318,6 +319,7 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
         "grooming": g,
         "forecast": {k: v for k, v in (fc or {}).items() if k != "raw"},
         "hourly": hourly,
+        "bands": forecast.band_outlook(band_rows, now=now) if band_rows else [],
         "observed": (obs or {}).get("last_24h", {}) | ({"station": obs["station"]} if obs else {}),
         "resort": resort_report,
         "cam": prev.get("cam") or _snapshot_stake(store, day_str),
