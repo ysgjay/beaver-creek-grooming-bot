@@ -1,28 +1,92 @@
-name: Send Beaver Creek Grooming Report
+name: Daily grooming report
 
 on:
   schedule:
-    - cron: "30 13 * * *"
+    # 5:40, 6:40, 7:40 MST. The bot sends once per new grooming map, so later runs
+    # only catch a late upload. (GitHub often starts scheduled runs 10-40 min late.)
+    - cron: "40 12 * * *"
+    - cron: "40 13 * * *"
+    - cron: "40 14 * * *"
   workflow_dispatch:
+    inputs:
+      force_send:
+        description: "Send even if the grooming map hasn't changed"
+        type: boolean
+        default: false
+  push:
+    branches-ignore: [main]   # feature branches: tests + live dry run, never sends
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-report-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  send-report:
+  report:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Anything other than main is a dry run: real data, no notifications.
+      DRY_RUN: ${{ github.ref == 'refs/heads/main' && '0' || '1' }}
+      FORCE_SEND: ${{ inputs.force_send && '1' || '0' }}
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+      GMAIL_USER: ${{ secrets.GMAIL_USER }}
+      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+      SIGNUP_FORM_URL: ${{ vars.SIGNUP_FORM_URL }}
+      CAM_URLS: ${{ vars.CAM_URLS }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.12"
+          cache: pip
 
-      - name: Install dependencies
+      - run: pip install -r requirements.txt
+
+      - name: Unit tests
+        run: python -m pytest -q tests
+
+      - name: Discover cam URLs (branch runs only)
+        if: github.ref != 'refs/heads/main'
+        run: python -m bcbot discover || true
+
+      - name: Fetch, forecast, archive, notify
+        run: python -m bcbot run
+
+      - name: Commit archive
+        if: always()
         run: |
-          pip install python-telegram-bot requests PyMuPDF playwright Pillow instagrapi
-          playwright install chromium
-          playwright install-deps chromium
+          git config user.name "grooming-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then echo "no data changes"; exit 0; fi
+          git commit -m "Report data $(TZ=America/Denver date +%F\ %H:%M)"
+          for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
 
-      - name: Send grooming report
-        run: python send_report.py
-        env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          INSTAGRAM_SESSION: ${{ secrets.INSTAGRAM_SESSION }}
+      - name: Build dashboard
+        if: always()
+        run: python -m bcbot site
+
+      - uses: actions/upload-pages-artifact@v3
+        if: always() && github.ref == 'refs/heads/main'
+        with:
+          path: _site
+
+  deploy:
+    if: always() && github.ref == 'refs/heads/main'
+    needs: report
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

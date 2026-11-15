@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--BODY-START-->
+<title>Beaver Creek Snow Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Daily Beaver Creek grooming map, multi-model snow forecast, cams and history.">
+<meta name="theme-color" content="#0c131b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-row">
+    <div>
+      <p class="eyebrow">Beaver Creek · 10,476 ft forecast point</p>
+      <h1>Snow Desk</h1>
+    </div>
+    <div class="top-meta">
+      <span id="status-chip" class="chip">Loading</span>
+      <span id="updated" class="muted small"></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <p id="viewing-past" class="banner" hidden>Viewing the archive for <strong id="viewing-date"></strong>. <a href="#today">Back to today</a></p>
+
+  <section class="summary" aria-label="Snow summary">
+    <div class="stat">
+      <span class="label">Last 24 hours</span>
+      <span class="big" id="s-24h">–</span>
+      <span class="sub" id="s-24h-src">&nbsp;</span>
+    </div>
+    <div class="stat">
+      <span class="label">Next 1–5 days</span>
+      <span class="big" id="s-15">–</span>
+      <span class="sub" id="s-15-range">&nbsp;</span>
+    </div>
+    <div class="stat">
+      <span class="label">Days 6–10</span>
+      <span class="big" id="s-610">–</span>
+      <span class="sub" id="s-610-range">&nbsp;</span>
+    </div>
+    <div class="stat">
+      <span class="label">Chance of a 6"+ day</span>
+      <span class="big" id="s-odds">–</span>
+      <span class="sub">next 5 days, ensemble</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="panel span-2">
+      <div class="panel-head">
+        <h2>10-day snowfall</h2>
+        <span class="muted small">Inches per day, blended · line shows likely range</span>
+      </div>
+      <div id="chart" class="chart" role="img" aria-label="Daily snowfall forecast"></div>
+      <div id="tip" class="tip" hidden></div>
+      <details class="table-view">
+        <summary>Every model, day by day</summary>
+        <div class="scroll"><table id="models-table"></table></div>
+        <p class="muted small" id="models-note"></p>
+      </details>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Grooming map</h2>
+        <span id="map-date" class="muted small"></span>
+      </div>
+      <button id="map-open" class="map-btn" type="button" aria-label="Open grooming map full size">
+        <img id="map" alt="Beaver Creek grooming map" loading="eager">
+      </button>
+      <p id="map-none" class="muted" hidden>No grooming map archived for this day.</p>
+      <p class="muted small">Tap to zoom. Source: Beaver Creek / Lumiplan grooming report.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Next 12 hours</h2>
+        <span id="hourly-model" class="muted small"></span>
+      </div>
+      <div class="scroll"><table id="hourly" class="hourly"></table></div>
+    </section>
+
+    <section class="panel" id="cams-panel" hidden>
+      <div class="panel-head"><h2>Cams</h2><span class="muted small">Live from the resort</span></div>
+      <div id="cams" class="cams"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Forecast vs. what fell</h2>
+        <span id="verify-station" class="muted small"></span>
+      </div>
+      <div class="scroll"><table id="verify" class="verify"></table></div>
+      <p id="verify-empty" class="muted small" hidden>Scores appear after a few days of forecasts are archived and the SNOTEL station reports.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Archive</h2><span class="muted small">Every saved grooming report</span></div>
+      <ol id="archive" class="archive"></ol>
+    </section>
+
+    <section class="panel span-2 how">
+      <h2>How the forecast is built</h2>
+      <ol class="steps">
+        <li><strong>Raw models.</strong> NOAA's GFS, HRRR and National Blend, ECMWF, Germany's ICON, Canada's GEM and the UK Met Office model, pulled for this exact point with temperature corrected to 10,476 ft. The NWS forecasters' gridded snowfall joins as one more voice.</li>
+        <li><strong>Our own snow ratio.</strong> Liquid precipitation becomes snow using a temperature-based ratio tuned for dry Colorado snow (about 15:1 in the teens) instead of the flat 7:1 most free apps use.</li>
+        <li><strong>Bias correction.</strong> Each model is checked every day against the Vail Mountain SNOTEL gauge. A model that runs dry here gets scaled up; one that keeps missing gets less weight.</li>
+        <li><strong>Weighted blend and range.</strong> High-resolution models lead for the next 48 hours, global models after that. 82 ensemble runs supply the likely range and powder odds.</li>
+      </ol>
+      <p class="muted small">This is the same recipe OpenSnow describes for its PEAKS model (downscale public models, then bias-correct against stations), built from free public data.</p>
+    </section>
+
+    <section class="panel span-2 subscribe">
+      <h2>Get the morning report</h2>
+      <div class="sub-grid" id="subscribe"></div>
+    </section>
+  </div>
+</main>
+
+<div id="lightbox" class="lightbox" hidden>
+  <button id="lightbox-close" class="lb-close" type="button">Close</button>
+  <div class="lb-scroll"><img id="lightbox-img" alt="Grooming map, full size"></div>
+</div>
+
+<script src="app.js"></script>
+<!--BODY-END-->
+</body>
+</html>

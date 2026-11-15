@@ -1,0 +1,77 @@
+"""Compose the daily message (same text for Telegram, ntfy and email)."""
+from datetime import date, datetime
+
+from . import config
+
+
+def _ordinal(n):
+    return "th" if 11 <= n <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+
+
+def pretty_date(d):
+    d = date.fromisoformat(d) if isinstance(d, str) else d
+    return d.strftime(f"%a %b {d.day}{_ordinal(d.day)}")
+
+
+def short_date(d):
+    d = date.fromisoformat(d) if isinstance(d, str) else d
+    return d.strftime(f"%a {d.day}")
+
+
+def _in(x):
+    return "–" if x is None else f'{x:.0f}"' if x >= 1 or x == 0 else f'{x:.1f}"'
+
+
+def _hour_label(iso):
+    h = datetime.fromisoformat(iso).hour
+    return f"{(h % 12) or 12}{'a' if h < 12 else 'p'}"
+
+
+def compose(day):
+    """`day` is the record written to data/days/<date>.json."""
+    fc = day.get("forecast") or {}
+    obs = day.get("observed") or {}
+    resort = day.get("resort") or {}
+    lines = [f"🎿 Beaver Creek Grooming — {pretty_date(day['date'])}"]
+    if not day.get("grooming", {}).get("new_map", True):
+        lines.append("(No new grooming map posted yet today)")
+
+    snow = []
+    if resort.get("last_24h_in") is not None:
+        snow.append(f"Resort 24h: {_in(resort['last_24h_in'])}")
+    if obs.get("snow_in") is not None:
+        snow.append(f"SNOTEL 24h: {_in(obs['snow_in'])}")
+    if snow:
+        lines.append("❄️ " + " | ".join(snow))
+
+    if fc.get("days"):
+        lo, hi = fc.get("next_1_5_range", [None, None])
+        lines.append(f"📈 Next 5 days: {_in(fc['next_1_5'])} (range {_in(lo)}–{_in(hi)})")
+        lines.append(f"🔭 Days 6–10: {_in(fc['next_6_10'])}")
+        best = max(fc["days"], key=lambda x: x["snow"])
+        if best["snow"] >= 1:
+            lines.append(f"🏔️ Snowiest day: {short_date(best['date'])} — {_in(best['snow'])}")
+        if fc.get("powder_odds_pct") is not None:
+            lines.append(f"🎯 Chance of a {config.POWDER_ALERT_INCHES:.0f}\"+ day this week: {fc['powder_odds_pct']}%")
+
+    hours = (day.get("hourly") or {}).get("hours", [])
+    if hours:
+        lines.append("")
+        lines.append("🌡️ Today:")
+        for h in hours[::2][:6]:
+            wind = f"{h['dir']} {h['wind']}" + (f" g{h['gust']}" if h.get("gust") else "")
+            snow_txt = f", {h['snow']}\" snow" if h.get("snow") else ""
+            lines.append(f"{_hour_label(h['time'])}: {h['temp']}° (feels {h['feels']}°), {wind} mph{snow_txt}")
+
+    lines.append("")
+    lines.append(f"📊 Forecast, cams & history: {config.DASHBOARD_URL}")
+    return "\n".join(lines)
+
+
+def powder_alert(fc):
+    """Short alert text when the next 48h blend crosses the powder threshold, else None."""
+    days = (fc or {}).get("days", [])[:2]
+    total = sum(d["snow"] for d in days)
+    if total >= config.POWDER_ALERT_INCHES:
+        return f"❄️ Powder alert: {total:.0f}\" forecast for Beaver Creek in the next 48 hours."
+    return None
