@@ -15,6 +15,15 @@ LON = -106.5214
 ELEVATION_M = 3193  # 10,476 ft
 ELEVATION_FT = 10476
 
+# Elevation bands shown beside the forecast (temperature, wind, rain-or-snow at each level).
+# Every resort gets its own list; the points are on the mountain, never the town below.
+# Coordinates pick the model grid cell; `elevation_ft` is what temperatures are corrected to.
+ELEVATION_BANDS = [
+    {"key": "base", "label": "Base", "lat": 39.6042, "lon": -106.5165, "elevation_ft": 8100},   # Beaver Creek Village
+    {"key": "mid", "label": "Mid", "lat": 39.5893, "lon": -106.5214, "elevation_ft": 10200},     # Spruce Saddle level
+    {"key": "peak", "label": "Peak", "lat": 39.5730, "lon": -106.5300, "elevation_ft": 11440},   # summit
+]
+
 GROOMING_PDF_URL = "https://grooming.lumiplan.pro/beaver-creek-grooming-map.pdf"
 RESORT_SNOW_REPORT_URL = (
     "https://www.beavercreek.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx"
