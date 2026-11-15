@@ -39,6 +39,7 @@ jobs:
       GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
       SIGNUP_FORM_URL: ${{ vars.SIGNUP_FORM_URL }}
       CAM_URLS: ${{ vars.CAM_URLS }}
+      STAKE_SNAPSHOT_URL: ${{ vars.STAKE_SNAPSHOT_URL }}
     steps:
       - uses: actions/checkout@v4
 

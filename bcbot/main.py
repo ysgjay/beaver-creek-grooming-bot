@@ -30,11 +30,13 @@ def _try(name, fn, errors, default=None):
 
 
 def _archive_cam(day_str):
-    if not config.CAMS:
+    if not config.STAKE_SNAPSHOT_URL:
         return None
     try:
-        r = get(config.CAMS[0], timeout=30)
+        r = get(config.STAKE_SNAPSHOT_URL, timeout=30)
         r.raise_for_status()
+        if not r.headers.get("Content-Type", "").startswith("image/"):
+            raise ValueError(f"not an image: {r.headers.get('Content-Type')}")
         path = D / "cams" / f"{day_str}.jpg"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(r.content)
@@ -167,8 +169,28 @@ def discover():
         for f in sorted(found):
             print("   url:", f)
         # Cams are often configured in embedded JSON with relative paths: show context.
-        for m in list(re.finditer(r'(?i)(?:webcam|snowstake|snow stake|camera)', flat))[:25]:
-            print("   ctx:", re.sub(r"\s+", " ", flat[max(0, m.start() - 150):m.end() + 150]))
+        for cam_id in sorted(set(re.findall(r"player\.brownrice\.com/embed/([\w-]+)", flat))):
+            print(f"   brownrice cam: {cam_id}")
+            _probe_brownrice(cam_id)
+
+
+def _probe_brownrice(cam_id):
+    """Look for a still-image URL for a Brown Rice cam (for the daily stake archive)."""
+    try:
+        embed = get(f"https://player.brownrice.com/embed/{cam_id}").text.replace("\\/", "/")
+        for u in sorted(set(re.findall(r'(?:https?:)?//[^"\'\s<>]+', embed)))[:40]:
+            print("      embed ref:", u)
+    except Exception as e:
+        print("      embed fetch failed:", e)
+    for u in [f"https://player.brownrice.com/snapshot/{cam_id}",
+              f"https://player.brownrice.com/thumbnail/{cam_id}",
+              f"https://snapshots.brownrice.com/{cam_id}.jpg",
+              f"https://cdn.brownrice.com/snapshots/{cam_id}.jpg"]:
+        try:
+            r = get(u, timeout=15, retries=0)
+            print(f"      {r.status_code} {r.headers.get('Content-Type', '')} {len(r.content)}B {u}")
+        except Exception as e:
+            print(f"      ERR {u}: {e}")
 
 
 def main(argv=None):

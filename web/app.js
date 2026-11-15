@@ -213,10 +213,12 @@
   /* ---------- cams ---------- */
   function renderCams(day) {
     const cams = (cfg && cfg.cams) || [];
-    const items = cams.map((u, i) => ({ src: u, cap: i === 0 ? "Snow stake (live)" : `Cam ${i + 1}` }));
+    const items = cams.map((u, i) => ({ src: u, cap: i === 0 ? "Snow stake (live)" : `Cam ${i + 1}`, live: /\/embed\//.test(u) }));
     if (day.cam) items.unshift({ src: day.cam, cap: "Stake at report time" });
     $("cams-panel").hidden = !items.length;
-    $("cams").innerHTML = items.map((c) => `<figure><img src="${esc(c.src)}" alt="${esc(c.cap)}" loading="lazy"><figcaption>${esc(c.cap)}</figcaption></figure>`).join("");
+    $("cams").innerHTML = items.map((c) => c.live
+      ? `<figure class="live"><iframe src="${esc(c.src)}" title="${esc(c.cap)}" loading="lazy" allowfullscreen referrerpolicy="origin"></iframe><figcaption>${esc(c.cap)} · <a href="${esc(c.src)}" target="_blank" rel="noopener">open</a></figcaption></figure>`
+      : `<figure><img src="${esc(c.src)}" alt="${esc(c.cap)}" loading="lazy"><figcaption>${esc(c.cap)}</figcaption></figure>`).join("");
   }
 
   /* ---------- archive ---------- */

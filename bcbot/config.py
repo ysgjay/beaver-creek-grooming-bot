@@ -45,8 +45,12 @@ FORECAST_DAYS = 10
 # SNOTEL ground truth. Vail Mountain (10,300 ft) is ~6 miles from Beaver Creek's upper mountain.
 SNOTEL_STATIONS = ["842:CO:SNTL", "415:CO:SNTL"]  # Vail Mountain, Copper Mountain (fallback)
 
-# Optional snow-cam image URLs shown on the dashboard and archived daily (first one = stake cam).
-CAMS = [c for c in os.environ.get("CAM_URLS", "").split(",") if c.strip()]
+# Cams on the dashboard: image URLs, or Brown Rice player pages (shown as live embeds).
+# The first one is the snow stake. Override with the CAM_URLS repo variable.
+DEFAULT_CAMS = ["https://player.brownrice.com/embed/bcsnowstake2"]
+CAMS = [c.strip() for c in os.environ.get("CAM_URLS", "").split(",") if c.strip()] or DEFAULT_CAMS
+# Still-image URL for the daily stake snapshot archive (empty = no archive).
+STAKE_SNAPSHOT_URL = os.environ.get("STAKE_SNAPSHOT_URL", "")
 
 # Notifications
 DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "https://ysgjay.github.io/beaver-creek-grooming-bot/")
