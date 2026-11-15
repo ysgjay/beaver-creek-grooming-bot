@@ -13,10 +13,12 @@ Every morning it sends the grooming report, weather, a multi-model snow forecast
 | Archive | Vercel Blob `snow-desk-archive` | JSON and images on a CDN; the app reads them same-origin via rewrites |
 | Subscribers | Neon Postgres `snow-desk` (private) | Opted-in emails and app push subscriptions (the push signing key is a Vercel env var) |
 | Email | Resend, from `report@snow.0xm.studio` | Its own subdomain (SPF, DKIM, bounce handling verified), so its reputation is separate from 0xm.studio mail |
-| App | Vercel static (`public/`) on `snow.0xm.studio` | Phone-first app, 10 themes, works offline |
+| App | Vercel static (`public/`) on `snow.0xm.studio` | Phone-first app, Frosted Snow branding, works offline |
 | Backup trigger | Vercel cron (daily 7:05 a.m. MST) | In case the Worker is down. Sending can never happen twice. |
 
 GitHub only stores the code and runs the unit tests. Vercel deploys from it.
+
+Brand colors, logo files, typography, and layout rules: [Frosted Snow guide](docs/BRAND.md).
 
 ## When the report goes out
 - **Before opening day** (`OPENING_DAY`, Nov 25): every morning at **7:00 a.m.** MT, with the forecast and stake cam, map or not.

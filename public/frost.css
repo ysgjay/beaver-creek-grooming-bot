@@ -1,0 +1,137 @@
+/* Chair 0 · Frosted Snow v1.0
+   Load AFTER themes.css and app.css. Enable with data-brand="frosted-snow"
+   on <html>. Snow-stake geometry, chart behavior, and the compact layout live in app.css/app.js. */
+@font-face{font-family:Outfit;src:url('brand/fonts/outfit.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:'IBM Plex Sans';src:url('brand/fonts/plex-sans.woff2') format('woff2');font-weight:100 700;font-display:swap}
+@font-face{font-family:'IBM Plex Mono';src:url('brand/fonts/plex-mono.woff2') format('woff2');font-weight:400;font-display:swap}
+html[data-brand="frosted-snow"]{
+ --bg:#dcebfa;--surface:#ffffff;--surface-2:#eef4f8;--ink:#0c2a4a;--ink-2:#52677b;
+ --accent:#7b1e2e;--on-accent:#ffffff;--accent-soft:#f2e6e9;--line:#c3d3e0;
+ --snow:#7b1e2e;--snow-fill:#ead2d8;--font-display:Outfit,Arial,sans-serif;
+ --font-body:'IBM Plex Sans',system-ui,sans-serif;--font-data:'IBM Plex Mono',monospace;
+ --display-weight:600;--radius:24px;--pad:14px;--gap:12px;--tabbar-h:64px;
+ --card-border:1px solid #ffffff;--head-mark:none;
+ --frost-paper:#f5f9fc;--frost-control:#7a90a4;--frost-pine:#1e5d4a;--frost-amber:#81530a;
+ --frost-shadow:inset 0 1px 0 #fff,0 8px 24px rgba(12,42,74,.07),0 1px 3px rgba(12,42,74,.04);
+ --frost-float:0 20px 64px rgba(12,42,74,.18);color-scheme:light;
+}
+html[data-brand="frosted-snow"] body{
+ background-color:var(--bg);background-image:radial-gradient(ellipse at 15% 0%,#ffffffd9,transparent 48%),linear-gradient(145deg,#eef5fc,#dcebfa 65%,#e8f1fa);
+ background-size:auto;background-position:0 0;background-repeat:no-repeat;background-attachment:fixed;
+ font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+html[data-brand="frosted-snow"] .top{background:#edf4fbf2;border-bottom:1px solid #fff;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+html[data-brand="frosted-snow"] .top .wrap{padding-block:8px;gap:10px}
+html[data-brand="frosted-snow"] .brand h1,html[data-brand="frosted-snow"] .resort-btn{font-size:22px;font-weight:600;letter-spacing:-.035em;min-height:28px}
+html[data-brand="frosted-snow"] .home-btn{width:44px;height:44px;border-radius:12px;background:var(--bg)}
+html[data-brand="frosted-snow"] .home-btn img{width:44px;height:44px;border-radius:12px}
+html[data-brand="frosted-snow"] .brand .sub{font-size:12px;letter-spacing:.01em}
+html[data-brand="frosted-snow"] h2{font-size:22px;font-weight:600;letter-spacing:-.035em}
+html[data-brand="frosted-snow"] h3{font-size:11px;letter-spacing:.09em;line-height:1.4}
+html[data-brand="frosted-snow"] main{padding-block:10px 14px}
+html[data-brand="frosted-snow"] .card{background:var(--frost-paper);background-image:none;border:1px solid #fff;box-shadow:var(--frost-shadow);backdrop-filter:none;-webkit-backdrop-filter:none;gap:10px}
+html[data-brand="frosted-snow"] .card-head{align-items:center;gap:8px 16px}
+html[data-brand="frosted-snow"] .cond,html[data-brand="frosted-snow"] .snow-grid,html[data-brand="frosted-snow"] .stats{background:var(--line);border-radius:14px}
+html[data-brand="frosted-snow"] .cond>div,html[data-brand="frosted-snow"] .snow-grid>div,html[data-brand="frosted-snow"] .stats>div{background:var(--frost-paper);padding:8px 9px;gap:4px}
+html[data-brand="frosted-snow"] .cond .big{font-size:34px;color:var(--accent)}
+html[data-brand="frosted-snow"] .cond .mid{font-size:26px}
+html[data-brand="frosted-snow"] .cond .sub{font-size:11px;white-space:nowrap}
+html[data-brand="frosted-snow"] .big{font-size:36px;letter-spacing:-.04em}
+html[data-brand="frosted-snow"] .mid{font-size:26px;letter-spacing:-.025em}
+html[data-brand="frosted-snow"] .hs-col .mid{font-size:18px;letter-spacing:normal}
+html[data-brand="frosted-snow"] .hs-labels .mid{font-size:10.5px;letter-spacing:.07em}
+html[data-brand="frosted-snow"] .label{font-size:11px;font-weight:600;letter-spacing:.065em}
+html[data-brand="frosted-snow"] .hour{padding:6px 3px;border-radius:12px;background:#eaf2f8;gap:4px}
+html[data-brand="frosted-snow"] .hour .temp{font-size:18px}
+html[data-brand="frosted-snow"] .hour .small{font-size:11px;white-space:nowrap}
+html[data-brand="frosted-snow"] .hours{gap:5px}
+html[data-brand="frosted-snow"] .groom{gap:18px}
+html[data-brand="frosted-snow"] .map-btn{border-radius:16px;background:#fff;border:1px solid var(--frost-control)}
+html[data-brand="frosted-snow"] .runs{gap:14px}
+html[data-brand="frosted-snow"] .chips{gap:6px;margin-top:7px}
+html[data-brand="frosted-snow"] .chips li{padding:4px 10px;border:0;border-radius:8px;background:#e5eef5;color:var(--ink);font-size:13px}
+html[data-brand="frosted-snow"] .chips.featured li{background:var(--accent-soft);color:var(--accent)}
+html[data-brand="frosted-snow"] .btn{min-height:44px;border-radius:12px;padding:10px 16px;box-shadow:inset 0 1px 0 #ffffff26,0 2px 4px #7b1e2e14;transition:background-color 150ms ease,box-shadow 150ms ease;line-height:1.25}
+html[data-brand="frosted-snow"] .btn:hover{background:#631725}
+html[data-brand="frosted-snow"] .btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--frost-control);box-shadow:none}
+html[data-brand="frosted-snow"] .btn.secondary:hover{background:var(--surface-2)}
+html[data-brand="frosted-snow"] :is(button,a,input,summary):focus-visible{outline:3px solid var(--accent);outline-offset:3px;scroll-margin-block:100px}
+html[data-brand="frosted-snow"] button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+html[data-brand="frosted-snow"] .icon-btn,html[data-brand="frosted-snow"] .month-nav button{min-width:44px;min-height:44px;border-color:var(--frost-control)}
+html[data-brand="frosted-snow"] .pill{color:var(--accent);background:var(--accent-soft);padding:6px 10px;font-size:12px}
+html[data-brand="frosted-snow"] .pill.quiet{background:#e5edf4;color:var(--ink-2)}
+html[data-brand="frosted-snow"] .link{text-decoration:underline;text-underline-offset:3px}
+html[data-brand="frosted-snow"] .tabbar{background:#f5f9fcf5;border-top:1px solid #fff;box-shadow:0 -4px 20px #0c2a4a08}
+html[data-brand="frosted-snow"] .tabbar a{min-height:48px;border-radius:12px;gap:5px}
+html[data-brand="frosted-snow"] .tabbar a[aria-current="page"]{background:var(--accent-soft);color:var(--accent);box-shadow:none}
+html[data-brand="frosted-snow"] .tabbar nav{gap:5px;padding-block:6px;padding-inline:12px}
+html[data-brand="frosted-snow"] .seg{background:#e5eef5;border-color:var(--line);border-radius:14px}
+html[data-brand="frosted-snow"] .seg button{min-height:44px;border-radius:10px}
+html[data-brand="frosted-snow"] .seg button[aria-pressed="true"]{background:var(--accent);color:white;box-shadow:none}
+html[data-brand="frosted-snow"] .cal{gap:6px}
+html[data-brand="frosted-snow"] .cal button{border-color:var(--line);border-radius:10px;min-height:44px}
+html[data-brand="frosted-snow"] .cal button[style*="background"]{background-image:linear-gradient(#ffffff73,#ffffff73)}
+html[data-brand="frosted-snow"] .cal button .d,html[data-brand="frosted-snow"] .cal button .s{color:var(--ink)}
+html[data-brand="frosted-snow"] .cal button.sel{outline:2px solid var(--accent);outline-offset:2px}
+html[data-brand="frosted-snow"] .feed-item{border-radius:14px;border-color:var(--line);padding:12px}
+html[data-brand="frosted-snow"] .signup input[type="email"]{border:1px solid var(--frost-control);background:#fff;border-radius:12px;min-height:48px}
+html[data-brand="frosted-snow"] details summary{min-height:48px}
+html[data-brand="frosted-snow"] .sheet,html[data-brand="frosted-snow"] .resort-menu{background:#f5f9fc;border:1px solid white;box-shadow:var(--frost-float);border-radius:24px}
+html[data-brand="frosted-snow"] .patrol{border:2px solid var(--accent);background:#fff;box-shadow:none}
+html[data-brand="frosted-snow"] .offline{background:#fff6e7;color:var(--frost-amber);border:1px solid #cfb98f;border-radius:12px;padding:12px}
+html[data-brand="frosted-snow"] .cam-main,html[data-brand="frosted-snow"] .radar-map{border-radius:16px}
+@media(min-width:900px){
+ html[data-brand="frosted-snow"]{--pad:16px;--gap:14px}
+}
+@media(min-width:1200px){
+ html[data-brand="frosted-snow"]{--top-h:64px;--tabs-w:400px;--pad:12px;--gap:10px}
+ html[data-brand="frosted-snow"] h2{font-size:20px}
+ html[data-brand="frosted-snow"] main{padding-block:8px 0}
+ html[data-brand="frosted-snow"] .v-fc{gap:8px}
+ html[data-brand="frosted-snow"] .v-fc .snow-grid>div{gap:0;padding:6px 8px}
+ html[data-brand="frosted-snow"] .top .wrap{padding-right:calc(20px + var(--tabs-w))}
+ html[data-brand="frosted-snow"] .brand{flex-direction:column;align-items:flex-start;gap:3px}
+ html[data-brand="frosted-snow"] .top-status{font-size:11px}
+ html[data-brand="frosted-snow"] .top-status .pill{font-size:11px}
+ html[data-brand="frosted-snow"] .top-cta{margin-left:auto}
+ html[data-brand="frosted-snow"] .tabbar{right:max(20px,calc((100vw - 1760px)/2 + 20px));box-shadow:none}
+ html[data-brand="frosted-snow"] .tabbar nav{padding:0;gap:4px}
+ html[data-brand="frosted-snow"] .tabbar a{padding:0 12px}
+ html[data-brand="frosted-snow"] .v-today .hours{overflow:visible;grid-auto-columns:minmax(0,1fr)}
+ html[data-brand="frosted-snow"] .v-today .runs{gap:14px}
+}
+@media(max-width:389px){
+ html[data-brand="frosted-snow"]{--pad:14px;--gap:12px}
+ html[data-brand="frosted-snow"] .cond .mid{font-size:25px}
+ html[data-brand="frosted-snow"] .cond .big{font-size:34px}
+ html[data-brand="frosted-snow"] .cond>div{padding:10px 6px}
+ html[data-brand="frosted-snow"] .brand h1,html[data-brand="frosted-snow"] .resort-btn{font-size:20px}
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-brand="frosted-snow"] *,html[data-brand="frosted-snow"] *::before,html[data-brand="frosted-snow"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+@media(prefers-reduced-transparency:reduce){html[data-brand="frosted-snow"] .top,html[data-brand="frosted-snow"] .tabbar{background:#f5f9fc;backdrop-filter:none;-webkit-backdrop-filter:none}}
+@media(forced-colors:active){html[data-brand="frosted-snow"] .card,html[data-brand="frosted-snow"] .btn,html[data-brand="frosted-snow"] .tabbar a[aria-current="page"]{border:1px solid CanvasText;box-shadow:none}}
+
+/* The selected tab is a flat tint. Keyboard focus remains visible. */
+html[data-brand="frosted-snow"] .tabbar a[aria-current="page"] { border:0; box-shadow:none; text-decoration:none; }
+html[data-brand="frosted-snow"] .skip-link { position:fixed; top:-80px; left:16px; z-index:100; padding:12px 18px; border-radius:12px; background:var(--ink); color:white; }
+html[data-brand="frosted-snow"] .skip-link:focus { top:12px; }
+html[data-brand="frosted-snow"] .brand-signature { display:flex; align-items:center; gap:16px; }
+html[data-brand="frosted-snow"] .brand-signature img { flex:none; width:160px; height:160px; object-fit:contain; }
+html[data-brand="frosted-snow"] .brand-kicker { margin:0 0 8px; font:11px var(--font-data); letter-spacing:.05em; color:var(--accent); }
+/* Never force the compact weather strip to wrap inside an individual cell. */
+html[data-brand="frosted-snow"] .hours .small { font-size:11px; white-space:nowrap; }
+@media (min-width:1200px) {
+ html[data-brand="frosted-snow"] .top .wrap { gap:10px; }
+ html[data-brand="frosted-snow"] .top-status { flex:1 1 0; }
+ html[data-brand="frosted-snow"] .favs { flex:0 1 auto; max-width:26vw; }
+ html[data-brand="frosted-snow"] .tabbar a { min-height:44px; height:44px; }
+ html[data-brand="frosted-snow"] .card { gap:8px; }
+ html[data-brand="frosted-snow"] .v-fc .a-more { padding-block:4px; }
+ html[data-brand="frosted-snow"] .v-fc .a-more summary { min-height:40px; }
+}
+@media (max-width:389px) {
+ html[data-brand="frosted-snow"] .brand-signature { gap:8px; }
+ html[data-brand="frosted-snow"] .brand-signature h2 { font-size:20px; }
+}

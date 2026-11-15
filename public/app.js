@@ -1217,7 +1217,10 @@ ${tell}
       </section>
 
       <section class="card">
-        <h2>About the numbers</h2>
+        <div class="brand-signature">
+          <img src="/brand/frosted-logo.webp" alt="" width="160" height="160" loading="lazy" decoding="async">
+          <div><p class="brand-kicker">Chair 0 · Snow Desk</p><h2>About the numbers</h2></div>
+        </div>
         <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own. Chair 0 is independent and not affiliated with Vail Resorts or any resort.</p>
       </section>`;
     wireEmailForm(v);
@@ -1237,6 +1240,10 @@ ${tell}
   document.addEventListener("click", (e) => { const g = e.target.closest("[data-goto]"); if (g) S.goto = g.dataset.goto; });
 
   /* ---------------- routing ---------------- */
+  // The skip link moves keyboard focus without replacing the current section.
+  $(".skip-link").addEventListener("click", (e) => {
+    e.preventDefault(); $("#main").focus(); $("#main").scrollIntoView({ block: "start" });
+  });
   const VIEWS = { today: viewToday, calendar: viewCalendar, forecast: viewForecast, help: viewHelp };
   let routing = 0;
   async function route() {

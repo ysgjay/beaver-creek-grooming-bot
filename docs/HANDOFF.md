@@ -1,6 +1,6 @@
 # Chair 0: Snow Desk (Colorado Vail resorts): handoff
 
-*Status as of Nov 15, 2026. Everything below is live, merged to `main`, and covered by 36 passing tests.*
+*Updated Nov 15, 2026. Deployment follows `main`; changes on a pull-request branch are previews until merged.*
 
 ## What it is
 **Resorts:** Beaver Creek, Vail, Breckenridge, Keystone and Crested Butte, picked from the title in the app. Sources, layouts and what differs per resort: `docs/RESORTS.md`. Database schema: `docs/schema.sql`.
@@ -20,7 +20,7 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
 - **Sign-up button (top bar):** `#signup-btn` in `public/index.html` opens the email and notification sign-up in a pop-up (`openSignup` in `public/app.js`, sharing `signupBlocks()` with the Help page). It shows until this browser has submitted the email form (`localStorage.emailSignup`), arrived from a confirmation link, or has a push subscription; `setSignedUp` controls it.
 - **Forecast page order:** Next 12 hours runs as a strip across the top (`.hs-wrap`: row labels beside the scrolling `.hstrip`, one column per hour with snow, peak/mid/base temperature and wind), then 10-day snowfall beside Radar, then a row of detail sections (model votes for all 10 days, every model day by day, how the forecast is built, forecast vs. what fell). At 900px and wider each opens as a pop-up so the page never grows; on phones they expand in place. Selecting a day on the 10-day chart shows each model's call for that day (`dayVotes` in `public/app.js`): a pop-up beside the bar at 900px and wider, a bottom sheet on phones.
 - **Radar (Forecast tab):** past hour of NEXRAD and the next 12 hours of HRRR simulated radar, as image tiles from Iowa State's Mesonet (`mesonet.agron.iastate.edu/cache/tile.py`). The map is MapLibre GL (vendored in `public/vendor/`, loaded only when the Forecast tab opens) with OpenFreeMap's keyless Positron style, repainted in the theme's colours. Radar tiles are repainted on a canvas into a one-colour Light to Heavy ramp (`echoStrength`, `recolorRadar` in `public/app.js`). If the style can't load it uses OpenStreetMap image tiles in the same map; if the library or WebGL can't load it falls back to a fixed image-tile grid with the standard radar colours. No API keys. CARTO basemaps were tried and need a key, so don't switch to them.
-- **Look:** the Bluebird theme with the Frost finish is the default. Ten themes and five finishes are available from the snowflake button.
+- **Look:** Frosted Snow: ice background, opaque frost cards, burgundy accent, and the lift-terminal utility icon. `public/frost.css` loads after the base styles and is scoped by `data-brand="frosted-snow"`. The selected tab has a flat tint with no bottom edge or underline. Keep the original snowfall bars and their interactions. Logo usage, colors, and typography: `docs/BRAND.md`.
 - **Charts:**
 
   | Where | Chart |
@@ -96,9 +96,9 @@ Naming (11/15/2026): Chair 0 is the brand (maroon lift-terminal logo); Snow Desk
 - `api/run.py`: cron entry, plus `?force=1` and `?test=1`
 - `api/subscribe.py`, `api/confirm.py`, `api/unsubscribe.py`: email sign-up, with a confirmation page and RFC 8058 one-click unsubscribe
 - `api/push.py`: app notification sign-up; GET returns the public key
-- `public/`: `index.html`, `app.js` (views and charts), `app.css`, `themes.css`, `sw.js` (loads fresh when online, cached copy offline; handles push), `config.json` (cams)
+- `public/`: `index.html`, `app.js` (views and charts), `app.css`, `themes.css`, `frost.css` (brand layer), `brand/` (logos and licensed local fonts), `sw.js` (loads fresh when online, cached copy offline; handles push), `config.json` (cams)
 - `cloudflare/worker.js`: scheduler
-- `tests/test_bcbot.py`: 36 tests, run with `pip install -r requirements-dev.txt && python -m pytest tests`
+- `tests/test_bcbot.py`: run with `pip install -r requirements-dev.txt && python -m pytest tests`
 
 ## Operating it
 - **Send a labeled test now:** `https://snow-desk-cron.jay-52b.workers.dev/?key=<CRON_SECRET>&test=1`. It refuses if there are more than 5 email subscribers or more than 5 app subscriptions, and doesn't touch the schedule.

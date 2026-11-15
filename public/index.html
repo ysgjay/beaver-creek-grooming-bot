@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-brand="frosted-snow">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -16,13 +16,14 @@
   document.documentElement.dataset.theme = "bluebird";
   document.documentElement.dataset.material = "frost";
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500;600&family=Outfit:wght@600;700&display=swap">
+<link rel="preload" href="/brand/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/brand/fonts/plex-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/themes.css">
 <link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/frost.css">
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to report</a>
 <header class="top">
   <div class="wrap">
     <a class="home-btn" id="home-btn" href="#today" aria-label="Home">
@@ -45,7 +46,7 @@
   </div>
 </header>
 
-<main class="wrap" id="main" aria-live="polite">
+<main class="wrap" id="main" aria-live="polite" tabindex="-1">
   <div class="skeleton"></div><div class="skeleton"></div>
 </main>
 
