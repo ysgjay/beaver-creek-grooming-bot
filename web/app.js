@@ -50,7 +50,7 @@
     const fc = day.forecast || {}, days = fc.days || [];
     const el = $("chart");
     if (!days.length) { el.innerHTML = '<p class="muted">No forecast available.</p>'; return; }
-    const W = 640, H = 230, L = 30, R = 8, T = 30, B = 44;
+    const W = Math.max(300, Math.round(el.clientWidth || 640)), H = 230, L = 30, R = 8, T = 30, B = 44;
     const max = niceMax(Math.max(2, ...days.map((d) => d.high ?? d.snow)));
     const step = max <= 8 ? 2 : max <= 16 ? 4 : max <= 30 ? 6 : 12;
     const ph = H - T - B, pw = W - L - R, slot = pw / days.length;
@@ -85,7 +85,7 @@
       const labelY = Math.min(top, d.high != null ? y(d.high) : top) - 6;
       s += `<text class="val" x="${cx}" y="${labelY}" text-anchor="middle">${d.snow >= 0.5 ? Math.round(d.snow) : "0"}</text>`;
       const dt = parseDate(d.date), wkend = dt.getDay() === 0 || dt.getDay() === 6;
-      s += `<text class="day-wk${wkend ? " weekend" : ""}" x="${cx}" y="${H - B + 18}" text-anchor="middle">${WD[dt.getDay()].slice(0, 2)}</text>`;
+      s += `<text class="day-wk${wkend ? " weekend" : ""}" x="${cx}" y="${H - B + 18}" text-anchor="middle">${WD[dt.getDay()]}</text>`;
       s += `<text class="${wkend ? "weekend" : ""}" x="${cx}" y="${H - B + 34}" text-anchor="middle">${dt.getDate()}</text>`;
       s += `<rect class="hit" data-i="${i}" x="${L + slot * i}" y="${T - 20}" width="${slot}" height="${H - T - B + 54}" tabindex="0"/>`;
     });
@@ -222,12 +222,14 @@
   }
 
   /* ---------- routing ---------- */
+  let current = null;
   async function show(dateStr) {
     let day = latest;
     const past = dateStr && latest && dateStr !== latest.date;
     if (past) day = (await getJSON(`data/days/${dateStr}.json`)) || latest;
     $("viewing-past").hidden = !past;
     if (past) $("viewing-date").textContent = fmtDay(dateStr);
+    current = day;
     renderSummary(day);
     renderChart(day);
     renderModelsTable(day);
@@ -254,6 +256,11 @@
     renderSubscribe();
     route();
     window.addEventListener("hashchange", route);
+    let lastW = $("chart").clientWidth, t;
+    window.addEventListener("resize", () => {
+      clearTimeout(t);
+      t = setTimeout(() => { const w = $("chart").clientWidth; if (w !== lastW) { lastW = w; renderChart(current); } }, 150);
+    });
   }
   boot();
 })();

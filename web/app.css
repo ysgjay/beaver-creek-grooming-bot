@@ -35,6 +35,8 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
 body {
   margin: 0;
   background: var(--bg);
@@ -98,9 +100,10 @@ main { display: flex; flex-direction: column; gap: 16px; padding-block: 16px 40p
 /* Chart */
 .chart { width: 100%; }
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart { min-height: 230px; }
 .chart text { font-family: var(--font-body); fill: var(--ink-2); font-size: 12px; }
 .chart .val { font-family: var(--font-data); fill: var(--ink); font-size: 12px; }
-.chart .day-wk { fill: var(--muted); font-size: 11px; text-transform: uppercase; }
+.chart .day-wk { fill: var(--muted); font-size: 11px; }
 .chart .weekend { fill: var(--ink); font-weight: 600; }
 .chart .gridline { stroke: var(--grid); stroke-width: 1; }
 .chart .axis { stroke: var(--line); stroke-width: 1; }
