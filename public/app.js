@@ -176,41 +176,39 @@
     }, "10-day snowfall, one cell per day");
   }
 
-  // Forecast: each day is a snow stake. Solid = expected; hatched = how much more it could
-  // reach (the upper estimate), capped by a dashed line with its number above; notch = low end.
-  // Labels never sit on the bars: the upper number rides above its cap, and the expected
-  // number gets its own row under the baseline, so short and tall days read the same way.
+  // Forecast: each day is a snow stake. White powder = expected; the tinted band above it is
+  // how high it could reach (the upper estimate), capped by a solid line with its number above;
+  // notch = low end. Labels never sit on the bars: the expected number gets its own row under
+  // the baseline, so short and tall days read the same way.
   function stakeChart(days) {
     return mountChart((W) => {
       const L = W < 340 ? 20 : 24, T = 20, ph = 168, base = T + ph, valY = base + 16, dateY = base + 32, H = dateY + 4;
       const slot = (W - L) / days.length, sw = Math.max(12, Math.min(30, slot * 0.5)), small = slot < 40;
       const max = niceMax(Math.max(4, ...days.map((d) => d.high ?? d.snow))), y = (v) => T + ph - (v / max) * ph, step = max / 4;
-      let s = `<defs><pattern id="over" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="var(--accent-soft)"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--accent)" stroke-width="1.4" opacity=".45"/></pattern>`
-        // Powder: bright white on top settling to a cool blue-white, with a few faint flakes for texture.
-        + `<linearGradient id="powder" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--powder-top)"/><stop offset=".35" style="stop-color:var(--powder)"/><stop offset="1" style="stop-color:var(--powder-base)"/></linearGradient>`
-        + `<pattern id="flakes" width="13" height="11" patternUnits="userSpaceOnUse" style="fill:var(--powder-fleck)"><circle cx="2" cy="2.5" r=".75"/><circle cx="8.5" cy="1.5" r=".45"/><circle cx="5.5" cy="7" r=".6"/><circle cx="11" cy="8.5" r=".8"/><circle cx="1" cy="9.5" r=".4"/></pattern></defs>`;
+      // Powder: bright white on top settling to a cool blue-white, lifted off the tube by a soft shadow.
+      let s = `<defs><linearGradient id="powder" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--powder-top)"/><stop offset=".35" style="stop-color:var(--powder)"/><stop offset="1" style="stop-color:var(--powder-base)"/></linearGradient>`
+        + `<filter id="powder-lift" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy=".6" stdDeviation=".9" style="flood-color:var(--powder-shadow)" flood-opacity=".3"/></filter></defs>`;
       for (let v = 0; v <= max; v += step) s += `<line class="grid" x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}" opacity="${v ? 0.6 : 1}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" style="font-size:11px">${v}"</text>`;
       days.forEach((d, i) => {
         const cx = L + slot * i + slot / 2, x0 = cx - sw / 2, hi = d.high ?? d.snow, lo = d.low ?? d.snow;
-        // The stake: an empty tube with ruler ticks every inch, longer at each gridline.
-        s += `<rect x="${x0}" y="${T}" width="${sw}" height="${ph}" rx="3" fill="var(--stake-tube)" stroke="var(--line)" stroke-width="1"/>`;
+        // The stake: a square-cornered tube.
+        s += `<rect x="${x0}" y="${T}" width="${sw}" height="${ph}" rx="2" fill="var(--stake-tube)"/>`;
+        // Upper estimate: a soft accent band from the baseline up to the cap, so the snow sits inside it.
+        const up = hi - d.snow >= 0.2;
+        if (up) s += `<rect x="${x0}" y="${y(hi)}" width="${sw}" height="${y(0) - y(hi)}" fill="var(--stake-up)"/>`;
+        // Ruler notches every inch, longer at each gridline.
         for (let v = 1; v < max; v++) { const major = v % step === 0; if (max > 24 && !major && v % 2) continue;
           s += `<line x1="${x0}" x2="${x0 + (major ? sw * 0.5 : sw * 0.28)}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ink-2)" stroke-width="${major ? 1 : 0.7}" opacity="${major ? 0.45 : 0.3}"/>`; }
-        // Drift amplitude: shrinks for shallow days so it never pokes above the value.
-        const depth = y(0) - y(d.snow), a = depth >= 1.5 ? Math.min(2.5, depth / 3) : 0;
-        if (hi - d.snow >= 0.2) {
-          // Hatching runs down under the drift's troughs so the snow's wavy edge meets it with no gap.
-          s += `<rect x="${x0 + 0.5}" y="${y(hi)}" width="${sw - 1}" height="${Math.min(y(0), y(d.snow) + 2 * a + 0.5) - y(hi)}" fill="url(#over)"/>`;
-          s += `<line x1="${x0}" x2="${x0 + sw}" y1="${y(hi)}" y2="${y(hi)}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 2"/>`;
+        if (up) {
+          s += `<rect x="${x0}" y="${y(hi) - 1}" width="${sw}" height="2" fill="var(--accent)"/>`;
           s += `<text class="up" x="${cx}" y="${y(hi) - 5}" text-anchor="middle">${val(hi)}</text>`;
         }
-        // Snow in the tube, with a gentle drift on top.
+        // Snow in the tube, with a gentle drift on top that shrinks for shallow days.
+        const depth = y(0) - y(d.snow), a = depth >= 1.5 ? Math.min(2, depth / 3) : 0;
         if (a) { const top = y(d.snow) + a;
-          const pd = `M${x0 + 0.5},${y(0)}V${top}q${sw / 4},${-a * 1.6} ${sw / 2 - 0.5},0q${sw / 4},${a * 1.6} ${sw / 2},0V${y(0)}Z`;
-          s += `<path d="${pd}" fill="url(#powder)"/><path d="${pd}" fill="url(#flakes)"/>`
-            + `<path d="${pd}" fill="none" stroke="var(--powder-edge)" stroke-width="1" stroke-linejoin="round"/>`; }
-        // Low end: a small notch on the stake's right edge, kept inside the plot.
-        if (lo < d.snow - 0.2) { const ly = Math.min(y(0) - 3, y(lo)); s += `<path d="M${x0 + sw + 1},${ly}l4.5,-3v6Z" fill="var(--ink)" opacity=".8"/>`; }
+          s += `<path d="M${x0},${y(0)}V${top}q${sw / 4},${-a * 1.6} ${sw / 2},0q${sw / 4},${a * 1.6} ${sw / 2},0V${y(0)}Z" fill="url(#powder)" filter="url(#powder-lift)"/>`; }
+        // Low end: a small muted notch on the stake's right edge, kept inside the plot.
+        if (lo < d.snow - 0.2) { const ly = Math.min(y(0) - 3, y(lo)); s += `<path d="M${x0 + sw + 1},${ly}l4.5,-3v6Z" fill="var(--ink-2)"/>`; }
         s += d.snow >= 0.1 ? `<text class="val" x="${cx}" y="${valY}" text-anchor="middle">${val(d.snow)}</text>`
                            : `<text x="${cx}" y="${valY}" text-anchor="middle" opacity=".55">–</text>`;
         s += `<rect x="${cx - slot / 2}" y="0" width="${slot}" height="${H}" fill="transparent" tabindex="0" data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected. Low end ${inch(lo)}, could reach ${inch(hi)}"/>`;
@@ -572,7 +570,7 @@
           <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">next 5 days</span></div>
         </div>
         <div id="fc-chart"></div>
-        <div class="legend stake-legend"><span><i class="powder"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span></div>
+        <div class="legend stake-legend"><span><i class="powder"></i>Expected</span><span><i class="upband"></i>Could reach</span><span><i class="notch"></i>Low end</span></div>
       </section>
 
       <section class="card a-votes">
