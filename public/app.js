@@ -173,14 +173,16 @@
         s += `<rect x="${x0}" y="${T}" width="${sw}" height="${ph}" rx="3" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1"/>`;
         for (let v = 1; v < max; v++) { const major = v % step === 0; if (max > 24 && !major && v % 2) continue;
           s += `<line x1="${x0}" x2="${x0 + (major ? sw * 0.5 : sw * 0.28)}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ink-2)" stroke-width="${major ? 1 : 0.7}" opacity="${major ? 0.45 : 0.3}"/>`; }
+        // Drift amplitude: shrinks for shallow days so it never pokes above the value.
+        const depth = y(0) - y(d.snow), a = depth >= 1.5 ? Math.min(2.5, depth / 3) : 0;
         if (hi - d.snow >= 0.2) {
-          s += `<rect x="${x0 + 0.5}" y="${y(hi)}" width="${sw - 1}" height="${y(d.snow) - y(hi)}" fill="url(#over)"/>`;
+          // Hatching runs down under the drift's troughs so the snow's wavy edge meets it with no gap.
+          s += `<rect x="${x0 + 0.5}" y="${y(hi)}" width="${sw - 1}" height="${Math.min(y(0), y(d.snow) + 2 * a + 0.5) - y(hi)}" fill="url(#over)"/>`;
           s += `<line x1="${x0}" x2="${x0 + sw}" y1="${y(hi)}" y2="${y(hi)}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 2"/>`;
           s += `<text class="up" x="${cx}" y="${y(hi) - 5}" text-anchor="middle">${val(hi)}</text>`;
         }
-        // Snow in the tube, with a gentle drift on top that shrinks for shallow days so it never pokes above the value.
-        const depth = y(0) - y(d.snow);
-        if (depth >= 1.5) { const a = Math.min(2.5, depth / 3), top = y(d.snow) + a;
+        // Snow in the tube, with a gentle drift on top.
+        if (a) { const top = y(d.snow) + a;
           s += `<path d="M${x0 + 0.5},${y(0)}V${top}q${sw / 4},${-a * 1.6} ${sw / 2 - 0.5},0q${sw / 4},${a * 1.6} ${sw / 2},0V${y(0)}Z" fill="var(--snow-fill)" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"/>`; }
         // Low end: a small notch on the stake's right edge, kept inside the plot.
         if (lo < d.snow - 0.2) { const ly = Math.min(y(0) - 3, y(lo)); s += `<path d="M${x0 + sw + 1},${ly}l4.5,-3v6Z" fill="var(--ink)" opacity=".8"/>`; }
