@@ -36,7 +36,7 @@
     { id: "bluebird", name: "Bluebird", mood: "Cloudless morning after a storm", bg: "#dcebfa", ac: "#0a5bd3", font: "Outfit:wght@700" },
     { id: "glade", name: "Glade", mood: "Spruce shade and low sun", bg: "#12261e", ac: "#f2c14e", font: "Bitter:wght@700" },
   ];
-  const loadedFonts = new Set(["Barlow:wght@700"]);
+  const loadedFonts = new Set(["Outfit:wght@700"]);
   function applyTheme(id) {
     const t = THEMES.find((x) => x.id === id) || THEMES[0];
     if (t.id === "auto") delete document.documentElement.dataset.theme;
@@ -52,7 +52,7 @@
     if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#eef2f5";
     try { localStorage.setItem("theme", t.id); } catch (e) {}
   }
-  function currentTheme() { try { return localStorage.getItem("theme") || "amberlens"; } catch (e) { return "amberlens"; } }
+  function currentTheme() { try { return localStorage.getItem("theme") || "bluebird"; } catch (e) { return "bluebird"; } }
   const MATERIALS = [
     { id: "flat", name: "Flat", mood: "Solid cards, the fastest" },
     { id: "glass", name: "Glass", mood: "Clear panes over an alpenglow ridge" },
