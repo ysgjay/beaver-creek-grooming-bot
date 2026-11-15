@@ -1,4 +1,5 @@
 {
+  "timezone": "America/Denver",
   "cams": [
     {
       "label": "Snow stake",
