@@ -123,6 +123,8 @@ main { display: flex; flex-direction: column; gap: var(--gap); padding-block: 4p
 .chart text { font-family: var(--font-body); fill: var(--ink-2); font-size: 12px; }
 .chart .val { font-family: var(--font-data); fill: var(--ink); }
 .chart .wk { font-weight: 700; fill: var(--ink); }
+.chart .wd { font-size: 11px; }
+.th-wd { display: block; font-weight: 400; color: var(--ink-2); }
 .chart .grid { stroke: var(--line); stroke-width: 1; }
 .chart .bar { fill: var(--snow); }
 .chart .range { stroke: var(--ink-2); stroke-width: 1.5; stroke-linecap: round; opacity: .6; }
@@ -165,7 +167,8 @@ main { display: flex; flex-direction: column; gap: var(--gap); padding-block: 4p
 .cal button.future { opacity: .45; }
 .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
-.week-bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; align-items: end; height: 120px; }
+.week-bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; align-items: end; height: 136px; }
+.week-bars .wd { margin-bottom: -3px; } .week-bars .dt { color: var(--ink-2); font-size: 11px; font-variant-numeric: tabular-nums; }
 .week-bars div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; font-size: 12px; }
 .week-bars .b { width: 70%; max-width: 24px; background: var(--snow); border-radius: 4px 4px 0 0; min-height: 2px; }
 
@@ -536,6 +539,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .v-today.is-offline { grid-template-areas: "off off" "groom cond" "groom fc" "groom cam" "groom cta"; grid-template-rows: auto auto auto auto 1fr; }
   .v-today.is-offline.no-groom { grid-template-areas: "off off off" "cond fc cam" "cta . cam"; grid-template-rows: auto auto 1fr; }
   .v-today .a-groom { align-self: stretch; }
+  .v-today .a-cta { display: none; }   /* the top bar carries the sign-up button on wide screens */
   .v-today .groom { grid-template-columns: minmax(0, 1fr); }
   .v-today .map-btn img { max-height: max(340px, calc(100vh - 425px)); object-fit: contain; }
   .v-today .chips { gap: 5px; margin-top: 3px; }
