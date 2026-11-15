@@ -243,7 +243,6 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(grooming, "fetch", fake_groom)
     sent = []
     monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: sent.append((report.compose(day), channels)) or {"email": "ok"})
-    monkeypatch.setattr(notify, "alert", lambda text: sent.append((text, ["alert"])) or {})
     return store, tmp_path, pdf, sent
 
 
@@ -476,6 +475,7 @@ def test_send_test_labels_and_leaves_schedule_alone(sandbox, monkeypatch):
     state_before = store.get_json("data/state.json")
     monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
     monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("a@example.com", "t")])
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn: [{"endpoint": "https://push.example/1"}])
     captured = []
     monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: captured.append(day) or {"email": "sent to 1"})
     r = main.send_test(store)
@@ -484,6 +484,71 @@ def test_send_test_labels_and_leaves_schedule_alone(sandbox, monkeypatch):
     assert store.get_json("data/state.json") == state_before          # schedule untouched
     monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("x@example.com", "t")] * 6)
     assert main.send_test(store)["status"] == "refused"
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("a@example.com", "t")])
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn: [{"endpoint": "https://push.example/1"}] * 6)
+    assert main.send_test(store)["status"] == "refused"                 # app subscribers are protected too
+    assert len(captured) == 1
+
+
+# ---------- app notifications end to end (fake push service, fake database) ----------
+
+def test_push_needs_the_vercel_key(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", "postgres://test")
+    monkeypatch.delenv("VAPID_PRIVATE_KEY", raising=False)
+    assert notify.push({"date": "2026-11-15"}, None) == "skipped (push not configured)"
+
+
+def test_public_key_is_derived_from_the_private_key(monkeypatch):
+    from bcbot import webpush as w
+    priv, pub = w.generate_vapid_keys()
+    monkeypatch.setenv("VAPID_PRIVATE_KEY", priv)
+    assert w.vapid_public_b64(w.app_key()) == pub
+    monkeypatch.delenv("VAPID_PRIVATE_KEY")
+    assert w.app_key() is None
+
+
+def test_daily_push_is_one_encrypted_notification_with_the_powder_alert(monkeypatch):
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from bcbot import webpush as w
+    priv, pub = w.generate_vapid_keys()
+    monkeypatch.setenv("VAPID_PRIVATE_KEY", priv)
+    monkeypatch.setenv("DATABASE_URL", "postgres://test")
+    browsers = [ec.generate_private_key(ec.SECP256R1()) for _ in range(2)]
+    subs = [{"endpoint": f"https://push.example/{i}", "p256dh": w.b64u(w._public_bytes(b)), "auth": w.b64u(bytes([i]) * 16)}
+            for i, b in enumerate(browsers)]
+    results, posts = [], []
+
+    class R:
+        def __init__(self, code): self.status_code = code
+
+    class FakeHTTP:
+        def post(self, url, data=None, timeout=None, headers=None):
+            posts.append((url, data, headers))
+            return R(201 if url.endswith("/0") else 410)
+    monkeypatch.setattr(notify, "http", lambda: FakeHTTP())
+    monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
+    monkeypatch.setattr("bcbot.db.push_subscriptions", lambda conn: subs)
+    monkeypatch.setattr("bcbot.db.record_push_result", lambda conn, endpoint, status: results.append((endpoint, status)))
+
+    day = {"date": "2026-11-15", "grooming": {"runs": {"overnight": ["Flint"]}}, "forecast": {"next_1_5": 8},
+           "powder": report.powder_alert({"days": [{"snow": 5}, {"snow": 4}]})}
+    assert notify.push(day, None) == "1 delivered, 1 expired, 0 failed"
+    assert len(posts) == 2 and results == [("https://push.example/0", 201), ("https://push.example/1", 410)]
+    url, body, headers = posts[0]
+    assert headers["Content-Encoding"] == "aes128gcm" and headers["Authorization"].endswith("k=" + pub)
+    payload = json.loads(w.decrypt(body, browsers[0], subs[0]["auth"]))
+    assert payload["body"].startswith("❄️ Powder alert: 9\"") and "Flint" in payload["body"]
+
+
+def test_powder_alert_never_adds_a_second_notification(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    days = []
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: days.append(day) or {"push": "ok"})
+    monkeypatch.setattr(report, "powder_alert", lambda fc: "❄️ Powder alert")
+    main.run(store=store, send=True, now=at(7))
+    main.run(store=store, send=True, now=at(8))
+    assert len(days) == 1 and days[0]["powder"] == "❄️ Powder alert"
+
 
 
 # ---------- pre-season and "send as soon as confirmed" ----------

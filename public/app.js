@@ -581,10 +581,24 @@
     }
     const reg = await navigator.serviceWorker.register("/sw.js").catch(() => null);
     if (!reg) { state.textContent = "Notifications aren't available here."; return; }
+    // The public key comes from the server, derived from VAPID_PRIVATE_KEY, so the two can never drift apart.
+    const appKey = async () => (await (await fetch("/api/push")).json()).publicKey;
+    const save = (sub) => fetch("/api/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub.toJSON()) });
+    // If the app's key changed since this browser subscribed, move the subscription to the new key quietly.
+    const refresh = async () => {
+      const sub = await reg.pushManager.getSubscription();
+      if (!sub || Notification.permission !== "granted" || !sub.options?.applicationServerKey) return;
+      const key = b64ToBytes(await appKey());
+      const had = new Uint8Array(sub.options.applicationServerKey);
+      if (had.length === key.length && had.every((b, i) => b === key[i])) return;
+      await fetch("/api/push", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ endpoint: sub.endpoint }) });
+      await sub.unsubscribe();
+      await save(await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }));
+    };
     const render = async () => {
       const sub = await reg.pushManager.getSubscription();
       const denied = Notification.permission === "denied";
-      state.textContent = sub ? "On: you'll get the 7:00 report and powder alerts." : denied ? "Blocked in your browser settings." : "Off";
+      state.textContent = sub ? "On: you'll get the morning report, with any powder alert in it." : denied ? "Blocked in your browser settings." : "Off";
       btn.textContent = sub ? "Turn off" : "Turn on";
       btn.hidden = denied && !sub;
       hint.textContent = denied ? "Allow notifications for snow.0xm.studio in your browser or phone settings, then reload." : "";
@@ -598,15 +612,15 @@
           await existing.unsubscribe();
         } else {
           if (await Notification.requestPermission() !== "granted") { await render(); btn.disabled = false; return; }
-          const { publicKey } = await (await fetch("/api/push")).json();
-          const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(publicKey) });
-          const r = await fetch("/api/push", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub.toJSON()) });
+          const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(await appKey()) });
+          const r = await save(sub);
           if (!r.ok) { await sub.unsubscribe(); hint.textContent = "Couldn't turn on notifications. Please try again."; }
         }
       } catch (e) { hint.textContent = "Couldn't change notifications. Please try again."; }
       btn.disabled = false;
       render();
     });
+    await refresh().catch(() => {});
     render();
   }
 

@@ -80,6 +80,8 @@ NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 NTFY_SERVER = os.environ.get("NTFY_SERVER", "https://ntfy.sh")
 # Web Push: identifies the sender to browser push services (RFC 8292).
 VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "https://snow.0xm.studio")
+# The private key lives only in Vercel (VAPID_PRIVATE_KEY, raw 32-byte scalar, base64url).
+# Its public half is derived from it and served by GET /api/push.
 
 POWDER_ALERT_INCHES = float(os.environ.get("POWDER_ALERT_INCHES", "6"))
 
