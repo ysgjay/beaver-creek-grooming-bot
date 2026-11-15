@@ -578,7 +578,8 @@
       if (ios && !standalone) hint.textContent = "In Safari, tap Share, then Add to Home Screen, then open Snow Desk from your Home Screen and come back here.";
       return;
     }
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await navigator.serviceWorker.register("/sw.js").catch(() => null);
+    if (!reg) { state.textContent = "Notifications aren't available here."; return; }
     const render = async () => {
       const sub = await reg.pushManager.getSubscription();
       const denied = Notification.permission === "denied";
@@ -711,7 +712,7 @@
     if (my !== routing) return;
     $("#tip").hidden = true;
     $("#main").replaceChildren(view);
-    if (S.goto) { const t = document.getElementById(S.goto); S.goto = null; if (t) t.scrollIntoView({ block: "start" }); }
+    if (S.goto) { const t = document.getElementById(S.goto); S.goto = null; if (t) t.closest(".card").scrollIntoView({ block: "start" }); }
   }
 
   async function boot() {
