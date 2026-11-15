@@ -603,6 +603,7 @@
       <div class="radar-map" id="radar-map">
         <div class="radar-tiles radar-base" style="${pos}">${tiles(RADAR.base)}</div>
         <div class="radar-tint"></div>
+        <svg class="radar-defs" aria-hidden="true"><filter id="radar-soft" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="2.4"/><feComponentTransfer><feFuncA type="linear" slope="2.6"/></feComponentTransfer></filter></svg>
         ${dots}
         <span class="radar-attr">© OpenStreetMap · NOAA, Iowa State Mesonet</span>
         <p class="radar-none muted small" id="radar-none" hidden>No radar image for this time.</p>
