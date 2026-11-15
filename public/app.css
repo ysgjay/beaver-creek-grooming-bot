@@ -201,10 +201,14 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .contact .n { font-family: var(--font-data); white-space: nowrap; }
 
 /* Forecast: the next 12 hours as one strip. Each hour stacks snow, then the temperatures from peak down to base, then wind. */
-.hstrip { display: grid; grid-auto-flow: column; grid-template-columns: max-content; grid-auto-columns: minmax(50px, 1fr); overflow-x: auto; scrollbar-width: thin; font-variant-numeric: tabular-nums; }
+/* The row labels sit beside the scrolling hours, straight on the card, so nothing has to be painted behind them. */
+.hs-wrap { display: flex; min-width: 0; }
+.hstrip { flex: 1; min-width: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(50px, 1fr); overflow-x: auto; scrollbar-width: none; font-variant-numeric: tabular-nums;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 14px), transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 14px), transparent 100%); }
+.hstrip::-webkit-scrollbar { display: none; }
 .hs-col { display: flex; flex-direction: column; align-items: center; border-left: 1px solid var(--line); border-radius: 0; }
 .hs-col:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.hs-labels { position: sticky; left: 0; z-index: 1; align-items: flex-start; padding-right: 10px; border-left: 0; background: var(--surface); color: var(--ink-2); font-size: 12px; }
+.hs-labels { flex: none; align-items: flex-start; padding-right: 8px; border-left: 0; color: var(--ink-2); }
 .hs-col > span { display: flex; align-items: center; white-space: nowrap; }
 .hs-col .t { height: 18px; font-size: 12px; color: var(--ink-2); }
 .hs-col .sn { height: 32px; flex-direction: column; justify-content: flex-end; }
@@ -214,8 +218,8 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .hs-col .sn i.on { background: var(--accent); }
 .hs-col .tmp { height: 18px; font-size: 13px; color: var(--ink-2); }
 .hs-col .mid { height: 22px; font-family: var(--font-display); font-weight: var(--display-weight); font-size: 18px; }
-.hs-labels .tmp, .hs-labels .mid { font-family: inherit; font-size: 12px; }
-.hs-labels .mid { font-weight: 600; color: var(--ink); }
+.hs-col.hs-labels > span { font-family: inherit; font-size: 10.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-2); }
+.hs-col.hs-labels > .mid { color: var(--ink); }
 .hs-col .w { height: 20px; font-size: 12px; }
 
 /* Forecast: each day in the 10-day chart is a button for that day's model votes. */
@@ -323,6 +327,25 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 
 @media (prefers-reduced-motion: no-preference) {
   .view { animation: fade .18s ease-out; }
+  /* Pop-ups ease in and out: sheets rise from the bottom on phones and settle in place on wider screens. */
+  .sheet-backdrop { animation: bd-in .2s ease-out; }
+  .sheet { animation: sheet-up .26s cubic-bezier(.2, .8, .2, 1); }
+  .sheet-backdrop.closing { animation: bd-out .19s ease-in forwards; }
+  .sheet-backdrop.closing .sheet { animation: sheet-down .19s ease-in forwards; }
+  .votes-pop, .resort-menu { animation: pop-in .16s ease-out; transform-origin: top left; }
+  .lightbox { animation: bd-in .2s ease-out; } .lightbox.closing { animation: bd-out .19s ease-in forwards; }
+  .votes-pop.closing { animation: pop-out .14s ease-in forwards; pointer-events: none; }
+  .day-hit { transition: fill .15s ease, stroke .15s ease; }
+  @keyframes bd-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes bd-out { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes sheet-up { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes sheet-down { from { transform: none; opacity: 1; } to { transform: translateY(28px); opacity: 0; } }
+  @keyframes pop-in { from { transform: scale(.96) translateY(-4px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes pop-out { from { transform: none; opacity: 1; } to { transform: scale(.97); opacity: 0; } }
+  @media (min-width: 900px) {
+    @keyframes sheet-up { from { transform: scale(.96) translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes sheet-down { from { transform: none; opacity: 1; } to { transform: scale(.97) translateY(6px); opacity: 0; } }
+  }
   @keyframes fade { from { opacity: .4; } to { opacity: 1; } }
 }
 
@@ -398,7 +421,6 @@ html[data-material="frost"] .snow-grid > div, html[data-material="frost"] .cond 
 }
 html[data-material="glass"] .snow-grid, html[data-material="glass"] .cond, html[data-material="glass"] .stats,
 html[data-material="frost"] .snow-grid, html[data-material="frost"] .cond, html[data-material="frost"] .stats { background: rgba(255,255,255,.12); }
-html[data-material="glass"] .hs-labels, html[data-material="frost"] .hs-labels { background: color-mix(in oklab, var(--surface) 80%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { background: color-mix(in oklab, var(--surface) 45%, transparent); }
 
 /* Dark themes get a dimmer ridge behind Glass and Frost. */
@@ -456,8 +478,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .a-groom { grid-area: groom; } .a-cond { grid-area: cond; } .a-fc { grid-area: fc; } .a-cam { grid-area: cam; } .a-cta { grid-area: cta; }
 
   .v-fc { grid-template-areas: "hours hours" "ten radar" "more more"; }
-  .v-fc .hstrip { overflow: visible; }
-  html .v-fc .hs-labels.hs-labels { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .v-fc .hstrip { overflow: visible; -webkit-mask-image: none; mask-image: none; }
   .a-ten { grid-area: ten; } .a-hours { grid-area: hours; } .a-more { grid-area: more; } .a-radar { grid-area: radar; }
 
   .v-cal { grid-template-columns: minmax(0, 1fr); }
