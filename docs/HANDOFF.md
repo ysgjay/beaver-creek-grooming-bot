@@ -1,8 +1,10 @@
-# Snow Desk (Beaver Creek): handoff
+# Snow Desk (Colorado Vail resorts): handoff
 
 *Status as of Nov 15, 2026. Everything below is live, merged to `main`, and covered by 36 passing tests.*
 
 ## What it is
+**Resorts:** Beaver Creek, Vail, Breckenridge, Keystone and Crested Butte, picked from the title in the app. Sources, layouts and what differs per resort: `docs/RESORTS.md`. Database schema: `docs/schema.sql`.
+
 A morning report for Beaver Creek skiers: the grooming map with the named runs, conditions, a multi-model snow forecast, and the snow stake cam.
 - **Who gets it:** people who opt in. Delivery is by email and by notifications from the Snow Desk app itself.
 - **The app:** a phone-first web app with Today, Calendar, Forecast and Help tabs, at **https://snow.0xm.studio**.
@@ -31,7 +33,7 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
 | App + functions | Vercel team **0xM Studio** (`team_uluFTokh4wR7JQqU9paCTLf2`), project **snow-desk** (`prj_qwxjIUmKixPpxhQOReFWhcrwICgl`) | Static app in `public/`, Python functions in `api/`. Domain `snow.0xm.studio`; the 0xm.studio DNS is on Vercel. Login protection is on for the vercel.app URLs, not the custom domain. |
 | Scheduler | Cloudflare Worker **snow-desk-cron** (account `52b0eaa0…`, `jay-52b.workers.dev`) | Crons (UTC, never overlapping): `*/5 11-13 * * *`, `*/15 9-10,14-17 * * *`, `0 21 * * *`. Calls `POST https://snow.0xm.studio/api/run` with `Bearer CRON_SECRET`, retrying 3 times. Vercel's own daily cron (14:05 UTC) is the backup. |
 | Public archive | Vercel Blob **snow-desk-archive** (`store_KpKAjFy5KoVso7GY`, public) | `data/latest.json`, `data/days/<date>.json`, `data/months/<yyyy-mm>.json`, `data/forecasts/<date>.json`, `data/verification.json`, `data/state.json`, `maps/<date>.jpg`, `cams/<date>.jpg`. The app reads these through rewrites in `vercel.json`. |
-| Private data | Neon project **snow-desk** (`square-hill-75040371`, us-east-1) | Tables: `subscribers` (double opt-in, token, status), `push_subscriptions`, `daily_sends` (once-a-day claim). |
+| Private data | Neon project **snow-desk** (`square-hill-75040371`, us-east-1) | Tables: `subscribers` (double opt-in, token, status, resorts), `push_subscriptions` (resorts), `daily_sends` (once-a-day claim per resort). |
 | Email | Resend, domain **snow.0xm.studio** (`8a410eb5-…`, verified) | DNS in Vercel: `resend._domainkey.snow` TXT, `send.snow` MX and TXT, `rsend.snow` CNAME. Free plan: 100 emails a day, about 90 subscribers. |
 
 **DNS gotcha:** `snow.0xm.studio` needs its own ALIAS record (`snow` → `cname.vercel-dns-016.com.`), which now exists. The email records under `snow.*` stop 0xm.studio's catch-all `*` record from covering it. Never delete that ALIAS.
@@ -42,7 +44,7 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
 - **Email:** `RESEND_API_KEY`, the owner's "Snow" send-only key; `EMAIL_FROM`
 - **Sending:** `SEND_ENABLED=1`
 - **App notifications:** `VAPID_PRIVATE_KEY` (sensitive; the Web Push signing key, kept only in Vercel). Generate one with `npx web-push generate-vapid-keys` and paste only the private key. The public key is derived from it and served by `GET /api/push`, so the two can't drift. If you rotate it, the app moves existing subscribers to the new key the next time they open it.
-- **Optional, with defaults:** `OPENING_DAY` (2026-11-25), `SEND_TIME` (07:00), `SEND_EARLIEST` (05:00), `SEND_LATEST` (09:00), `REFRESH_HOURS`, `NTFY_TOPIC`, `VAPID_SUBJECT`, `CAM_IDS`, `STAKE_SNAPSHOT_URL`
+- **Optional, with defaults:** `RESORTS` (which resorts run; default all five), `OPENING_DAY` (Beaver Creek, 2026-11-25) and `OPENING_DAY_<SLUG>` for the others, `SEND_TIME` (07:00), `SEND_EARLIEST` (05:00), `SEND_LATEST` (09:00), `REFRESH_HOURS`, `NTFY_TOPIC`, `VAPID_SUBJECT`, `CAM_IDS`, `STAKE_SNAPSHOT_URL`
 
 ## Data sources
 - **Grooming map:** the Lumiplan PDF `https://grooming.lumiplan.pro/beaver-creek-grooming-map.pdf`, usually posted the evening before. The bot spots a new map because the file's fingerprint changes. Run names ("Groomers of the day", "Last night's grooming", "Morning grooming") and the map's date are read from the PDF's text (`bcbot/sources/grooming.py`).
@@ -62,10 +64,11 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
   Details are in `docs/SPEC.md`.
 
 ## When the report goes out (`bcbot/main.py`, `send_decision`)
-- **Before `OPENING_DAY` (Nov 25):** daily at 7:00 MT, map or not. The subject reads "Opens Nov 25".
+- **Each resort runs on its own** (own state, opening day and once-a-day send), in the resort's time zone. Resorts with no grooming map send as soon as today's snow report is posted (see `docs/RESORTS.md`).
+- **Before the resort's opening day:** daily at 7:00 MT, map or not. The subject reads "Opens 11/25".
 - **In season:** as soon as both a new grooming map since the last report **and** a resort snow report dated today are confirmed, from 5:00. Checks run every 5 minutes from 4 to 7 a.m., so a report lands within about 5 minutes. If the report date can't be read, the new map alone triggers the send from 7:00. At 9:00, whatever is available goes out. Once the map hasn't changed in 3 days, the season is over and the bot stays quiet.
 - **App notifications follow the same rule:** one notification per send. A powder alert (6"+ in 48 hours) is the first line of that notification, never a separate one.
-- **Exactly once a day:** the `daily_sends` primary key makes the claim atomic. Nov 15 was marked as covered by a test.
+- **Exactly once a day per resort:** the `daily_sends` (day, resort) primary key makes the claim atomic. Nov 15 was marked as covered by a test.
 - **Recorded:** each send stores when it went out, why, whether the map was new, and whether the snow report was fresh, in `delivery` on the day record. The app shows "Sent …" and "Snow report 5:34 AM".
 
 ## Code map
@@ -99,7 +102,7 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
 2. **Delete the full-access Resend key** saved in the Claude Code cloud "Default" environment (api.resend.com network secret). Setup no longer needs it; the app uses the owner's send-only "Snow" key.
 3. **Retire the old pieces:** the GitHub Actions secrets (`BOT_TOKEN`, Gmail, Instagram), the old Telegram bot and channel, and the unused personal cloud environment "beaver-creek-grooming-bot".
 4. **Optional:** add `ADMIN_NTFY_TOPIC` to the Worker to get a phone alert if a trigger fails.
-5. **Next season:** set `OPENING_DAY` for 2027. Any date before it gets daily pre-season reports, so set it close to when you want those to begin. Also note that the crons are in UTC, so in daylight time the windows shift an hour later in local time.
+5. **Next season:** set each resort's opening day for 2027 (`opening_day` in `bcbot/resorts.py`, or the `OPENING_DAY*` env vars). Any date before it gets daily pre-season reports, so set it close to when you want those to begin. Also note that the crons are in UTC, so in daylight time the windows shift an hour later in local time.
 6. **Ideas parked as GitHub issues #1–3** (label `idea`): a one-sentence verdict at the top of Today, grouping groomed runs by mountain area, and the season shown as a snow pit.
 7. **Reference artifacts:**
    - Theme gallery: https://claude.ai/artifact/JKiXvakBJAFPDMGPLnjcTN
