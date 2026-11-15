@@ -198,10 +198,8 @@ def run(store=None, force=False, send=None, now=None):
         if _claim_send(day_str, decision):
             g = day.get("grooming", {})
             map_url = f"{config.DASHBOARD_URL.rstrip('/')}/{g['image']}" if g.get("image") else None
-            delivered = notify.send_all(dict(day, preseason=decision == "preseason"), map_url)
-            alert = report.powder_alert(day.get("forecast"))
-            if alert:
-                notify.alert(alert)
+            powder = report.powder_alert(day.get("forecast"))
+            delivered = notify.send_all(dict(day, preseason=decision == "preseason", powder=powder), map_url)
             day["delivery"] = {"sent_at": now_local().isoformat(timespec="seconds"), "reason": decision,
                                "new_map": map_new, "snow_report_fresh": resort_fresh, "results": delivered}
             store.put_json(f"data/days/{day_str}.json", day)
@@ -231,8 +229,8 @@ TEST_MAX_RECIPIENTS = 5
 def send_test(store=None):
     """Send the current report now, labeled as a test. Leaves the daily schedule untouched.
 
-    Refuses when there are more than TEST_MAX_RECIPIENTS email subscribers, so a test
-    can never reach the whole list.
+    Refuses when there are more than TEST_MAX_RECIPIENTS email subscribers or app
+    subscriptions, so a test can never reach the whole list.
     """
     store = store or get_store()
     day = store.get_json("data/latest.json", {}) or {}
@@ -241,8 +239,10 @@ def send_test(store=None):
     from . import db
     with db.connect() as conn:
         n = len(db.active_subscribers(conn))
-    if n > TEST_MAX_RECIPIENTS:
-        return {"status": "refused", "error": f"{n} subscribers; tests are limited to {TEST_MAX_RECIPIENTS}"}
+        p = len(db.push_subscriptions(conn))
+    if n > TEST_MAX_RECIPIENTS or p > TEST_MAX_RECIPIENTS:
+        return {"status": "refused",
+                "error": f"{n} email subscribers, {p} app subscriptions; tests are limited to {TEST_MAX_RECIPIENTS} each"}
     g = day.get("grooming", {})
     map_url = f"{config.DASHBOARD_URL.rstrip('/')}/{g['image']}" if g.get("image") else None
     return {"status": "ok", "test": True, "sent": notify.send_all(dict(day, test=True), map_url)}

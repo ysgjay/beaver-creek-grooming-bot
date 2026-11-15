@@ -97,22 +97,6 @@ def record_push_result(conn, endpoint, status):
             cur.execute("DELETE FROM push_subscriptions WHERE endpoint = %s AND failures >= 5", (endpoint,))
 
 
-def vapid_keys(conn):
-    """The app's Web Push keypair, created on first use and kept only in this database."""
-    from .webpush import generate_vapid_keys
-    with conn.cursor() as cur:
-        cur.execute("SELECT name, value FROM app_secrets WHERE name IN ('vapid_private', 'vapid_public')")
-        found = dict(cur.fetchall())
-        if len(found) == 2:
-            return found["vapid_private"], found["vapid_public"]
-        priv, pub = generate_vapid_keys()
-        cur.execute("INSERT INTO app_secrets (name, value) VALUES ('vapid_private', %s), ('vapid_public', %s) "
-                    "ON CONFLICT (name) DO NOTHING", (priv, pub))
-        cur.execute("SELECT name, value FROM app_secrets WHERE name IN ('vapid_private', 'vapid_public')")
-        found = dict(cur.fetchall())  # another request may have won the race; use what's stored
-        return found["vapid_private"], found["vapid_public"]
-
-
 def claim_send(conn, day, reason):
     """True exactly once per day, even if two triggers race."""
     with conn.cursor() as cur:
