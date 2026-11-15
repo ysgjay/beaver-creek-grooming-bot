@@ -179,6 +179,29 @@ def run(store=None, force=False, send=None, now=None):
             "errors": errors, "ok": bool(day.get("forecast")) and (groom is not None or not full)}
 
 
+TEST_MAX_RECIPIENTS = 5
+
+
+def send_test(store=None):
+    """Send the current report now, labeled as a test. Leaves the daily schedule untouched.
+
+    Refuses when there are more than TEST_MAX_RECIPIENTS email subscribers, so a test
+    can never reach the whole list.
+    """
+    store = store or get_store()
+    day = store.get_json("data/latest.json", {}) or {}
+    if not day.get("date"):
+        return {"status": "error", "error": "no report yet"}
+    from . import db
+    with db.connect() as conn:
+        n = len(db.active_subscribers(conn))
+    if n > TEST_MAX_RECIPIENTS:
+        return {"status": "refused", "error": f"{n} subscribers; tests are limited to {TEST_MAX_RECIPIENTS}"}
+    g = day.get("grooming", {})
+    map_url = f"{config.DASHBOARD_URL.rstrip('/')}/{g['image']}" if g.get("image") else None
+    return {"status": "ok", "test": True, "sent": notify.send_all(dict(day, test=True), map_url)}
+
+
 def _full_run(store, state, groom, map_changed, now, day_str, errors):
     models = _try("open-meteo", openmeteo.fetch_models, errors, {})
     ens = _try("open-meteo ensemble", openmeteo.fetch_ensemble, errors, {})

@@ -465,3 +465,19 @@ def test_notify_skips_unconfigured_channels(monkeypatch):
         monkeypatch.delenv(k, raising=False)
     r = notify.send_all({"date": "2026-11-15"}, None)
     assert r == {"email": "skipped (email not configured)", "push": "skipped (push not configured)", "ntfy": "skipped"}
+
+
+def test_send_test_labels_and_leaves_schedule_alone(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    main.run(store=store, send=False, now=at(5, 45))
+    state_before = store.get_json("data/state.json")
+    monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("a@example.com", "t")])
+    captured = []
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None: captured.append(day) or {"email": "sent to 1"})
+    r = main.send_test(store)
+    assert r["status"] == "ok" and captured[0]["test"] is True
+    assert report.subject(captured[0]).startswith("Test · Beaver Creek")
+    assert store.get_json("data/state.json") == state_before          # schedule untouched
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn: [("x@example.com", "t")] * 6)
+    assert main.send_test(store)["status"] == "refused"

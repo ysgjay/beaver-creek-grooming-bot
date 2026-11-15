@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from bcbot.main import run  # noqa: E402
+from bcbot.main import run, send_test  # noqa: E402
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,6 +24,9 @@ class handler(BaseHTTPRequestHandler):
             return self._reply(401, {"error": "unauthorized"})
         force = "force=1" in (self.path or "")
         try:
+            if "test=1" in (self.path or ""):
+                result = send_test()
+                return self._reply(200 if result.get("status") == "ok" else 409, result)
             result = run(force=force)
             code = 200 if result.get("status") == "skipped" or result.get("ok") else 500
         except Exception as e:  # report, don't hide

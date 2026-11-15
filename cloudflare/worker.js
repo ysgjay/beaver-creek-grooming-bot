@@ -12,27 +12,28 @@ export default {
   async scheduled(event, env, ctx) {
     ctx.waitUntil(trigger(env, `cron ${event.cron}`));
   },
-  // GET /?key=<CRON_SECRET>[&force=1] runs it by hand. GET /status shows the last result.
+  // GET /?key=<CRON_SECRET>[&force=1] runs it by hand; &test=1 sends a labeled test report now.
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.searchParams.get("key") !== env.CRON_SECRET) return new Response("Not found", { status: 404 });
-    const res = await trigger(env, "manual", url.searchParams.get("force") === "1");
+    const mode = url.searchParams.get("test") === "1" ? "test" : url.searchParams.get("force") === "1" ? "force" : "";
+    const res = await trigger(env, "manual", mode);
     return new Response(JSON.stringify(res), { headers: { "content-type": "application/json" } });
   },
 };
 
-async function trigger(env, why, force = false) {
+async function trigger(env, why, mode = "") {
   let last = { status: 0, body: "" };
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const res = await fetch(`${env.RUN_URL}${force ? "?force=1" : ""}`, {
+      const res = await fetch(`${env.RUN_URL}${mode ? `?${mode}=1` : ""}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${env.CRON_SECRET}`, "User-Agent": "snow-desk-cron" },
       });
       last = { status: res.status, body: (await res.text()).slice(0, 800) };
       console.log(why, `attempt ${attempt}`, last.status, last.body);
       if (res.ok) return { ok: true, attempt, ...last };
-      if (res.status === 401) break; // wrong secret: retrying won't help
+      if (res.status === 401 || res.status === 409) break; // wrong secret, or a refused test: don't retry
     } catch (e) {
       last = { status: 0, body: String(e) };
       console.log(why, `attempt ${attempt} error`, last.body);

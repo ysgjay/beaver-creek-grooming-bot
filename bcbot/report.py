@@ -83,7 +83,7 @@ def subject(day):
     parts = [f"{n} runs groomed" if n else ("No new grooming map" if not (day.get("grooming") or {}).get("new_map") else "Grooming map")]
     if fc.get("next_1_5") is not None:
         parts.append(f"{_in(fc['next_1_5'])} next 5 days")
-    return f"Beaver Creek {short_date(day['date'])}: " + ", ".join(parts)
+    return ("Test · " if day.get("test") else "") + f"Beaver Creek {short_date(day['date'])}: " + ", ".join(parts)
 
 
 def push_payload(day, map_url):
@@ -97,7 +97,7 @@ def push_payload(day, map_url):
     if groomed:
         body.append("Groomed: " + ", ".join(groomed[:6]) + ("…" if len(groomed) > 6 else ""))
     body.append(f"New snow {_in(r24)} · Next 5 days {_in(fc.get('next_1_5'))}")
-    payload = {"title": f"Beaver Creek · {short_date(day['date'])}", "body": "\n".join(body),
+    payload = {"title": ("Test · " if day.get("test") else "") + f"Beaver Creek · {short_date(day['date'])}", "body": "\n".join(body),
                "url": config.DASHBOARD_URL, "tag": f"report-{day['date']}"}
     if map_url:
         payload["image"] = map_url
