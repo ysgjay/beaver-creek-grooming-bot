@@ -11,7 +11,7 @@ html[data-brand="frosted-snow"]{
  --font-body:'IBM Plex Sans',system-ui,sans-serif;--font-data:'IBM Plex Mono',monospace;
  --display-weight:600;--radius:24px;--pad:14px;--gap:12px;--tabbar-h:64px;
  --card-border:1px solid #ffffff;--head-mark:none;
- --frost-paper:#f5f9fc;--frost-control:#7a90a4;--frost-pine:#1e5d4a;--frost-amber:#81530a;
+ --frost-paper:#f5f9fc;--frost-control:#7a90a4;--frost-action:#365c7d;--frost-selected:#dce8f2;--frost-pine:#1e5d4a;--frost-amber:#81530a;
  --frost-shadow:inset 0 1px 0 #fff,0 8px 24px rgba(12,42,74,.07),0 1px 3px rgba(12,42,74,.04);
  --frost-float:0 20px 64px rgba(12,42,74,.18);color-scheme:light;
 }
@@ -23,8 +23,8 @@ html[data-brand="frosted-snow"] body{
 html[data-brand="frosted-snow"] .top{background:#edf4fbf2;border-bottom:1px solid #fff;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 html[data-brand="frosted-snow"] .top .wrap{padding-block:8px;gap:10px}
 html[data-brand="frosted-snow"] .brand h1,html[data-brand="frosted-snow"] .resort-btn{font-size:22px;font-weight:600;letter-spacing:-.035em;min-height:28px}
-html[data-brand="frosted-snow"] .home-btn{width:44px;height:44px;border-radius:12px;background:var(--bg)}
-html[data-brand="frosted-snow"] .home-btn img{width:44px;height:44px;border-radius:12px}
+html[data-brand="frosted-snow"] .home-btn{width:48px;height:48px;border-radius:12px;background:transparent}
+html[data-brand="frosted-snow"] .home-btn img{width:48px;height:48px;object-fit:contain}
 html[data-brand="frosted-snow"] .brand .sub{font-size:12px;letter-spacing:.01em}
 html[data-brand="frosted-snow"] h2{font-size:22px;font-weight:600;letter-spacing:-.035em}
 html[data-brand="frosted-snow"] h3{font-size:11px;letter-spacing:.09em;line-height:1.4}
@@ -33,7 +33,7 @@ html[data-brand="frosted-snow"] .card{background:var(--frost-paper);background-i
 html[data-brand="frosted-snow"] .card-head{align-items:center;gap:8px 16px}
 html[data-brand="frosted-snow"] .cond,html[data-brand="frosted-snow"] .snow-grid,html[data-brand="frosted-snow"] .stats{background:var(--line);border-radius:14px}
 html[data-brand="frosted-snow"] .cond>div,html[data-brand="frosted-snow"] .snow-grid>div,html[data-brand="frosted-snow"] .stats>div{background:var(--frost-paper);padding:8px 9px;gap:4px}
-html[data-brand="frosted-snow"] .cond .big{font-size:34px;color:var(--accent)}
+html[data-brand="frosted-snow"] .cond .big{font-size:34px;color:var(--ink)}
 html[data-brand="frosted-snow"] .cond .mid{font-size:26px}
 html[data-brand="frosted-snow"] .cond .sub{font-size:11px;white-space:nowrap}
 html[data-brand="frosted-snow"] .big{font-size:36px;letter-spacing:-.04em}
@@ -55,27 +55,30 @@ html[data-brand="frosted-snow"] .btn{min-height:44px;border-radius:12px;padding:
 html[data-brand="frosted-snow"] .btn:hover{background:#631725}
 html[data-brand="frosted-snow"] .btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--frost-control);box-shadow:none}
 html[data-brand="frosted-snow"] .btn.secondary:hover{background:var(--surface-2)}
+/* Keep routine navigation quiet; burgundy stays in the logo, snow data, and primary actions. */
+html[data-brand="frosted-snow"] .btn.top-cta{background:var(--frost-paper);color:var(--ink);border:1px solid var(--frost-control);box-shadow:none}
+html[data-brand="frosted-snow"] .btn.top-cta:hover{background:var(--frost-selected)}
 html[data-brand="frosted-snow"] :is(button,a,input,summary):focus-visible{outline:3px solid var(--accent);outline-offset:3px;scroll-margin-block:100px}
 html[data-brand="frosted-snow"] button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
 html[data-brand="frosted-snow"] .icon-btn,html[data-brand="frosted-snow"] .month-nav button{min-width:44px;min-height:44px;border-color:var(--frost-control)}
 html[data-brand="frosted-snow"] .pill{color:var(--accent);background:var(--accent-soft);padding:6px 10px;font-size:12px}
 html[data-brand="frosted-snow"] .pill.quiet{background:#e5edf4;color:var(--ink-2)}
-html[data-brand="frosted-snow"] .link{text-decoration:underline;text-underline-offset:3px}
+html[data-brand="frosted-snow"] .link{color:var(--frost-action);text-decoration:underline;text-underline-offset:3px}
 html[data-brand="frosted-snow"] .tabbar{background:#f5f9fcf5;border-top:1px solid #fff;box-shadow:0 -4px 20px #0c2a4a08}
 html[data-brand="frosted-snow"] .tabbar a{min-height:48px;border-radius:12px;gap:5px}
-html[data-brand="frosted-snow"] .tabbar a[aria-current="page"]{background:var(--accent-soft);color:var(--accent);box-shadow:none}
+html[data-brand="frosted-snow"] .tabbar a[aria-current="page"]{background:var(--frost-selected);color:var(--ink);box-shadow:none}
 html[data-brand="frosted-snow"] .tabbar nav{gap:5px;padding-block:6px;padding-inline:12px}
 html[data-brand="frosted-snow"] .seg{background:#e5eef5;border-color:var(--line);border-radius:14px}
 html[data-brand="frosted-snow"] .seg button{min-height:44px;border-radius:10px}
-html[data-brand="frosted-snow"] .seg button[aria-pressed="true"]{background:var(--accent);color:white;box-shadow:none}
+html[data-brand="frosted-snow"] .seg button[aria-pressed="true"]{background:var(--frost-action);color:white;box-shadow:none}
 html[data-brand="frosted-snow"] .cal{gap:6px}
 html[data-brand="frosted-snow"] .cal button{border-color:var(--line);border-radius:10px;min-height:44px}
 html[data-brand="frosted-snow"] .cal button[style*="background"]{background-image:linear-gradient(#ffffff73,#ffffff73)}
 html[data-brand="frosted-snow"] .cal button .d,html[data-brand="frosted-snow"] .cal button .s{color:var(--ink)}
-html[data-brand="frosted-snow"] .cal button.sel{outline:2px solid var(--accent);outline-offset:2px}
+html[data-brand="frosted-snow"] .cal button.sel{outline:2px solid var(--frost-action);outline-offset:2px}
 html[data-brand="frosted-snow"] .feed-item{border-radius:14px;border-color:var(--line);padding:12px}
 html[data-brand="frosted-snow"] .signup input[type="email"]{border:1px solid var(--frost-control);background:#fff;border-radius:12px;min-height:48px}
-html[data-brand="frosted-snow"] details summary{min-height:48px}
+html[data-brand="frosted-snow"] details summary{min-height:48px;color:var(--ink)}
 html[data-brand="frosted-snow"] .sheet,html[data-brand="frosted-snow"] .resort-menu{background:#f5f9fc;border:1px solid white;box-shadow:var(--frost-float);border-radius:24px}
 html[data-brand="frosted-snow"] .patrol{border:2px solid var(--accent);background:#fff;box-shadow:none}
 html[data-brand="frosted-snow"] .offline{background:#fff6e7;color:var(--frost-amber);border:1px solid #cfb98f;border-radius:12px;padding:12px}
@@ -102,6 +105,7 @@ html[data-brand="frosted-snow"] .cam-main,html[data-brand="frosted-snow"] .radar
 }
 @media(max-width:389px){
  html[data-brand="frosted-snow"]{--pad:14px;--gap:12px}
+ html[data-brand="frosted-snow"] .home-btn,html[data-brand="frosted-snow"] .home-btn img{width:44px;height:44px}
  html[data-brand="frosted-snow"] .cond .mid{font-size:25px}
  html[data-brand="frosted-snow"] .cond .big{font-size:34px}
  html[data-brand="frosted-snow"] .cond>div{padding:10px 6px}

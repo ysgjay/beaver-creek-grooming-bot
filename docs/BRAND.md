@@ -12,7 +12,9 @@ Chair 0 is the brand; Snow Desk is the product. The lift-terminal symbol has no 
 | Ink | `#0C2A4A` |
 | Secondary text | `#52677B` |
 | Burgundy accent | `#7B1E2E` |
-| Selected tint | `#F2E6E9` |
+| Burgundy tint (snow data) | `#F2E6E9` |
+| Selected navigation tint | `#DCE8F2` |
+| Quiet actions | `#365C7D` |
 | Divider | `#C3D3E0` |
 | Control border | `#7A90A4` |
 
@@ -20,14 +22,14 @@ Outfit is for headings and prominent measurements, IBM Plex Sans for interface t
 
 ## Logo files
 
-- `public/icon.svg` and `icon-{180,192,512}.png`: flat burgundy utility icon with an ice background. Use this for the header, home screen, and notifications. Its geometry stays inside the maskable safe area.
+- `public/icon.svg` and `icon-{180,192,512}.png`: flat burgundy utility icon with an ice background. Use this for the favicon, home screen, and notifications. Its geometry stays inside the maskable safe area.
 - `public/brand/logo-utility.svg`: standalone small-format mark.
 - `public/brand/logo-outline-burgundy.svg` and `logo-outline-white.svg`: editable outline variants for larger brand applications. Preserve their proportions and allow clear space around the chairs and roof.
-- `public/brand/frosted-logo.webp`: approved material artwork, optimized to 640 px for the Help page. It is decorative alongside the visible product name; keep the flat utility icon at small sizes.
+- `public/brand/frosted-logo.webp`: approved material artwork, optimized to 640 px. Use it in the top-left home link at 48 px (44 px on narrow phones), and at 160 px on Help. The home link keeps its accessible name; the image itself is decorative.
 
 ## Interaction and layout
 
-Selected navigation tabs use a flat pale burgundy fill and burgundy text/icon. **No underline, bottom border, or inset bottom shadow.** Keep keyboard focus outlines distinct from the selected state. Ordinary text links remain underlined.
+Selected navigation tabs use a flat ice-blue fill and ink text/icon. **No underline, bottom border, or inset bottom shadow.** The header sign-up button uses a light surface with an outline. Routine links, forecast detail headings, calendar controls, and current totals use ink or muted blue. Reserve burgundy for the logo, snowfall charts, and primary actions such as form submission and the patrol call. Keep keyboard focus outlines distinct from the selected state. Ordinary text links remain underlined.
 
 The original snowfall charts are part of the identity. Preserve the Today heat strip and the Forecast snow stakes, including ruler ticks, snow drift tops, hatched upper estimates, low-end marks, and model details. Recolor them through the existing tokens without replacing their geometry or interaction. Weekday and MM/DD labels remain in the resort's time zone.
 
