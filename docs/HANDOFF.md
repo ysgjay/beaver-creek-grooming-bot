@@ -12,6 +12,9 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
 
 ## Owner preferences (keep these)
 - **Layout:** simple and easy to navigate, with little white space and minimal scrolling.
+  - **Phone (under 900px):** one column of cards with the bottom tab bar. Desktop work must leave this unchanged.
+  - **900 to 1199px:** two columns of cards.
+  - **1200px and wider:** full-width, map-led. The grooming map takes the left 62% of Today, tabs move into the top bar, and Today, Calendar and Forecast fit 1440 x 900 without scrolling. The rules are the two `@media` blocks at the end of `public/app.css`; each page's sections carry region classes (`a-groom`, `a-cond`, ...) set in `public/app.js`.
 - **Look:** the Bluebird theme with the Frost finish is the default. Ten themes and five finishes are available from the snowflake button.
 - **Charts:**
 
