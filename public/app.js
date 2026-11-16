@@ -1273,7 +1273,7 @@ ${tell}
     v.className = "view v-help";
     const c = S.cfg || {};
     const q = new URLSearchParams(location.search).get("email");
-    const notice = q === "confirmed" ? `<p class="offline" role="status">You're subscribed. The report arrives at 7:00 each morning.</p>`
+    const notice = q === "confirmed" ? `<p class="offline" role="status">You're subscribed. The report arrives each morning as soon as the grooming map and snow report are posted.</p>`
       : q === "invalid" ? `<p class="offline" role="status">That confirmation link didn't work. Sign up again below.</p>` : "";
     v.innerHTML = `
       ${patrolCards()}
