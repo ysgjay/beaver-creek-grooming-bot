@@ -50,7 +50,7 @@ The original snowfall charts are part of the identity. Preserve the Today heat s
 
 **All snow and weather visualizations use blue or ice shades, never burgundy.** This includes the Today heat strip, forecast stakes and model votes, hourly snow, calendar day/week/month charts and heat cells, uncertainty legends, and radar. `--snow` and `--snow-fill` are separate from the brand `--accent`; data containers locally map the existing chart accent tokens onto the snow palette. The heat strip uses a lighter blue maximum with dark labels throughout, so heavier snow does not turn its numbers white on a pale background. Radar reads `--snow` directly for its generated palette.
 
-Preserve the compact layout: one column and bottom tabs below 900 px, two columns from 900 px, and map-led Today with header tabs from 1200 px. Desktop spacing is tighter so Today, Forecast, and Calendar fit 1440 × 900. Large frosted artwork belongs in a supporting brand moment, not in place of the report content.
+Preserve the compact layout: one column and bottom tabs below 900 px, two columns from 900 px, and map-led Today with header tabs from 1200 px. On wide screens the section tabs sit right after the resort name (top left), "Get the morning report" sits alone at the right, and favorite resorts get their own slim row under the header. Desktop spacing is tighter so Today, Forecast, and Calendar fit 1440 × 900. Large frosted artwork belongs in a supporting brand moment, not in place of the report content.
 
 ## Reusing the style
 

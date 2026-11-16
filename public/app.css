@@ -68,6 +68,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .rm-region:first-child { margin-top: 4px; }
 .favs { order: 9; flex: 1 0 100%; display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .favs::-webkit-scrollbar { display: none; }
+.top-tabs, .favs .fav-label, .favs .fav-edit { display: none; }   /* wide screens only */
 .fav-tile { flex: none; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
   border: 1px solid color-mix(in oklab, var(--surface) 60%, var(--line)); background: color-mix(in oklab, var(--surface) 62%, transparent); color: var(--ink); font: inherit; font-weight: 600; font-size: 14px; line-height: 1; }
 .fav-tile:hover { background: var(--surface); }

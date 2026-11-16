@@ -72,7 +72,10 @@
     const el = $("#favs"); if (!el) return;
     const others = R.list.filter((r) => isFav(r.slug) && r.slug !== R.slug);
     el.hidden = !others.length;
-    el.innerHTML = others.map((r) => `<button class="fav-tile" type="button" data-resort="${r.slug}"><span>${esc(r.name)}</span><strong class="num" data-snow="${r.slug}"></strong></button>`).join("");
+    // The label and Edit link only show on wide screens, where favorites get their own row.
+    el.innerHTML = `<span class="fav-label" aria-hidden="true">${STAR}Favorites</span>`
+      + others.map((r) => `<button class="fav-tile" type="button" data-resort="${r.slug}"><span>${esc(r.name)}</span><strong class="num" data-snow="${r.slug}"></strong></button>`).join("")
+      + `<button class="fav-edit" type="button" aria-label="Edit favorite resorts">Edit</button>`;
     fillSnow(el);
   }
 
@@ -1264,7 +1267,7 @@ ${tell}
   async function route() {
     const tab = (location.hash.slice(1) || "today");
     const name = VIEWS[tab] ? tab : "today";
-    document.querySelectorAll(".tabbar a").forEach((a) => { if (a.dataset.tab === name) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    document.querySelectorAll(".tabbar a, .top-tabs a").forEach((a) => { if (a.dataset.tab === name) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     $("#subtitle").textContent = { today: S.latest ? fmtDay(S.latest.date) + " · Snow Desk" : "Chair 0: Snow Desk", calendar: "History", forecast: "Full forecast", help: "Help & ski patrol" }[name];
     const my = ++routing;
     const view = await VIEWS[name]();
@@ -1306,7 +1309,7 @@ ${tell}
     document.removeEventListener("keydown", menuKey); document.removeEventListener("pointerdown", menuOutside);
   }
   const menuKey = (e) => { if (e.key === "Escape") { closeResortMenu(); $("#resort-btn").focus(); } };
-  const menuOutside = (e) => { if (!e.target.closest("#resort-menu, #resort-btn")) closeResortMenu(); };
+  const menuOutside = (e) => { if (!e.target.closest("#resort-menu, #resort-btn, .fav-edit")) closeResortMenu(); };
   function openResortMenu() {
     const btn = $("#resort-btn"), m = document.createElement("div");
     m.id = "resort-menu"; m.className = "resort-menu"; m.setAttribute("role", "dialog"); m.setAttribute("aria-label", "Resorts");
@@ -1337,7 +1340,8 @@ ${tell}
     if (!btn || R.list.length < 2) { if (h1) h1.textContent = resortInfo().name; return; }
     btn.hidden = false; h1.hidden = true;
     btn.addEventListener("click", () => ($("#resort-menu") ? closeResortMenu() : openResortMenu()));
-    $("#favs").addEventListener("click", (e) => { const t = e.target.closest("[data-resort]"); if (t) switchResort(t.dataset.resort); });
+    $("#favs").addEventListener("click", (e) => { if (e.target.closest(".fav-edit")) { $("#resort-menu") ? closeResortMenu() : openResortMenu(); return; }
+      const t = e.target.closest("[data-resort]"); if (t) switchResort(t.dataset.resort); });
   }
 
   async function boot() {
