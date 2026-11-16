@@ -108,6 +108,15 @@ def read_html(text):
     feeds = sorted(set(m for m in _FEED.findall(text)))[:15]
     i = visible.lower().find("snow")
     detail = {"snow_numbers": nums[:24], "feeds": feeds, "text": visible[max(0, i - 100):i + 400] if i >= 0 else visible[:300]}
+    # Mtn Powder widget (v4.mtnfeed.com: A-Basin, Deer Valley, Solitude, Winter Park): keep the raw
+    # HTML around it and any resort id, which is what its data feed is keyed by.
+    hints = []
+    for pat in (r"mtnfeed", r"mtnpowder", r"resort[_-]?id", r"data-resort", r"bearer|token"):
+        m = re.search(pat, text, re.I)
+        if m:
+            hints.append(text[max(0, m.start() - 200):m.start() + 300])
+    if hints:
+        detail["hints"] = hints[:4]
     return stamp, _sha(" ".join(nums)) if nums else _sha(visible), detail
 
 
