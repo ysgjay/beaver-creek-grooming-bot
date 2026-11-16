@@ -182,6 +182,9 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
         ens = [e[d]["snow"] for e in ens_daily.values() if d in e]
         if len(ens) >= 10:
             low, high = _percentile(ens, 0.1), _percentile(ens, 0.9)
+            # The ceiling never sits below a model's own call: the ensembles are coarse
+            # versions of two models, and a sharper model can see more snow than any of them.
+            high = max(high, max(values.values()))
         else:
             low, high = min(values.values()), max(values.values())
         days.append({
@@ -202,7 +205,10 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
         tot = total(sl)
         if len(ens_daily) >= 10 and bucket:
             sums = [sum(e.get(d, {}).get("snow", 0) for d in bucket) for e in ens_daily.values()]
-            return [r1(min(tot, _percentile(sums, 0.1))), r1(max(tot, _percentile(sums, 0.9)))]
+            # Same rule as a single day: no lower than any model that covers the whole bucket.
+            model_sums = [sum(x["models"][m] for x in days[sl]) for m in days[sl][0]["models"]
+                          if all(m in x["models"] for x in days[sl])]
+            return [r1(min(tot, _percentile(sums, 0.1))), r1(max([tot, _percentile(sums, 0.9)] + model_sums))]
         return [r1(sum(x["low"] for x in days[sl])), r1(sum(x["high"] for x in days[sl]))]
 
     # Odds of a powder day: share of ensemble members with >= threshold in any one day of days 1-5.

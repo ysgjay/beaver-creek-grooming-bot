@@ -308,14 +308,17 @@ def send_test(store=None, slug=resorts.DEFAULT):
 PRIORS_VERSION = 2  # 2: learned per forecast range from runs made 1, 3 and 5 days ahead
 
 
-def _terrain_priors(store, today, errors):
+def _terrain_priors(store, today, errors, saved_only=False):
     """{model: {lead group: bias_ratio}} over last winter. Worked out once a season and kept in
-    data/priors.json; a failed attempt is retried on the next day, not on every run."""
+    data/priors.json; a failed attempt is retried on the next day, not on every run.
+    `saved_only` never fetches (for runs where SNOTEL is already down)."""
     start, end = verify.prior_season(today)
     saved = store.get_json("data/priors.json", {}) or {}
-    if (saved.get("season") == start.isoformat() and saved.get("version") == PRIORS_VERSION
-            and (saved.get("models") or saved.get("tried") == today.isoformat())):
+    current = saved.get("season") == start.isoformat() and saved.get("version") == PRIORS_VERSION
+    if current and (saved.get("models") or saved.get("tried") == today.isoformat()):
         return _prior_ratios(saved.get("models") or {})
+    if saved_only:
+        return {}
     doc = {"version": PRIORS_VERSION, "season": start.isoformat(), "season_end": end.isoformat(),
            "tried": today.isoformat(), "models": {}}
     try:
@@ -369,7 +372,10 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
         verification["station"] = obs.get("station")
         store.put_json("data/verification.json", verification)
     else:
-        verification = store.get_json("data/verification.json", {}) or {}
+        # Nothing new to score, but the current priors and limits still apply.
+        verification = verify.refresh(store.get_json("data/verification.json", {}) or {},
+                                      _terrain_priors(store, now.date(), errors, saved_only=True),
+                                      no_prior=openmeteo.NO_PRIOR_MODELS)
     fc = forecast.build(models, nws_daily, ens, verification, today=now.date()) if (models or nws_daily) else None
     if fc:
         store.put_json(f"data/forecasts/{day_str}.json", fc)

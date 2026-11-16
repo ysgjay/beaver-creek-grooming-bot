@@ -1221,3 +1221,30 @@ def test_radar_snapshot_renders_frost_and_blue_only():
     assert img.width == radar.OUT_W
     r, g, b = img.getpixel((5, 5))
     assert b > r and b >= g                                  # blue echo over frost, never burgundy
+
+
+def test_saved_verification_takes_current_limits_when_snotel_is_down():
+    stored = {"models": {"gfs_hrrr": {"n": 0, "prior": 1.6, "bias_ratio": 1.6, "skill": 1.0},
+                         "gfs_seamless": {"n": 0, "prior": 1.6, "bias_ratio": 1.6, "skill": 1.0},
+                         "icon_seamless": {"n": 6, "prior": 1.1, "bias_ratio": 1.5, "skill": 1.2},
+                         "nws": {"n": 0, "bias_ratio": 1.0, "skill": 1.0}}, "snow_cal": {"ratio": 1.1}}
+    # No new-style priors saved yet: old ones are held to the current limit, HRRR goes to 1.0.
+    v = verify.refresh(stored, {}, no_prior={"gfs_hrrr"})
+    assert v["models"]["gfs_hrrr"]["bias_by_lead"] == {"short": 1.0, "mid": 1.0, "long": 1.0}
+    assert v["models"]["gfs_seamless"]["bias_ratio"] == 1.25
+    assert v["models"]["icon_seamless"]["bias_ratio"] == 1.25 and v["models"]["icon_seamless"]["skill"] == 1.2
+    assert v["models"]["nws"]["bias_ratio"] == 1.0 and v["snow_cal"] == {"ratio": 1.1}
+    # With range priors saved, unscored models take them.
+    v = verify.refresh(stored, {"gfs_seamless": {"short": 1.1, "mid": 1.2, "long": 0.9}}, no_prior={"gfs_hrrr"})
+    assert v["models"]["gfs_seamless"]["bias_by_lead"] == {"short": 1.1, "mid": 1.2, "long": 0.9}
+
+
+def test_ceiling_is_never_below_a_models_own_call():
+    rows = lambda p: [{"time": f"{(TODAY + timedelta(days=d)).isoformat()}T{h:02d}:00", "precipitation": p,
+                       "temperature_2m": 20, "relative_humidity_2m": 90} for d in range(10) for h in range(24)]
+    ens = {f"member{i:02d}_gfs025": rows(0.001) for i in range(20)}  # every run nearly dry
+    fc = forecast.build({"gfs_seamless": rows(0.02), "ukmo_seamless": rows(0.001)}, ensemble_rows=ens, today=TODAY)
+    d0 = fc["days"][0]
+    assert d0["high"] == fc["days"][0]["models"]["gfs_seamless"] > d0["snow"]
+    gfs5 = sum(x["models"]["gfs_seamless"] for x in fc["days"][:5])
+    assert fc["next_1_5_range"][1] == round(gfs5, 1)
