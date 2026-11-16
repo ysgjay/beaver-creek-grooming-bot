@@ -73,6 +73,24 @@ def send_confirmation(email, token, slugs=("beaver-creek",)):
     })
 
 
+def send_resort_update(email, token, slugs):
+    """An active subscriber submitted the sign-up form with a different set of resorts."""
+    from urllib.parse import quote
+    link = f"{resorts_url(token)}&pick={quote(','.join(slugs))}"
+    names = escape(_names(slugs))
+    html = _shell(_card(f"""
+      {_brand_row()}
+      <h1 style="margin:14px 0 8px;font:600 22px/1.25 {DISPLAY};color:{INK}">Update your morning emails</h1>
+      <p style="margin:0 0 6px">You're already subscribed. Someone, probably you, asked for these resorts:</p>
+      <p style="margin:0 0 16px;font-weight:600">{names}</p>
+      <p style="margin:0 0 20px"><a href="{link}" style="{BUTTON}">Review and save</a></p>
+      <p style="margin:0;color:{INK2};font-size:13px">Nothing changes until you tap Save on that page. If you didn't ask for this, ignore this email.</p>"""))
+    return _post("/emails", {
+        "from": _from(), "to": [email], "subject": "Update your morning report resorts",
+        "html": html, "text": f"You're already subscribed. To get {_names(slugs)}, review and save: {link}\n\nNothing changes until you tap Save. If you didn't ask for this, ignore this email.",
+    })
+
+
 def send_daily(recipients, subject, html_body, text_body):
     """recipients: [(email, token)]. One email each, so each has its own unsubscribe link."""
     sent = 0
