@@ -1088,3 +1088,14 @@ def test_day_ticket_email_without_map_lists_runs_and_subject_carries_numbers():
     assert "Mon<br>11/16" in html and "1–6" in html
     assert "Groomers of the day: Schoolmarm" in mailer.preheader(day)
     assert report.subject(day) == 'Keystone: 2" new, 2 groomed, gusts to 34 mph'
+
+
+def test_resubmitting_signup_as_active_subscriber_emails_a_resort_update_link(monkeypatch):
+    from bcbot import mailer
+    posted = []
+    monkeypatch.setattr(mailer, "_post", lambda path, payload: posted.append(payload))
+    mailer.send_resort_update("a@example.com", "tok", ["beaver-creek", "vail"])
+    p = posted[0]
+    assert p["to"] == ["a@example.com"] and "Update" in p["subject"]
+    assert "/api/resorts?t=tok&pick=beaver-creek%2Cvail" in p["html"] and "Beaver Creek and Vail" in p["html"]
+    assert "Nothing changes until you tap Save" in p["text"]

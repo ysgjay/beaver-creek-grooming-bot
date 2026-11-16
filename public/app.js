@@ -1089,7 +1089,7 @@
       try {
         const r = await fetch("/api/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, resorts: picked(v, "email-resort"), website: $("#website", v).value }) });
         const j = await r.json().catch(() => ({}));
-        msg.textContent = j.message || (r.ok ? "Check your inbox for a confirmation link." : "Sign-up didn't work. Please try again.");
+        msg.textContent = j.message || (r.ok ? "Check your inbox. New sign-ups get a confirmation link, and current subscribers get a link to update their resorts." : "Sign-up didn't work. Please try again.");
         if (r.ok) { input.value = ""; setSignedUp("email", true); }
       } catch (err) { msg.textContent = "You seem to be offline. Try again when you have signal."; }
       btn.disabled = false;

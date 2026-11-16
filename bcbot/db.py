@@ -32,36 +32,42 @@ def connect():
 
 
 def request_signup(conn, email, resorts=("beaver-creek",)):
-    """Create or refresh a pending sign-up for `resorts`.
+    """Create or refresh a sign-up for `resorts`.
 
-    Returns (token, send_confirmation). Active subscribers and recent repeats get no
-    new email, and the caller shows the same "check your inbox" message either way,
-    so the form never reveals who is subscribed. An active subscriber's resorts are not
-    changed here (anyone could type their address); they change them from the
-    "Choose resorts" link in their own email.
+    Returns (token, action): "confirm" (email a confirmation link), "update" (an active
+    subscriber asked for a different set of resorts: email them a link to their own
+    resort page with that set pre-checked) or None (send nothing). The caller shows the
+    same message either way, so the form never reveals who is subscribed. An active
+    subscriber's resorts are never changed here (anyone could type their address); the
+    change only happens from the link in their own inbox.
     """
     resorts = list(resorts)
     with conn.cursor() as cur:
         cur.execute("SELECT count(*) FROM subscribers WHERE confirm_sent_at > now() - interval '1 hour'")
         if cur.fetchone()[0] >= CONFIRMS_PER_HOUR_CAP:
-            return None, False
+            return None, None
         cur.execute("SELECT count(*) FROM subscribers WHERE confirm_sent_at > now() - interval '1 day'")
         if cur.fetchone()[0] >= CONFIRMS_PER_DAY_CAP:
-            return None, False
-        cur.execute("SELECT token, status, confirm_sent_at > now() - make_interval(mins => %s) "
+            return None, None
+        cur.execute("SELECT token, status, confirm_sent_at > now() - make_interval(mins => %s), resorts "
                     "FROM subscribers WHERE lower(email) = lower(%s)", (CONFIRM_RESEND_MINUTES, email))
         row = cur.fetchone()
         if row:
-            token, status, recent = row
-            if status == "active" or recent:
-                return token, False
+            token, status, recent, current = row
+            if recent:
+                return token, None
+            if status == "active":
+                if sorted(current or []) == sorted(resorts):
+                    return token, None
+                cur.execute("UPDATE subscribers SET confirm_sent_at = now() WHERE token = %s", (token,))
+                return token, "update"
             cur.execute("UPDATE subscribers SET status = 'pending', confirm_sent_at = now(), unsubscribed_at = NULL, "
                         "resorts = %s WHERE token = %s", (resorts, token))
-            return token, True
+            return token, "confirm"
         token = secrets.token_urlsafe(24)
         cur.execute("INSERT INTO subscribers (email, token, confirm_sent_at, resorts) VALUES (%s, %s, now(), %s)",
                     (email, token, resorts))
-        return token, True
+        return token, "confirm"
 
 
 def confirm(conn, token):
