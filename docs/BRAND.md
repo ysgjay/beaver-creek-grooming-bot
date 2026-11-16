@@ -61,13 +61,13 @@ For a new page, email header, or sibling product, start from these defaults:
 3. **Text color:** ink `#0C2A4A`, secondary `#52677B`. Quiet actions and links use `#365C7D`; ordinary links stay underlined.
 4. **Controls:** 44 px minimum touch targets, 12 px radius on buttons and inputs, `#7A90A4` control borders, flat `#DCE8F2` fill for a selected tab, solid `#365C7D` for a pressed segment.
 5. **Data:** every snow and weather graphic uses the blue/ice ramp (`#376F9B`, `#C5DFF2`, `#E5F1FA`, `#88B2D5`), never burgundy.
-6. **Burgundy `#7B1E2E`:** logo first. Keep any other use small and rare (see the open question below).
+6. **Burgundy `#7B1E2E`:** the logo plus the accent for primary actions, focus, pills, and links (see below). Never in data graphics.
 7. **Light mode only.** The app stays on this light palette even when the phone is in dark mode.
 8. Write the brand as "Chair 0" with the numeral, and keep "Not affiliated with Vail Resorts" wherever the brand appears with resort content.
 
-## Open question: burgundy in the interface
+## Burgundy in the interface
 
-The earlier rule (11/15) was that maroon appears only in the logo, icon, and brand assets, and the interface stays blue. This version sets the global `--accent` to burgundy, so burgundy currently also appears on primary buttons (email sign-up submit), the patrol card border, keyboard focus outlines, status pills, featured run chips, the Help kicker, plain `<a>` links, and the resort menu's current resort and favorite star. Charts are correctly scoped to blue. If the logo-only rule stands, set `--accent` to `#365C7D` in `frost.css` and give the logo its own `--brand` token; if this version is the new rule, keep it and leave this note as the record.
+Decided 11/16: burgundy `#7B1E2E` is the app's accent, replacing the earlier logo-only rule. Besides the logo and icons it appears on primary buttons (email sign-up submit), the patrol card border, keyboard focus outlines, status pills, featured run chips, the Help kicker, plain `<a>` links, and the resort menu's current resort and favorite star. Snow and weather graphics stay blue/ice, and selected tabs, segments, and quiet links stay ink or muted blue.
 
 ## Implementation
 
