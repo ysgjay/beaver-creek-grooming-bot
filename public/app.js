@@ -981,7 +981,7 @@
         ${!hours.length ? '<p class="muted small">No upcoming hours in this saved report.</p>' : ""}
         <div class="hs-wrap">
           <div class="hs-col hs-labels" aria-hidden="true"><span class="t"></span><span class="sn">Snow</span>${rows.length ? rows.map((b) => `<span class="${b === midBand ? "mid" : "tmp"}">${esc(b.label)}</span>`).join("") : '<span class="mid">Temp</span>'}<span class="w">Wind</span></div>
-        <div class="hstrip" role="group" aria-label="Next 12 hours, hour by hour">
+        <div class="hstrip" role="group" aria-label="Upcoming forecast, hour by hour">
           ${hours.map((h) => `<div class="hs-col" tabindex="0" data-tip="${hourLabel(h.time)}: ${rows.length ? rows.map((b) => `${esc(b.label)} ${bandTemp(b, h.time)}`).join(", ") : h.temp + "°"}, feels ${h.feels}°. Wind ${esc(h.dir)} ${h.wind} mph${h.gust != null ? ", gusts " + h.gust : ""}. ${h.snow ? h.snow + " in. snow" : "No snow"}, cloud ${h.cloud}%">
             <span class="t">${hourLabel(h.time)}</span>
             <span class="sn">${h.snow ? `<b>${h.snow}"</b>` : ""}<i class="${h.snow ? "on" : ""}" style="height:${h.snow ? Math.max(3, Math.round((h.snow / snowMax) * 20)) : 2}px"></i></span>
@@ -998,7 +998,7 @@
         <div class="snow-grid">
           <div><span class="label">Days 1–5</span><span class="big">${inch(fc.next_1_5)}</span><span class="sub">${fc.next_1_5_range ? `likely ${inch(fc.next_1_5_range[0])}–${inch(fc.next_1_5_range[1])}` : ""}</span></div>
           <div><span class="label">Days 6–10</span><span class="mid">${inch(fc.next_6_10)}</span><span class="sub">${fc.next_6_10_range ? `${inch(fc.next_6_10_range[0])}–${inch(fc.next_6_10_range[1])}` : ""}</span></div>
-          <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">next 5 days</span></div>
+          <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">first 5 forecast days</span></div>
         </div>
         <div id="fc-chart" class="chart-scroll" aria-label="Daily snowfall; scroll to see later days">${days.length ? "" : '<p class="muted small">No daily forecast available.</p>'}</div>
         ${days.length ? `<div class="chart-controls"><span>Swipe for later days</span><button type="button" data-scroll="-1" aria-label="Earlier forecast days">←</button><button type="button" data-scroll="1" aria-label="Later forecast days">→</button></div>` : ""}
