@@ -91,26 +91,37 @@ def send_resort_update(email, token, slugs):
     })
 
 
-def send_daily(recipients, subject, html_body, text_body):
-    """recipients: [(email, token)]. One email each, so each has its own unsubscribe link."""
+def _footer(token):
+    unsub = unsubscribe_url(token)
+    a = f"color:{BURGUNDY};text-decoration:underline"
+    return (f'<p style="margin:4px 8px 0;color:{INK2};font-size:12px;line-height:1.5">You get this because you signed up at '
+            f'<a href="{config.DASHBOARD_URL}" style="{a}">snow.0xm.studio</a>. '
+            f'<a href="{resorts_url(token)}" style="{a}">Choose resorts</a> or '
+            f'<a href="{unsub}" style="{a}">unsubscribe</a> with one tap. Chair 0 is not affiliated with Vail Resorts.</p>')
+
+
+def _message(email, token, subject, html_body, text_body):
+    unsub = unsubscribe_url(token)
+    return {
+        "from": _from(), "to": [email], "subject": subject,
+        "html": _shell(html_body + _footer(token)), "text": f"{text_body}\n\nChoose resorts: {resorts_url(token)}\nUnsubscribe: {unsub}",
+        "headers": {"List-Unsubscribe": f"<{unsub}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"},
+    }
+
+
+def send_personal(messages):
+    """messages: [(email, token, subject, html_body, text_body)], each its own content."""
     sent = 0
-    for i in range(0, len(recipients), BATCH_MAX):
-        batch = []
-        for email, token in recipients[i:i + BATCH_MAX]:
-            unsub = unsubscribe_url(token)
-            a = f"color:{BURGUNDY};text-decoration:underline"
-            footer = (f'<p style="margin:4px 8px 0;color:{INK2};font-size:12px;line-height:1.5">You get this because you signed up at '
-                      f'<a href="{config.DASHBOARD_URL}" style="{a}">snow.0xm.studio</a>. '
-                      f'<a href="{resorts_url(token)}" style="{a}">Choose resorts</a> or '
-                      f'<a href="{unsub}" style="{a}">unsubscribe</a> with one tap. Chair 0 is not affiliated with Vail Resorts.</p>')
-            batch.append({
-                "from": _from(), "to": [email], "subject": subject,
-                "html": _shell(html_body + footer), "text": f"{text_body}\n\nChoose resorts: {resorts_url(token)}\nUnsubscribe: {unsub}",
-                "headers": {"List-Unsubscribe": f"<{unsub}>", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"},
-            })
+    for i in range(0, len(messages), BATCH_MAX):
+        batch = [_message(*m) for m in messages[i:i + BATCH_MAX]]
         _post("/emails/batch", batch)
         sent += len(batch)
     return sent
+
+
+def send_daily(recipients, subject, html_body, text_body):
+    """recipients: [(email, token)]. One email each, so each has its own unsubscribe link."""
+    return send_personal([(email, token, subject, html_body, text_body) for email, token in recipients])
 
 
 def _shell(inner):
@@ -326,3 +337,152 @@ def daily_html(day, map_url):
     else:
         out += _card(f'<p style="margin:0"><a href="{app}" style="{BUTTON}">See the full report</a></p>')
     return out
+
+
+# ---------- combined email: one per subscriber with two or more resorts ----------
+
+def new_snow(day):
+    rs = day.get("resort") or {}
+    return rs.get("last_24h_in", (day.get("observed") or {}).get("snow_in"))
+
+
+def _resort_name(slug, day=None):
+    return (day or {}).get("resort_name") or resorts_get_name(slug)
+
+
+def resorts_get_name(slug):
+    from . import resorts
+    return resorts.get(slug)["name"] if slug in resorts.RESORTS else slug
+
+
+def _peak_gust(day):
+    return max([h.get("gust") or 0 for h in ski_hours(day)] or [0]) or None
+
+
+def _fact(day):
+    """The one thing that leads for a resort in the subject line."""
+    s = new_snow(day)
+    n = len(groomed_runs((day.get("grooming") or {}).get("runs") or {}))
+    if s is not None and s >= 0.5:
+        return f'{_inch(s)} new'
+    if n:
+        return f"{n} groomed"
+    return "report in"
+
+
+def digest_subject(picked, pending):
+    """'Vail 2" new, Copper Mountain 14 groomed, Alta pending'."""
+    parts = [f"{_resort_name(s, d)} {_fact(d)}" for s, d in picked]
+    parts += [f"{resorts_get_name(s)} pending" for s in pending]
+    head = ", ".join(parts[:3]) + (f", +{len(parts) - 3} more" if len(parts) > 3 else "")
+    return head
+
+
+def digest_preheader(picked, pending):
+    bits = []
+    for s, d in picked[:3]:
+        gotd = ((d.get("grooming") or {}).get("runs") or {}).get("groomers_of_the_day") or []
+        if gotd:
+            bits.append(f"{_resort_name(s, d)}: {', '.join(gotd[:2])}.")
+    bits.append(f"{len(picked)} of {len(picked) + len(pending)} reports in.")
+    return " ".join(bits)
+
+
+def digest_text(picked, pending):
+    lines = []
+    for s, d in picked:
+        rs = d.get("resort") or {}
+        runs = (d.get("grooming") or {}).get("runs") or {}
+        fc = d.get("forecast") or {}
+        lines.append(f"{_resort_name(s, d)}: new {_inch(new_snow(d))}, base {_inch(rs.get('base_in'))}, "
+                     f"{len(groomed_runs(runs))} groomed, next 5 days {_inch(fc.get('next_1_5'))}")
+        if runs.get("groomers_of_the_day"):
+            lines.append("  Groomers of the day: " + ", ".join(runs["groomers_of_the_day"]))
+        lines.append("  Full report: " + report.app_url(d))
+    for s in pending:
+        lines.append(f"{resorts_get_name(s)}: report pending")
+    return "\n".join(lines)
+
+
+def digest_html(picked, pending, now):
+    """Departure-board summary: one row per resort (sorted by new snow), a short card per
+    resort with its groomers of the day and links, then the 5-day outlook side by side."""
+    from datetime import date as _date
+    sub = f"margin:2px 0 0;color:{INK2};font-size:13px"
+    total = len(picked) + len(pending)
+    pre = escape(digest_preheader(picked, pending))
+    out = (f'<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:{ICE}">'
+           f'{pre}{"&#847;&zwnj;&nbsp;" * 60}</div>')
+    d0 = _date.fromisoformat(picked[0][1]["date"])
+
+    th = f"padding:0 0 6px;font:600 10px/1.2 {MONO};letter-spacing:.05em;text-transform:uppercase;color:{INK2}"
+    rows = (f'<tr><td style="{th}">Resort</td><td style="{th};text-align:center">New</td><td style="{th};text-align:center">Base</td>'
+            f'<td style="{th};text-align:center">Temp</td><td style="{th};text-align:right">Groomed</td></tr>')
+    cell = f"border-top:1px solid {LINE};padding:8px 0;vertical-align:middle"
+    for s, d in picked:
+        rs = d.get("resort") or {}
+        hrs = ski_hours(d)
+        first = hrs[0] if hrs else None
+        gust = _peak_gust(d)
+        small = " · ".join(x for x in [f"report {escape(rs['updated_time'])}" if rs.get("updated_time") else "",
+                                        f"gusts {gust} mph" if gust else ""] if x)
+        snow = new_snow(d)
+        temp = f"{first['temp']}°" if first and first.get("temp") is not None else "–"
+        small_div = f'<div style="color:{INK2};font-size:11px">{small}</div>' if small else ""
+        rows += (f'<tr><td style="{cell}"><a href="{report.app_url(d)}" style="color:{INK};text-decoration:none;font-weight:600">{escape(_resort_name(s, d))}</a>'
+                 f'{small_div}</td>'
+                 f'<td style="{cell};text-align:center"><span style="display:inline-block;min-width:36px;padding:5px 0;border-radius:7px;'
+                 f'background:{_ramp(snow)};border:1px solid #dce8f2;font:700 13px {MONO};color:{INK}">{_inch(snow)}</span></td>'
+                 f'<td style="{cell};text-align:center;font:400 13px {MONO}">{_inch(rs.get("base_in"))}</td>'
+                 f'<td style="{cell};text-align:center;font:400 13px {MONO}">{temp}</td>'
+                 f'<td style="{cell};text-align:right;font:400 13px {MONO}">{len(groomed_runs((d.get("grooming") or {}).get("runs") or {})) or "–"}</td></tr>')
+    for s in pending:
+        rows += (f'<tr><td style="{cell};color:{INK2}"><b>{escape(resorts_get_name(s))}</b>'
+                 f'<div style="font-size:11px">not posted by {DIGEST_CUTOFF_LABEL}</div></td>'
+                 f'<td colspan="4" style="{cell};text-align:right"><span style="display:inline-block;padding:2px 8px;border-radius:99px;'
+                 f'background:#e8eef3;color:{INK2};font:600 10.5px {MONO};letter-spacing:.04em;text-transform:uppercase">Report pending</span></td></tr>')
+    out += _card(f"""{_brand_row()}
+      <h1 style="margin:12px 0 0;font:600 23px/1.2 {DISPLAY};color:{INK}">Your mountains</h1>
+      <p style="{sub}">{d0.strftime('%a')} {report.mmdd(d0)} · {len(picked)} of {total} reports in · sorted by new snow</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px;font-size:13px">{rows}</table>""")
+
+    for s, d in picked:
+        runs = (d.get("grooming") or {}).get("runs") or {}
+        g = d.get("grooming") or {}
+        fc = d.get("forecast") or {}
+        chips = "".join(f'<span style="display:inline-block;margin:0 5px 5px 0;padding:3px 10px;border-radius:8px;background:{BURGUNDY_TINT};'
+                        f'border:1px solid #e3c9cf;color:{BURGUNDY};font-weight:600;font-size:13px">{escape(n)}</span>'
+                        for n in (runs.get("groomers_of_the_day") or [])[:5])
+        facts = []
+        n = len(groomed_runs(runs))
+        if n:
+            facts.append(f"{n} groomed")
+        elif g.get("image") and not g.get("new_map", True):
+            facts.append("no new grooming map yet")
+        if fc.get("next_1_5") is not None:
+            facts.append(f'next 5 days {_inch(fc["next_1_5"])}')
+        links = [f'<a href="{report.app_url(d)}" style="{LINK}">Full report</a>']
+        if g.get("image"):
+            links.append(f'<a href="{_site(g["image"])}" style="{LINK}">Grooming map</a>')
+        out += _card(f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>'
+                     f'<td style="font:600 16px/1.3 {DISPLAY};color:{INK}">{escape(_resort_name(s, d))}</td>'
+                     f'<td align="right" style="font-size:13px">{" · ".join(links)}</td></tr></table>'
+                     + (f'<div style="margin-top:8px">{chips}</div>' if chips else "")
+                     + (f'<p style="{sub}">{" · ".join(facts)}</p>' if facts else ""), pad="12px 16px")
+
+    bars = ""
+    vals = [(s, d, (d.get("forecast") or {}).get("next_1_5")) for s, d in picked]
+    top = max([v or 0 for _, _, v in vals] + [1])
+    for s, d, v in vals:
+        w = 4 if not v else max(4, round(100 * v / top))
+        bars += (f'<tr><td style="padding:3px 8px 3px 0;width:40%;font-size:13px">{escape(_resort_name(s, d))}</td>'
+                 f'<td style="padding:3px 0"><div style="height:14px;width:{w}%;background:{SNOW_HEAT};border-radius:4px"></div></td>'
+                 f'<td style="padding:3px 0 3px 8px;width:44px;text-align:right;font:400 13px {MONO}">{_inch(v)}</td></tr>')
+    out += _card(f'<p style="{KICKER}">Snow forecast · next 5 days</p>'
+                 f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0">{bars}</table>'
+                 f'<p style="margin:14px 0 0"><a href="{_site("#forecast")}" style="{BUTTON}">See every forecast</a></p>')
+    return out
+
+
+SNOW_HEAT = "#88b2d5"
+DIGEST_CUTOFF_LABEL = "6:30 AM"

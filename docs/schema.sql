@@ -33,3 +33,11 @@ CREATE TABLE app_secrets (
   value      text NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE TABLE digest_sends (         -- once-a-day claim, per multi-resort subscriber (migrations/003)
+  day      date NOT NULL,
+  token    text NOT NULL,
+  resorts  text[] NOT NULL,
+  pending  text[] NOT NULL DEFAULT '{}',
+  sent_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (day, token)
+);
