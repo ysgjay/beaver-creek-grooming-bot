@@ -300,15 +300,22 @@ def daily_html(day, map_url):
         gusts = [h.get("gust") or h.get("wind") or 0 for h in hrs]
         lo = min(gusts)
         td = "padding:1px;text-align:center"
-        r1 = "".join(f'<td style="{td};font:400 11px {MONO};color:{INK2};padding-bottom:4px">{_hour(h["time"])}</td>' for h in hrs)
-        r2 = "".join(f'<td style="{td}"><div style="font:600 13px {MONO};color:{INK}">{h["temp"]}°</div>'
-                     f'<div style="font-size:10px;color:{INK2}">{h["feels"]}°</div></td>' for h in hrs)
-        r3 = "".join(f'<td style="{td};padding-top:4px"><div style="background:{_ramp(max(v - lo, 1), 18)};border-radius:6px;padding:4px 0;'
-                     f'font:600 12px {MONO};color:{INK}">{v}</div></td>' for v in gusts)
+        lab = (f"width:46px;padding:1px 6px 1px 0;text-align:left;vertical-align:middle;"
+               f"font:600 10px/1.2 {MONO};letter-spacing:.03em;text-transform:uppercase;color:{INK2}")
+        r1 = f'<td style="{lab}">&nbsp;</td>' + "".join(
+            f'<td style="{td};font:400 11px {MONO};color:{INK2};padding-bottom:4px">{_hour(h["time"])}</td>' for h in hrs)
+        r2 = f'<td style="{lab}">Temp</td>' + "".join(
+            f'<td style="{td};font:600 13px {MONO};color:{INK}">{h["temp"]}°</td>' for h in hrs)
+        r3 = f'<td style="{lab}">Feels</td>' + "".join(
+            f'<td style="{td};font:400 11px {MONO};color:{INK2};padding-bottom:4px">{h["feels"]}°</td>' for h in hrs)
+        r4 = f'<td style="{lab}">Gust</td>' + "".join(
+            f'<td style="{td};padding-top:2px"><div style="background:{_ramp(max(v - lo, 1), 18)};border-radius:6px;padding:4px 0;'
+            f'font:600 12px {MONO};color:{INK}">{v}</div></td>' for v in gusts)
         peak = max(hrs, key=lambda h: h.get("gust") or 0)
-        cap = f"Temp, feels like, then gusts in mph." + (f" Peak gust {peak['gust']} mph at {_clock(peak['time'])}." if peak.get("gust") else "")
+        cap = "Hourly forecast at the resort: temperature and feels like in °F, gusts in mph." + (f" Peak gust {peak['gust']} mph at {_clock(peak['time'])}." if peak.get("gust") else "")
         out += _card(f'<p style="{KICKER}">First chair to last · forecast</p>'
-                     f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed"><tr>{r1}</tr><tr>{r2}</tr><tr>{r3}</tr></table>'
+                     f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed">'
+                     f'<tr>{r1}</tr><tr>{r2}</tr><tr>{r3}</tr><tr>{r4}</tr></table>'
                      f'<p style="{sub};margin-top:6px">{cap}</p>')
 
     # 4. Snow forecast: ten days, weekday over MM/DD, likely range under each snowy day.
