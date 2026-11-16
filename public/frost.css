@@ -7,7 +7,7 @@
 html[data-brand="frosted-snow"]{
  --bg:#dcebfa;--surface:#ffffff;--surface-2:#eef4f8;--ink:#0c2a4a;--ink-2:#52677b;
  --accent:#7b1e2e;--on-accent:#ffffff;--accent-soft:#f2e6e9;--line:#c3d3e0;
- --snow:#7b1e2e;--snow-fill:#ead2d8;--font-display:Outfit,Arial,sans-serif;
+ --snow:#376f9b;--snow-fill:#c5dff2;--frost-metric-soft:#e5f1fa;--frost-metric-heat:#88b2d5;--font-display:Outfit,Arial,sans-serif;
  --font-body:'IBM Plex Sans',system-ui,sans-serif;--font-data:'IBM Plex Mono',monospace;
  --display-weight:600;--radius:24px;--pad:14px;--gap:12px;--tabbar-h:64px;
  --card-border:1px solid #ffffff;--head-mark:none;
@@ -55,7 +55,7 @@ html[data-brand="frosted-snow"] .btn{min-height:44px;border-radius:12px;padding:
 html[data-brand="frosted-snow"] .btn:hover{background:#631725}
 html[data-brand="frosted-snow"] .btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--frost-control);box-shadow:none}
 html[data-brand="frosted-snow"] .btn.secondary:hover{background:var(--surface-2)}
-/* Keep routine navigation quiet; burgundy stays in the logo, snow data, and primary actions. */
+/* Keep routine navigation quiet; burgundy stays in the logo and small brand accents. */
 html[data-brand="frosted-snow"] .btn.top-cta{background:var(--frost-paper);color:var(--ink);border:1px solid var(--frost-control);box-shadow:none}
 html[data-brand="frosted-snow"] .btn.top-cta:hover{background:var(--frost-selected)}
 html[data-brand="frosted-snow"] :is(button,a,input,summary):focus-visible{outline:3px solid var(--accent);outline-offset:3px;scroll-margin-block:100px}
@@ -83,6 +83,13 @@ html[data-brand="frosted-snow"] .sheet,html[data-brand="frosted-snow"] .resort-m
 html[data-brand="frosted-snow"] .patrol{border:2px solid var(--accent);background:#fff;box-shadow:none}
 html[data-brand="frosted-snow"] .offline{background:#fff6e7;color:var(--frost-amber);border:1px solid #cfb98f;border-radius:12px;padding:12px}
 html[data-brand="frosted-snow"] .cam-main,html[data-brand="frosted-snow"] .radar-map{border-radius:16px}
+/* Weather data has its own blue/ice palette, independent of the burgundy brand accent.
+   Scope the existing chart tokens so SVG geometry, hatching, legends, and pop-ups stay aligned. */
+html[data-brand="frosted-snow"] :is(.chart,.hs-wrap,.range-track,.vp-rows,.week-bars,.cal,.legend,.a-radar){
+ --accent:var(--snow);--accent-soft:var(--frost-metric-soft);
+}
+/* Keep all heat-strip labels dark, including heavy-snow days, on the lighter blue scale. */
+html[data-brand="frosted-snow"] .a-fc .chart{--accent:var(--frost-metric-heat);--on-accent:var(--ink)}
 @media(min-width:900px){
  html[data-brand="frosted-snow"]{--pad:16px;--gap:14px}
 }

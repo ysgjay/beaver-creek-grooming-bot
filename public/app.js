@@ -622,7 +622,7 @@
   function radarPalette() {
     const cs = getComputedStyle(document.documentElement), v = (n) => rgbOf(cs.getPropertyValue(n));
     const bg = v("--bg"), ink = v("--ink"), white = [255, 255, 255], black = [0, 0, 0];
-    const accent = v("--accent");
+    const accent = v("--snow");   // Weather uses the snow palette, independently of brand accents.
     const dark = (0.299 * bg[0] + 0.587 * bg[1] + 0.114 * bg[2]) < 110;
     const ramp = dark
       ? [mixRgb(bg, accent, 0.36), mixRgb(bg, accent, 0.55), mixRgb(bg, accent, 0.75), mixRgb(bg, accent, 0.92), mixRgb(accent, white, 0.4)]
