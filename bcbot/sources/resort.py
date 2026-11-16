@@ -90,6 +90,8 @@ def is_fresh(report, today):
 
 
 def fetch():
+    if not config.RESORT_SNOW_REPORT_URL:  # this resort's report isn't read (yet)
+        return {}
     try:
         r = get(config.RESORT_SNOW_REPORT_URL, headers={"Accept": "text/html"})
         if not r.ok:

@@ -3,7 +3,7 @@
 *Updated Nov 15, 2026. Deployment follows `main`; changes on a pull-request branch are previews until merged.*
 
 ## What it is
-**Resorts:** Beaver Creek, Vail, Breckenridge, Keystone and Crested Butte, picked from the title in the app. Sources, layouts and what differs per resort: `docs/RESORTS.md`. Database schema: `docs/schema.sql`.
+**Resorts:** 22 in Colorado and Utah on the Epic and Ikon passes (Beaver Creek, Vail, Breckenridge, Keystone, Crested Butte, Park City, Telluride, the four Aspen mountains, Steamboat, Winter Park, Copper, A-Basin, Eldora, Deer Valley, Solitude, Brighton, Alta, Snowbird, Snowbasin), picked from the title in the app and grouped by state. Sources, layouts and what differs per resort: `docs/RESORTS.md`. Database schema: `docs/schema.sql`.
 
 A morning report for Beaver Creek skiers: the grooming map with the named runs, conditions, a multi-model snow forecast, and the snow stake cam.
 - **Who gets it:** people who opt in. Delivery is by email and by notifications from the Snow Desk app itself.
