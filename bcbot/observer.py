@@ -77,6 +77,8 @@ def probes():
         for source, url in LIKELY.get(slug, {}).items():
             if not any(p[0] == slug and p[1] == source for p in out):
                 out.append((slug, source, "html", url))
+    # Not a resort: the Mtn Powder widget script, to learn which data URL it reads (one probe).
+    out.append(("_mtnfeed", "script", "js", "https://v4.mtnfeed.com/static/js/main.js"))
     return out
 
 
@@ -160,6 +162,10 @@ def read(kind, resp):
                          and (t.get("groom_status") or "not_groomed") != "not_groomed")
         stamps = [str(t.get(k)) for t in trails if isinstance(t, dict) for k in ("updated", "updated_at", "changed", "groom_date") if t.get(k)]
         return (max(stamps) if stamps else None), _sha("|".join(groomed)), {"groomed": len(groomed)}
+    if kind == "js":
+        urls = sorted(set(re.findall(r"""["'`](https?://[^"'`\s]{6,200}|/[a-z0-9_\-/]*(?:api|feed|json|resort)[a-z0-9_\-/.?=&{}$]*)["'`]""", resp.text, re.I)))
+        urls = [u for u in urls if re.search(r"api|feed|json|powder|resort", u, re.I)]
+        return None, _sha(resp.content), {"urls": urls[:40]}
     return read_html(resp.text)
 
 
