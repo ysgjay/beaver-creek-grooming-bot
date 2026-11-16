@@ -21,7 +21,8 @@ from .util import r1
 MIN_DAYS = 5
 WINDOW_DAYS = 45
 WET = 0.03  # inches liquid: ignore bone-dry days where everyone is "right"
-BIAS_CLAMP = (0.6, 1.6)
+BIAS_CLAMP = (0.8, 1.25)  # kept narrow: one winter at one gauge is thin evidence
+LEAD_GROUPS = ("short", "mid", "long")
 PRIOR_WEIGHT_IN = 1.0   # the prior counts as this many inches of forecast liquid
 PRIOR_MIN_DAYS = 30
 CAL_WEIGHT_IN = 6.0     # snow calibration starts at 1.0 and counts as this many inches of snow
@@ -30,6 +31,25 @@ CAL_CLAMP = (0.7, 1.4)
 
 def _clamp(x, lo, hi):
     return max(lo, min(hi, x))
+
+
+def _lead_priors(prior):
+    """{short, mid, long} from a prior that may be a bare number, a dict, or missing."""
+    if isinstance(prior, dict):
+        short = prior.get("short", 1.0)
+        return {g: _clamp(prior.get(g, short), *BIAS_CLAMP) for g in LEAD_GROUPS}
+    return {g: _clamp(1.0 if prior is None else prior, *BIAS_CLAMP) for g in LEAD_GROUPS}
+
+
+def _by_lead(prior, short_ratio):
+    """Recent scoring covers days 0-2 only, so the longer ranges keep their own prior and
+    move by the same factor the short range moved from its prior."""
+    lp = _lead_priors(prior)
+    factor = short_ratio / lp["short"] if lp["short"] else 1.0
+    out = {"short": short_ratio}
+    for g in LEAD_GROUPS[1:]:
+        out[g] = round(_clamp(lp[g] * factor, *BIAS_CLAMP), 2)
+    return out
 
 
 def terrain_priors(model_daily, observed_daily):
@@ -58,7 +78,8 @@ def prior_season(today):
 def compute(observed_daily, load_forecast, today=None, priors=None, resort_daily=None):
     """`load_forecast(date_str)` returns the forecast document issued that day, or None.
 
-    `priors` is {model: bias_ratio} from `terrain_priors`. `resort_daily` is {date: inches}
+    `priors` is {model: {lead group: bias_ratio}} from `terrain_priors` (a bare number
+    means the same prior at every range). `resort_daily` is {date: inches}
     of the resort's 24-hour snowfall as reported on the morning of that date.
     """
     today = today or date.today()
@@ -114,12 +135,13 @@ def compute(observed_daily, load_forecast, today=None, priors=None, resort_daily
     for m, ps in pairs.items():
         mae = sum(abs(f - o) for f, o in ps) / len(ps)
         f_sum, o_sum = sum(f for f, _ in ps), sum(o for _, o in ps)
-        prior = priors.get(m, 1.0)
+        prior = _lead_priors(priors.get(m))["short"]
         # Shrink toward the prior: with no recent liquid the prior stands, and a few wet
         # days are not allowed to swing the correction on their own.
         ratio = (o_sum + PRIOR_WEIGHT_IN * prior) / (f_sum + PRIOR_WEIGHT_IN)
         stats[m] = {"n": len(ps), "mae_liquid_in": round(mae, 3), "prior": prior,
                     "bias_ratio": round(_clamp(ratio, *BIAS_CLAMP), 2)}
+        stats[m]["bias_by_lead"] = _by_lead(priors.get(m), stats[m]["bias_ratio"])
     maes = sorted(s["mae_liquid_in"] for s in stats.values() if s["n"] >= MIN_DAYS)
     median = maes[len(maes) // 2] if maes else None
     for m, s in stats.items():
@@ -128,7 +150,9 @@ def compute(observed_daily, load_forecast, today=None, priors=None, resort_daily
         else:
             s["skill"] = round(_clamp(median / max(s["mae_liquid_in"], 0.005), 0.5, 2.0), 2)
     for m, prior in priors.items():  # models with nothing scored yet still get their prior
-        stats.setdefault(m, {"n": 0, "prior": prior, "bias_ratio": prior, "skill": 1.0})
+        lp = _lead_priors(prior)
+        stats.setdefault(m, {"n": 0, "prior": lp["short"], "bias_ratio": lp["short"], "skill": 1.0,
+                             "bias_by_lead": _by_lead(prior, lp["short"])})
     for m, ps in snow_pairs.items():
         s = stats.setdefault(m, {"n": 0, "bias_ratio": 1.0, "skill": 1.0})
         s["mae_snow_in"] = round(sum(abs(f - o) for f, o in ps) / len(ps), 2)

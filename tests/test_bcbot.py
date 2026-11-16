@@ -208,7 +208,7 @@ def test_verification_learns_dry_model(tmp_path):
             "raw": {"dry": {d.isoformat(): {"liquid": 0.25, "snow": 3}},
                     "good": {d.isoformat(): {"liquid": 0.5, "snow": 6}}}}))
     v = verify.compute(obs, lambda d: json.loads((fdir / f"{d}.json").read_text()) if (fdir / f"{d}.json").exists() else None, today=TODAY)
-    assert v["models"]["dry"]["bias_ratio"] == 1.6  # clamped from 2.0
+    assert v["models"]["dry"]["bias_ratio"] == 1.25  # clamped from 2.0
     assert v["models"]["good"]["skill"] > v["models"]["dry"]["skill"]
     assert v["history"][-1]["observed"] == 6
 
@@ -234,14 +234,25 @@ def _archive(tmp_path, days=10, liquid=0.25, snow=5.0, snow_cal=None):
 
 def test_terrain_prior_stands_until_recent_days_outweigh_it(tmp_path):
     # Nothing scored yet: the prior from last winter is the correction.
-    v = verify.compute({}, lambda d: None, today=TODAY, priors={"gfs_seamless": 1.3})
-    assert v["models"]["gfs_seamless"] == {"n": 0, "prior": 1.3, "bias_ratio": 1.3, "skill": 1.0}
-    # One wet day (0.5" seen, 0.5" forecast) only nudges it: (0.5 + 1.3) / (0.5 + 1.0) = 1.2.
+    v = verify.compute({}, lambda d: None, today=TODAY, priors={"gfs_seamless": 1.2})
+    assert v["models"]["gfs_seamless"] == {"n": 0, "prior": 1.2, "bias_ratio": 1.2, "skill": 1.0,
+                                           "bias_by_lead": {"short": 1.2, "mid": 1.2, "long": 1.2}}
+    # One wet day (0.5" seen, 0.5" forecast) only nudges it: (0.5 + 1.2) / (0.5 + 1.0) = 1.13.
     obs, load = _archive(tmp_path, days=1, liquid=0.5)
-    assert verify.compute(obs, load, today=TODAY, priors={"dry": 1.3})["models"]["dry"]["bias_ratio"] == 1.2
-    # Ten such days: recent evidence wins, (5 + 1.3) / (5 + 1) = 1.05.
+    assert verify.compute(obs, load, today=TODAY, priors={"dry": 1.2})["models"]["dry"]["bias_ratio"] == 1.13
+    # Ten such days: recent evidence wins, (5 + 1.2) / (5 + 1) = 1.03.
     obs, load = _archive(tmp_path, days=10, liquid=0.5)
-    assert verify.compute(obs, load, today=TODAY, priors={"dry": 1.3})["models"]["dry"]["bias_ratio"] == 1.05
+    assert verify.compute(obs, load, today=TODAY, priors={"dry": 1.2})["models"]["dry"]["bias_ratio"] == 1.03
+
+
+def test_priors_by_lead_move_with_recent_short_range_evidence(tmp_path):
+    # A model wet at short range but dry a week out keeps that shape as recent days arrive.
+    priors = {"dry": {"short": 0.9, "mid": 1.0, "long": 1.2}}
+    v = verify.compute({}, lambda d: None, today=TODAY, priors=priors)
+    assert v["models"]["dry"]["bias_by_lead"] == {"short": 0.9, "mid": 1.0, "long": 1.2}
+    obs, load = _archive(tmp_path, days=10, liquid=0.5)  # recent short range says 1.0 (0.9 -> 0.98)
+    by = verify.compute(obs, load, today=TODAY, priors=priors)["models"]["dry"]["bias_by_lead"]
+    assert by["short"] == 0.98 and by["mid"] == 1.09 and by["long"] == 1.25  # long clamped
 
 
 def test_terrain_priors_from_last_winter():
@@ -251,7 +262,7 @@ def test_terrain_priors_from_last_winter():
                                  "sharp": {d: 0.2 for d in days},
                                  "short": {d: 0.1 for d in days[:10]},      # too few days to trust
                                  "wild": {d: 0.01 for d in days}}, observed)
-    assert out["coarse"]["bias_ratio"] == 1.6 and out["coarse"]["n"] == 40  # clamped from 2.0
+    assert out["coarse"]["bias_ratio"] == 1.25 and out["coarse"]["n"] == 40  # clamped from 2.0
     assert out["sharp"]["bias_ratio"] == 1.0
     assert "short" not in out and "wild" not in out
     assert verify.prior_season(date(2026, 11, 15)) == (date(2025, 11, 1), date(2026, 4, 30))
@@ -343,15 +354,51 @@ def test_priors_are_worked_out_once_a_season(tmp_path, monkeypatch):
 
     def history(start, end):
         calls.append((start, end))
-        return {"gfs_seamless": {d: 0.1 for d in days}}
-    monkeypatch.setattr(openmeteo, "fetch_history", history)
+        return {"short": {"gfs_seamless": {d: 0.1 for d in days}},
+                "mid": {"gfs_seamless": {d: 0.11 for d in days}}, "long": {}}
+    monkeypatch.setattr(openmeteo, "fetch_history_by_lead", history)
     monkeypatch.setattr(snotel, "fetch_daily_precip",
-                        lambda b, e: {"station": "842:CO:SNTL", "daily": {d: 0.13 for d in days}})
+                        lambda b, e: {"station": "842:CO:SNTL", "daily": {d: 0.12 for d in days}})
     errors = []
-    assert main._terrain_priors(store, TODAY, errors) == {"gfs_seamless": 1.3}
-    assert main._terrain_priors(store, TODAY + timedelta(days=1), errors) == {"gfs_seamless": 1.3}
+    want = {"gfs_seamless": {"short": 1.2, "mid": 1.09}}
+    assert main._terrain_priors(store, TODAY, errors) == want
+    assert main._terrain_priors(store, TODAY + timedelta(days=1), errors) == want
     assert len(calls) == 1 and not errors
     assert store.get_json("data/priors.json")["season"] == "2025-11-01"
+    # Priors saved by the old single-range method are worked out again.
+    store.put_json("data/priors.json", {"season": "2025-11-01", "models": {"gfs_seamless": {"bias_ratio": 1.6}}})
+    assert main._terrain_priors(store, TODAY + timedelta(days=2), errors) == want and len(calls) == 2
+
+
+def test_history_by_lead_sums_full_days_only():
+    times = [f"2026-01-01T{h:02d}:00" for h in range(24)] + [f"2026-01-02T{h:02d}:00" for h in range(10)]
+    payload = {"hourly": {"time": times,
+                          "precipitation_previous_day1_gfs_seamless": [0.01] * 34,
+                          "precipitation_previous_day3_gfs_seamless": [None] * 34,
+                          "precipitation_previous_day5_gfs_seamless": [0.02] * 34,
+                          "precipitation_previous_day1_ukmo_seamless": [0.0] * 34}}
+    out = openmeteo.split_history_by_lead(payload, ["gfs_seamless", "ukmo_seamless"])
+    assert out["short"]["gfs_seamless"] == {"2026-01-01": 0.24}  # 01-02 has only 10 hours
+    assert out["long"]["gfs_seamless"] == {"2026-01-01": 0.48}
+    assert "gfs_seamless" not in out["mid"]
+    assert "gfs_hrrr" in openmeteo.NO_PRIOR_MODELS
+
+
+def test_blend_uses_range_correction_and_is_anchored_to_nws_and_nbm():
+    rows = [{"time": f"{(TODAY + timedelta(days=d)).isoformat()}T{h:02d}:00", "precipitation": 0.05,
+             "temperature_2m": 20, "relative_humidity_2m": 90} for d in range(10) for h in range(24)]
+    raw = forecast.daily_totals(rows)[TODAY.isoformat()]["snow"]
+    ver = {"models": {"gfs_seamless": {"bias_ratio": 1.2, "bias_by_lead": {"short": 1.2, "mid": 1.0, "long": 0.8}}}}
+    fc = forecast.build({"gfs_seamless": rows}, verification=ver, today=TODAY)
+    assert fc["days"][0]["snow"] == round(raw * 1.2, 1)
+    assert fc["days"][3]["snow"] == round(raw * 1.0, 1)
+    assert fc["days"][7]["snow"] == round(raw * 0.8, 1)
+    # A blend far above both the NWS forecasters and NOAA's blend is held to 1.5x the larger.
+    nbm = [dict(r, precipitation=0.001) for r in rows]
+    nws = {TODAY.isoformat(): 2.0}
+    fc = forecast.build({"gfs_seamless": rows, "ncep_nbm_conus": nbm}, nws_daily=nws, today=TODAY)
+    d0 = fc["days"][0]
+    assert d0["capped"] and d0["snow"] == 3.0 and d0["high"] >= 3.0
 
 
 def test_failed_priors_retry_the_next_day_not_every_run(tmp_path, monkeypatch):

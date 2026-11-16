@@ -96,6 +96,22 @@ def _weight(model, lead):
     return w[0] if lead < 2 else w[1]
 
 
+def _lead_group(lead):
+    return "short" if lead < 2 else "mid" if lead < 5 else "long"
+
+
+def _bias(st, lead):
+    """The model's wet/dry correction for a call this many days ahead."""
+    return (st.get("bias_by_lead") or {}).get(_lead_group(lead), st.get("bias_ratio", 1.0))
+
+
+# Sanity anchor: the blend may not run more than this far above both the NWS forecasters and
+# NOAA's own blend (and at least ANCHOR_MIN_IN above the larger of them).
+ANCHORS = ("nws", "ncep_nbm_conus")
+ANCHOR_RATIO = 1.5
+ANCHOR_MIN_IN = 1.0
+
+
 def _ensemble_parent(member):
     """'member03_gfs025' -> the scored model whose bias correction it inherits."""
     for suffix, parent in config.ENSEMBLE_PARENT.items():
@@ -129,10 +145,11 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
 
     # Ensemble members get the same corrections as the headline number, so the range
     # sits around it instead of around the uncorrected models.
+    lead_of = {d: i for i, d in enumerate(dates)}
     ens_daily = {}
     for k, rows in (ensemble_rows or {}).items():
-        scale = vstats.get(_ensemble_parent(k), {}).get("bias_ratio", 1.0) * snow_cal
-        ens_daily[k] = {d: {"snow": v["snow"] * scale, "liquid": v["liquid"]}
+        st = vstats.get(_ensemble_parent(k), {})
+        ens_daily[k] = {d: {"snow": v["snow"] * _bias(st, lead_of.get(d, 0)) * snow_cal, "liquid": v["liquid"]}
                         for d, v in daily_totals(rows).items()}
 
     days = []
@@ -148,7 +165,7 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
             if d in per_model.get(config.MODELS.get(m, {}).get("unless"), {}):
                 continue  # its higher-resolution version covers this day
             st = vstats.get(m, {})
-            corrected = daily[d]["snow"] * st.get("bias_ratio", 1.0) * snow_cal
+            corrected = daily[d]["snow"] * _bias(st, lead) * snow_cal
             values[m] = r1(corrected)
             w *= st.get("skill", 1.0)
             num += w * corrected
@@ -156,6 +173,12 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
         if not values:
             continue
         snow = num / den
+        anchors = [values[a] for a in ANCHORS if a in values]
+        capped = False
+        if len(anchors) == len(ANCHORS):
+            cap = max(ANCHOR_RATIO * max(anchors), max(anchors) + ANCHOR_MIN_IN)
+            if snow > cap:
+                snow, capped = cap, True
         ens = [e[d]["snow"] for e in ens_daily.values() if d in e]
         if len(ens) >= 10:
             low, high = _percentile(ens, 0.1), _percentile(ens, 0.9)
@@ -167,7 +190,7 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
             "low": r1(min(low, snow)),
             "high": r1(max(high, snow)),
             "models": values,
-        })
+        } | ({"capped": True} if capped else {}))
 
     def total(sl):
         return r1(sum(x["snow"] for x in days[sl]))

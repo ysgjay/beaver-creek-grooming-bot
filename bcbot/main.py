@@ -305,25 +305,36 @@ def send_test(store=None, slug=resorts.DEFAULT):
             "sent": notify.send_all(dict(day, test=True), map_url, slug=slug)}
 
 
+PRIORS_VERSION = 2  # 2: learned per forecast range from runs made 1, 3 and 5 days ahead
+
+
 def _terrain_priors(store, today, errors):
-    """{model: bias_ratio} over last winter. Worked out once a season and kept in data/priors.json;
-    a failed attempt is retried on the next day, not on every run."""
+    """{model: {lead group: bias_ratio}} over last winter. Worked out once a season and kept in
+    data/priors.json; a failed attempt is retried on the next day, not on every run."""
     start, end = verify.prior_season(today)
     saved = store.get_json("data/priors.json", {}) or {}
-    if saved.get("season") == start.isoformat() and (saved.get("models") or saved.get("tried") == today.isoformat()):
-        return {m: v["bias_ratio"] for m, v in (saved.get("models") or {}).items()}
-    doc = {"season": start.isoformat(), "season_end": end.isoformat(), "tried": today.isoformat(), "models": {}}
+    if (saved.get("season") == start.isoformat() and saved.get("version") == PRIORS_VERSION
+            and (saved.get("models") or saved.get("tried") == today.isoformat())):
+        return _prior_ratios(saved.get("models") or {})
+    doc = {"version": PRIORS_VERSION, "season": start.isoformat(), "season_end": end.isoformat(),
+           "tried": today.isoformat(), "models": {}}
     try:
         obs = snotel.fetch_daily_precip(start, end + timedelta(days=1))
         if not obs:
             raise ValueError("no SNOTEL history")
         doc["station"] = obs["station"]
-        doc["models"] = verify.terrain_priors(openmeteo.fetch_history(start, end), obs["daily"])
+        for group, daily in openmeteo.fetch_history_by_lead(start, end).items():
+            for m, v in verify.terrain_priors(daily, obs["daily"]).items():
+                doc["models"].setdefault(m, {})[group] = v
     except Exception as e:
         log.warning("terrain priors failed: %s", e)
         errors.append(f"terrain priors: {e}")
     store.put_json("data/priors.json", doc)
-    return {m: v["bias_ratio"] for m, v in doc["models"].items()}
+    return _prior_ratios(doc["models"])
+
+
+def _prior_ratios(models):
+    return {m: {g: v["bias_ratio"] for g, v in groups.items()} for m, groups in models.items()}
 
 
 def _resort_daily(store, today):
