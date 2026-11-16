@@ -163,3 +163,30 @@ def compute(observed_daily, load_forecast, today=None, priors=None, resort_daily
             "snow_cal": {"ratio": round(cal, 2), "n": cal_n,
                          "forecast_in": round(cal_fc, 1), "resort_in": round(cal_obs, 1)},
             "history": history[-30:]}
+
+
+def refresh(stored, priors, no_prior=()):
+    """Bring a saved verification up to date with the current priors and limits, for runs
+    where SNOTEL is down and nothing new can be scored.
+
+    Models with no recently scored days take the current prior (or their saved one, within
+    the current limit); `no_prior` models with nothing scored go to 1.0. Scored models keep
+    their recent ratio, within the current limit.
+    """
+    priors = priors or {}
+    out = dict(stored or {})
+    models = {m: dict(v) for m, v in (out.get("models") or {}).items()}
+    for m in priors:
+        models.setdefault(m, {"n": 0, "skill": 1.0})
+    for m, st in models.items():
+        prior = priors.get(m, st.get("prior"))
+        if st.get("n", 0) == 0:
+            if m in no_prior or prior is None:
+                prior = 1.0
+            short = _lead_priors(prior)["short"]
+        else:
+            short = round(_clamp(st.get("bias_ratio", 1.0), *BIAS_CLAMP), 2)
+        st["prior"], st["bias_ratio"] = _lead_priors(prior)["short"], short
+        st["bias_by_lead"] = _by_lead(prior, short)
+    out["models"] = models
+    return out
