@@ -26,7 +26,8 @@ Outfit is for headings and prominent measurements, IBM Plex Sans for interface t
 
 ## Logo files
 
-- `public/icon.svg` and `icon-{180,192,512}.png`: flat burgundy utility icon with an ice background. Use this for the favicon, home screen, and notifications. Its geometry stays inside the maskable safe area.
+- `public/brand/app-icon-dark-{180,192,512}.png`: dark navy iced app tile for home-screen installation. The 180 px PNG is the Apple touch icon; the manifest uses 192 and 512 px PNGs, with maskable support at 512 px. The opaque artwork keeps the terminal, ring, and chairs within the central mask-safe circle. The 1024 px master is stored alongside these exports. Use versioned filenames for future icon replacements.
+- `public/icon.svg` and `icon-{180,192,512}.png`: flat burgundy utility icon with an ice background, retained for the small favicon and notifications. It is no longer advertised as an install icon.
 - `public/brand/logo-utility.svg`: standalone small-format mark.
 - `public/brand/logo-outline-burgundy.svg` and `logo-outline-white.svg`: editable outline variants for larger brand applications. Preserve their proportions and allow clear space around the chairs and roof.
 - `public/brand/frosted-logo.webp`: approved material artwork, optimized to 640 px. Use it in the top-left home link at 48 px (44 px on narrow phones), and at 160 px on Help. The home link keeps its accessible name; the image itself is decorative.
@@ -70,7 +71,7 @@ For a new page, email header, or sibling product, start from these defaults:
 4. **Controls:** 44 px minimum touch targets, 12 px radius on buttons and inputs, `#7A90A4` control borders, flat `#DCE8F2` fill for a selected tab, solid `#365C7D` for a pressed segment.
 5. **Data:** every snow and weather graphic uses the blue/ice ramp (`#376F9B`, `#C5DFF2`, `#E5F1FA`, `#88B2D5`), never burgundy.
 6. **Burgundy `#7B1E2E`:** the logo plus the accent for primary actions, focus, pills, and links (see below). Never in data graphics.
-7. **Light mode only.** The app stays on this light palette even when the phone is in dark mode.
+7. **Two appearances.** Frosted Snow is light; Midnight Ice is dark. Follow the device by default, with System, Light, and Dark choices under Help → Appearance. Keep the same layout and blue/ice data language in both.
 8. Write the brand as "Chair 0" with the numeral, and keep "Not affiliated with Vail Resorts" wherever the brand appears with resort content.
 
 ## Burgundy in the interface
@@ -89,6 +90,14 @@ The custom alpine family lives inline in `public/index.html`, shared visually by
 Use a 28 × 28 viewBox and rounded caps and joins. Most strokes are 1.75 units; the Forecast snowflake uses 1.25 units and its ruler ticks 1.1 units at 65% opacity. Render at 26 px on mobile and 20 px in the desktop header. Idle icons are slate outlines; the selected icon uses ink with ice `#C5DFF2` in its `nav-ice` shapes. The Forecast ruler retains its subtle ice fill in either state. The surrounding selected tab stays flat, without an underline or raised bottom edge. Avoid texture, shadows, or burgundy in these small navigation symbols.
 
 Keep the visible labels, the link's `aria-current="page"`, and the existing generous touch targets. The SVGs are decorative (`aria-hidden="true"`, `focusable="false"`); the link supplies the name and keyboard focus. Both navigation copies must use the same geometry. No image downloads or additional JavaScript are needed.
+
+## Midnight Ice
+
+The dark appearance is derived from the navy glass-and-ice logo artwork. Use `#071B2E` for the background, `#102A40` for report cards, `#18384F` for secondary surfaces, `#E7F2FC` for primary text, and `#A9BFD2` for secondary text. Actions and focus use ice blue `#B8DCF6`; selected tabs use `#24475E`. Snow strokes use `#8DC4EB`, expected fills `#376B92`, and uncertainty fills `#173B55`. Heat-strip and calendar fills stay dark enough for light labels. Burgundy `#8B2941` is reserved for primary actions and small brand accents, with white button text.
+
+Keep cards opaque and texture in the artwork. Do not invert grooming maps or cameras. Native controls, sheets, tooltips, menus, model tables, and radar must all respect the resolved appearance. Primary and secondary text exceed 4.5:1 contrast on their corresponding surfaces. `appearance.js` runs before styles to avoid a light flash; it respects saved choices, live device changes, and blocked storage. Preferences use `chair0.appearance` and sync between open tabs. `dark.css` loads last.
+
+Home-screen icon setup follows [Apple touch-icon guidance](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html) and the [maskable icon safe zone](https://web.dev/articles/maskable-icon). The launch artwork stays navy in either appearance. Existing installed shortcuts may retain cached artwork; removing and adding the shortcut again is the fallback.
 
 ## Implementation
 

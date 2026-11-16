@@ -43,7 +43,7 @@
       ]
     },
     {
-      "source": "/(app.js|app.css|themes.css|frost.css|config.json|resorts.json)",
+      "source": "/(app.js|appearance.js|report-ui.js|app.css|themes.css|frost.css|dark.css|manifest.webmanifest|config.json|resorts.json)",
       "headers": [
         {
           "key": "Cache-Control",
