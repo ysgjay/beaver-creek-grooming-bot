@@ -103,7 +103,15 @@ def read_html(text):
         m = _STAMP.search(visible)
         stamp = re.sub(r"\s+", " ", m.group(1)).strip() if m else None
     nums = _SNOW_BITS.findall(visible)
-    return stamp, _sha(" ".join(nums)) if nums else _sha(visible), {"snow_numbers": nums[:24]}
+    # Clues for pages that render their numbers in the browser: data/API URLs in the HTML and the
+    # visible text around "snow", so a proper reader can be written from what was seen.
+    feeds = sorted(set(m for m in _FEED.findall(text)))[:15]
+    i = visible.lower().find("snow")
+    detail = {"snow_numbers": nums[:24], "feeds": feeds, "text": visible[max(0, i - 100):i + 400] if i >= 0 else visible[:300]}
+    return stamp, _sha(" ".join(nums)) if nums else _sha(visible), detail
+
+
+_FEED = re.compile(r"""https?://[^\s"'<>]+?(?:/api/|feed|\.json|mtnpowder|graphql|snow-?report)[^\s"'<>]*""", re.I)
 
 
 def read(kind, resp):
@@ -245,7 +253,7 @@ ORDER BY resort, source, polled_at
 """
 
 LATEST_SQL = """
-SELECT DISTINCT ON (resort, source, url) resort, source, kind, url, http, stamp, error,
+SELECT DISTINCT ON (resort, source, url) resort, source, kind, url, http, stamp, error, detail,
        to_char(polled_at AT TIME ZONE 'America/Denver', 'YYYY-MM-DD HH24:MI') AS at,
        (SELECT count(*) FROM posting_polls p2 WHERE p2.resort = p.resort AND p2.url = p.url) AS polls,
        (SELECT count(*) FROM posting_polls p2 WHERE p2.resort = p.resort AND p2.url = p.url AND p2.fp IS NOT NULL) AS ok_polls
