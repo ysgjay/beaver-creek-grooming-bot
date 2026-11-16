@@ -101,6 +101,8 @@ REPLAY_LEADS = range(1, 8)
 NO_REPLAY = {"gfs_hrrr"}
 # Before this local hour a missing source can still join the day's frozen call.
 FREEZE_UNTIL_HOUR = 8
+# A replay month that failed (or got no SNOTEL readings) is tried again after this long.
+RETRY_HOURS = 2
 
 
 def label(source):
@@ -323,15 +325,23 @@ def fetch_replay_truth(start, end):
 def pending_chunks(conn, today, slugs):
     """[(slug, yyyy-mm)] still to replay, oldest month first."""
     with conn.cursor() as cur:
-        cur.execute("SELECT resort, month, covered_to FROM fc_backfill")
-        done = {(r, m): c for r, m, c in cur.fetchall()}
+        # A month that failed is retried after RETRY_HOURS, not on every tick.
+        cur.execute("SELECT resort, month, covered_to, tried_at > now() - make_interval(hours => %s) FROM fc_backfill",
+                    (RETRY_HOURS,))
+        done = {(r, m): (c, recent) for r, m, c, recent in cur.fetchall()}
+        # Months marked done before 11/16 fixes but holding no gauge readings (SNOTEL was down) run again.
+        cur.execute("SELECT DISTINCT resort, to_char(valid, 'YYYY-MM') FROM fc_truth WHERE snotel_liquid IS NOT NULL")
+        has_truth = set(cur.fetchall())
     out = []
     for ym in replay_months(today):
         _, end = month_span(ym, today)
         for s in slugs:
-            covered = done.get((s, ym))
-            if covered is None or covered < end:
-                out.append((s, ym))
+            covered, recent = done.get((s, ym), (None, False))
+            if covered is not None and covered >= end and (s, ym) in has_truth:
+                continue
+            if recent and (covered is None or (s, ym) not in has_truth):
+                continue  # tried lately and failed, or SNOTEL had nothing: wait before trying again
+            out.append((s, ym))
     return out
 
 
@@ -348,6 +358,8 @@ def replay_chunk(conn, slug, ym, today):
             save_truth(cur, slug, truth_rows(obs, None, today, False), station)
         if not rows:
             err = "no model data"
+        elif not obs:  # SNOTEL down: keep the calls, retry the month so it gets its truth
+            err = "no SNOTEL data"
     except Exception as e:
         err = str(e)[:300]
     with conn.cursor() as cur:
