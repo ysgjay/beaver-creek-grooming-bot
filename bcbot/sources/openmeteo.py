@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 ENSEMBLE_URL = "https://ensemble-api.open-meteo.com/v1/ensemble"
 HISTORY_URL = "https://historical-forecast-api.open-meteo.com/v1/forecast"
+PREVIOUS_RUNS_URL = "https://previous-runs-api.open-meteo.com/v1/forecast"
 
 HOURLY_VARS = [
     "temperature_2m",
@@ -186,6 +187,59 @@ def fetch_history(start, end, models=None):
         rr = get(HISTORY_URL, params=params | {"models": m}, timeout=10, retries=0)
         if rr.ok:
             out.update(split_history(rr.json(), [m]))
+    return out
+
+
+# Forecast range group -> how many days before the target day the run was made. The
+# historical archive above only holds each model's newest run, which is far wetter than the
+# same model a few days out, so a correction learned there over-corrects days 2-9.
+LEAD_DAYS = {"short": 1, "mid": 3, "long": 5}
+# The archive's "HRRR" is GFS stitched in (identical day for day), so it gets no prior.
+NO_PRIOR_MODELS = {"gfs_hrrr"}
+
+
+def fetch_history_by_lead(start, end, models=None):
+    """Daily liquid precip each model forecast 1, 3 and 5 days ahead over a past period.
+
+    Returns {lead group: {model: {date: inches}}}. A day counts only when 20+ hours are present.
+    """
+    models = [m for m in (models or config.MODELS) if m not in NO_PRIOR_MODELS]
+    hourly = ",".join(f"precipitation_previous_day{n}" for n in LEAD_DAYS.values())
+    params = _base_params() | {"hourly": hourly, "models": ",".join(models),
+                               "start_date": start.isoformat(), "end_date": end.isoformat()}
+    params.pop("forecast_days")
+    r = get(PREVIOUS_RUNS_URL, params=params, timeout=25, retries=0)
+    if r.ok:
+        return split_history_by_lead(r.json(), models)
+    log.warning("Open-Meteo previous-runs request failed (%s): %s", r.status_code, r.text[:200])
+    out = {g: {} for g in LEAD_DAYS}
+    for m in models:  # a model the archive doesn't hold fails the whole request
+        rr = get(PREVIOUS_RUNS_URL, params=params | {"models": m}, timeout=10, retries=0)
+        if rr.ok:
+            for g, v in split_history_by_lead(rr.json(), [m]).items():
+                out[g].update(v)
+    return out
+
+
+def split_history_by_lead(payload, models):
+    hourly = payload.get("hourly", {})
+    times = hourly.get("time", [])
+    out = {g: {} for g in LEAD_DAYS}
+    for g, n in LEAD_DAYS.items():
+        for m in models:
+            col = hourly.get(f"precipitation_previous_day{n}" + ("" if len(models) == 1 else f"_{m}"))
+            if not col:
+                continue
+            sums, hours = {}, {}
+            for t, v in zip(times, col):
+                if v is None:
+                    continue
+                d = t[:10]
+                sums[d] = sums.get(d, 0.0) + v
+                hours[d] = hours.get(d, 0) + 1
+            days = {d: round(v, 3) for d, v in sums.items() if hours[d] >= 20}
+            if days:
+                out[g][m] = days
     return out
 
 
