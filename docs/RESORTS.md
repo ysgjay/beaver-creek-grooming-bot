@@ -26,14 +26,14 @@ Sources were checked on 11/15/2026 from a browser on the owner's Mac.
 | Buttermilk | Ikon | none | not read | none yet | Castle Peak 1326 | 12/12 |
 | Steamboat | Ikon | none | not read | none yet | Dry Lake 457 | 11/21 |
 | Winter Park | Ikon | none | not read | none yet | Berthoud Summit 335 | 11/13 |
-| Copper Mountain | Ikon | none | not read | none yet | Copper Mountain 415 | 11/6 |
+| Copper Mountain | Ikon | `api.coppercolorado.com` trails feed (groomed runs list) | `api.coppercolorado.com/api/v1/dor/drupal/snow-reports` | none yet | Copper Mountain 415 | 11/6 |
 | Arapahoe Basin | Ikon | none | not read | none yet | Grizzly Peak 505 | 10/28 |
-| Eldora | Ikon | none | not read | none yet | Lake Eldora 564 | 11/13 |
+| Eldora | Ikon | `api.eldora.com` trails feed (groomed runs list) | `api.eldora.com/api/v1/dor/drupal/snow-reports` | none yet | Lake Eldora 564 | 11/13 |
 | Deer Valley | Ikon | none | not read | none yet | Thaynes Canyon 814 | 12/5 |
 | Solitude | Ikon | none | not read | none yet | Brighton 366 | 11/20 |
 | Brighton | Ikon | none | not read | none yet | Brighton 366 | 11/27 |
 | Alta | Ikon | none | not read | none yet | Atwater 1308 | 11/20 |
-| Snowbird | Ikon | none | not read | none yet | Snowbird 766 | 11/27 |
+| Snowbird | Ikon | `api.snowbird.com` trails feed (groomed runs list) | `api.snowbird.com/api/v1/dor/drupal/snow-reports` | none yet | Snowbird 766 | 11/27 |
 | Snowbasin | Ikon | none | not read | none yet | Ben Lomond Peak 332 (20 km away) | 11/27 |
 
 Resorts whose own report isn't read (`snow_report_path: None`) send at 7:00 with the forecast,
@@ -71,3 +71,8 @@ subscriber picks costs one more email a day. Watch the total as people pick more
 Set `enabled` in `resorts.py`, or set the `RESORTS` env var in Vercel (for example
 `beaver-creek,vail`), which overrides it without a deploy of new code. Opening days can be overridden
 with `OPENING_DAY_<SLUG>` (for example `OPENING_DAY_CRESTED_BUTTE=2027-11-24`).
+
+
+## POWDR feeds (Copper, Eldora, Snowbird)
+
+These three publish open JSON at `https://api.<resort>.com/api/v1/dor/drupal/snow-reports` and `/trails`. `bcbot/sources/dor.py` reads both: the newest snow report (its `date` is the Updated time) and every winter trail whose `groom_status` isn't `not_groomed`, grouped by sector. They have no map, so the email lists groomed runs and sends once today's snow report is in, like other map-less resorts (9:00 deadline), listing whatever runs are groomed by then.

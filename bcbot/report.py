@@ -55,7 +55,7 @@ def compose(day):
     lines = [f"🎿 {resort_name(day)} {'Snow' if (day.get('grooming') or {}).get('none') else 'Grooming'} — {pretty_date(day['date'])}"]
     g = day.get("grooming", {})
     if not g.get("new_map", True) and not g.get("none"):
-        lines.append("(No new grooming map posted yet today)")
+        lines.append("(No groomed runs reported yet today)" if g.get("list") else "(No new grooming map posted yet today)")
     runs = g.get("runs") or {}
     if runs.get("groomers_of_the_day"):
         lines.append("⭐ Groomers of the day: " + ", ".join(runs["groomers_of_the_day"]))

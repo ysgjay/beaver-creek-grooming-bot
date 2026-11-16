@@ -90,6 +90,9 @@ def is_fresh(report, today):
 
 
 def fetch():
+    if config.DOR_API:  # Copper, Snowbird, Eldora: open JSON feed
+        from . import dor
+        return dor.fetch_snow_report()
     if not config.RESORT_SNOW_REPORT_URL:  # this resort's report isn't read (yet)
         return {}
     try:

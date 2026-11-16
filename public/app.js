@@ -357,7 +357,7 @@
     v.innerHTML = `
       ${S.offline ? `<p class="offline">You're offline. Showing the report saved on ${fmtDay(L.date)}.</p>` : ""}
       <div class="status-line">
-        ${g.none ? "" : `<span class="pill ${g.new_map ? "" : "quiet"}">${g.new_map ? "New grooming report" : "No new grooming report yet"}</span>`}
+        ${g.none ? "" : `<span class="pill ${g.new_map ? "" : "quiet"}">${g.new_map ? (g.list ? "Grooming report" : "New grooming report") : "No new grooming report yet"}</span>`}
         <span>${sentAt ? `Sent ${sentAt}` : `Updated ${isToday ? "" : fmtDay(L.date) + " "}${(L.generated || "").slice(11, 16)}`}</span>
         ${rs.updated_time ? `<span>· Snow report ${esc(rs.updated_time)}</span>` : ""}
       </div>
@@ -376,7 +376,7 @@
       ${g.none ? "" : `<section class="card a-groom" aria-labelledby="h-groom">
         <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="muted small">${g.runs?.map_date ? esc(mapDate(g.runs.map_date)) : ""}</span></div>
         <div class="groom">
-          ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="${esc(resortInfo().name)} grooming map" decoding="async"></button>` : `<p class="muted">No grooming map yet.</p>`}
+          ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="${esc(resortInfo().name)} grooming map" decoding="async"></button>` : g.list ? (groomedRuns(g.runs).length ? "" : `<p class="muted">No groomed runs reported yet today.</p>`) : `<p class="muted">No grooming map yet.</p>`}
           ${runsBlock(g.runs)}
         </div>
       </section>`}

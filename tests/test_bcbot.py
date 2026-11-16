@@ -949,7 +949,9 @@ def test_every_resort_is_complete():
         assert fts[0] < r["elevation_ft"] <= fts[2], slug          # forecast point is on the mountain
         assert r["snotel"] and r["tz"] == "America/Denver" and r["opening_day"], slug
         assert r["region"] in ("Colorado", "Utah") and r["pass"] in ("Epic", "Ikon"), slug
-        if r["snow_report"]:  # Vail-platform resorts; the others' reports aren't read yet
+        if r["dor_api"]:  # POWDR open feed
+            assert r["snow_report"] == r["dor_api"] + "/api/v1/dor/drupal/snow-reports", slug
+        elif r["snow_report"]:  # Vail-platform resorts; the others' reports aren't read yet
             assert r["snow_report"].startswith(r["site"] + "/the-mountain/mountain-conditions/"), slug
 
 
@@ -1005,3 +1007,57 @@ def test_park_city_two_runs_per_line():
     assert out["groomed"] == ["Snow Dancer", "Mellow Moose", "Sweet Pea", "Kokopelli"]
     assert out["map_date"] == "November 3, 2026 06:24 AM"
     assert grooming.parse_runs(["MID-VAIL", "9 Highline 10 Lane 2", "11 Run 7 Up"])["groomed"] == ["Highline", "Lane 2", "Run 7 Up"]
+
+
+# --- POWDR open feeds (Copper, Snowbird, Eldora) ---
+
+def test_dor_snow_report_takes_newest_and_converts_cm():
+    from bcbot.sources import dor
+    reports = [
+        {"date": "2026-11-14 05:00:00", "overnight_amount": 1, "base_depth": 10, "unit_of_measurement": "in",
+         "computed": {"24_hour": 1, "total": 12}},
+        {"date": "2026-11-15 05:30:00", "overnight_amount": 5.08, "base_depth": 50.8, "unit_of_measurement": "cm",
+         "computed": {"24_hour": 5.08, "48_hour": 10.16, "7_day": "", "total": 76.2}},
+    ]
+    r = dor.parse_snow_report(reports)
+    assert r["overnight_in"] == 2.0 and r["last_24h_in"] == 2.0 and r["last_48h_in"] == 4.0
+    assert r["base_in"] == 20.0 and r["season_in"] == 30.0 and "last_7d_in" not in r
+    assert r["updated_time"] == "5:30 AM"
+    assert resort.is_fresh(r, TODAY) is True
+    assert dor.parse_snow_report([]) == {} and dor.parse_snow_report({"x": 1}) == {}
+
+
+def test_dor_trails_lists_groomed_winter_runs_by_sector():
+    from bcbot.sources import dor
+    trails = [
+        {"name": "Main Vein", "sector": {"name": "Center Village"}, "type": "alpine_trail", "season": "winter", "groom_status": "groomed"},
+        {"name": "Andy's Encore", "sector": {"name": "Center Village"}, "type": "alpine_trail", "season": "winter", "groom_status": "not_groomed"},
+        {"name": "Bouncer", "sector": {"name": "East Village"}, "type": "alpine_trail", "season": "winter", "groom_status": "groomed"},
+        {"name": "Bike Path", "sector": {"name": "East Village"}, "type": "bike_trail", "season": "summer", "groom_status": "groomed"},
+        {"name": "Woodward", "sector": None, "type": "terrain_park_trail", "season": "winter", "groom_status": "groomed"},
+    ]
+    g = dor.parse_trails(trails)
+    assert g["areas"] == {"Center Village": ["Main Vein"], "East Village": ["Bouncer"], "Groomed": ["Woodward"]}
+    assert g["groomed"] == ["Main Vein", "Bouncer", "Woodward"]
+    assert dor.parse_trails(None)["groomed"] == []
+
+
+def test_dor_resorts_read_the_feed():
+    for slug in ("copper", "snowbird", "eldora"):
+        r = resorts.get(slug)
+        assert r["dor_api"].startswith("https://api.") and r["snow_report"].endswith("/snow-reports")
+        assert not resorts.is_static(slug)
+        config.use(slug)
+        assert config.DOR_API == r["dor_api"]
+    config.use("beaver-creek")
+    assert not config.DOR_API
+
+
+def test_resort_fetch_routes_to_dor(monkeypatch):
+    from bcbot.sources import dor
+    monkeypatch.setattr(dor, "fetch_snow_report", lambda: {"overnight_in": 3.0})
+    config.use("copper")
+    try:
+        assert resort.fetch() == {"overnight_in": 3.0}
+    finally:
+        config.use("beaver-creek")
