@@ -46,8 +46,15 @@ LIKELY = {
     "steamboat": {"snow": "https://www.steamboat.com/the-mountain/mountain-report"},
     "winter-park": {"snow": "https://www.winterparkresort.com/the-mountain/mountain-report"},
     "arapahoe-basin": {"snow": "https://www.arapahoebasin.com/snow-report/"},
-    "deer-valley": {"snow": "https://www.deervalley.com/mountain-report"},
-    "solitude": {"snow": "https://www.solitudemountain.com/mountain-and-village/mountain-report"},
+    # 11/16: /mountain-report 404s on both, so these try candidates in order and keep the first 200.
+    "deer-valley": {"snow": ["https://www.deervalley.com/explore-the-mountain/mountain-report",
+                             "https://www.deervalley.com/the-mountain/mountain-report",
+                             "https://www.deervalley.com/mountain-report/snow-report",
+                             "https://www.deervalley.com/explore-the-mountain/snow-report"]},
+    "solitude": {"snow": ["https://www.solitudemountain.com/mountain-and-village/conditions-and-weather",
+                          "https://www.solitudemountain.com/the-mountain/mountain-report",
+                          "https://www.solitudemountain.com/mountain-report",
+                          "https://www.solitudemountain.com/conditions"]},
     "brighton": {"snow": "https://www.brightonresort.com/conditions"},
     "alta": {"snow": "https://www.alta.com/conditions/daily-mountain-report/snow-report",
              "grooming": "https://www.alta.com/lift-terrain-status"},
@@ -141,6 +148,13 @@ def read(kind, resp):
 
 def poll_one(probe, session):
     slug, source, kind, url = probe
+    if isinstance(url, list):  # candidates: the first one that answers 200 wins
+        row = None
+        for u in url:
+            row = poll_one((slug, source, kind, u), session)
+            if row["http"] == 200:
+                break
+        return row
     t0 = time.monotonic()
     row = {"resort": slug, "source": source, "kind": kind, "url": url, "http": None, "ms": None, "bytes": None,
            "stamp": None, "fp": None, "detail": None, "error": None}
