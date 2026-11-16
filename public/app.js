@@ -80,12 +80,18 @@
     fillSnow(el);
   }
 
-  async function getJSON(path, { fresh = false } = {}) {
+  // Every request gives up after a while, so a stalled connection (common right after iOS opens
+  // the Home Screen app from a notification) shows the saved or empty report instead of
+  // leaving the loading cards up forever.
+  async function getJSON(path, { fresh = false, timeout = 6000 } = {}) {
     path = dataPath(path);
+    const ctl = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = ctl && setTimeout(() => ctl.abort(), timeout);
     try {
-      const r = await fetch(path, { cache: fresh ? "no-cache" : "default" });
+      const r = await fetch(path, { cache: fresh ? "no-cache" : "default", ...(ctl ? { signal: ctl.signal } : {}) });
       return r.ok ? await r.json() : null;
     } catch (e) { return null; }
+    finally { if (timer) clearTimeout(timer); }
   }
 
   /* ---------------- themes ---------------- */
@@ -354,6 +360,13 @@
     const r = resortInfo() || {};
     v.classList.add("empty");
     const site = r.site ? `<a href="${esc(r.site)}" target="_blank" rel="noopener">${esc(r.name)}'s website</a>` : "the resort's website";
+    if (S.failed && navigator.onLine !== false) {
+      v.innerHTML = `<section class="card empty-note"><h2>The report didn't load</h2>
+          <p>The connection stalled before ${esc(r.name || "this resort")}'s report came in.</p>
+          <p><button class="btn" type="button" data-retry>Try again</button></p></section>`;
+      $("[data-retry]", v).addEventListener("click", () => { $("#main").innerHTML = `<div class="skeleton"></div><div class="skeleton"></div>`; refresh(); });
+      return v;
+    }
     v.innerHTML = navigator.onLine === false
       ? `<p class="offline">You're offline and there's no saved report for ${esc(r.name || "this resort")}. Try again once you're connected.</p>`
       : `<section class="card empty-note"><h2>${esc(r.name || "This resort")} is new on Snow Desk</h2>
@@ -1342,14 +1355,15 @@ ${tell}
   }
 
   async function loadResortData() {
-    S.latest = null; S.verification = null; S.months = {}; S.offline = false;
+    S.latest = null; S.verification = null; S.months = {}; S.offline = false; S.failed = false;
     S.cal = { mode: "month", month: null, sel: null };
     const latest = await getJSON("/data/latest.json", { fresh: true });
     S.latest = latest;
     if (!latest) {
       // Offline: the service worker may still have the last report.
-      S.latest = await getJSON("/data/latest.json");
+      S.latest = await getJSON("/data/latest.json", { timeout: 3000 });
       S.offline = !!S.latest;
+      S.failed = !S.latest;
     }
     const slug = R.slug;
     getJSON("/data/verification.json").then((v) => { if (slug !== R.slug) return; S.verification = v; if ((location.hash || "#today") === "#forecast") route(); });
@@ -1419,7 +1433,29 @@ ${tell}
     await loadResortData();
     route();
     window.addEventListener("hashchange", () => { window.scrollTo({ top: 0 }); route(); });
-    if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("/sw.js").catch(() => {});
+    if ("serviceWorker" in navigator && location.protocol === "https:") {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+      // A notification tap on an open app: show that report's resort with fresh data.
+      navigator.serviceWorker.addEventListener("message", (e) => { if (e.data && e.data.type === "open-report") openReport(e.data.url); });
+    }
+    // Coming back to the app (a notification tap, or switching apps) with the loading cards
+    // still up: load again rather than wait on a request iOS may have dropped.
+    const stuck = () => !!$("#main > .skeleton");
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && stuck()) refresh(); });
+    window.addEventListener("pageshow", (e) => { if (e.persisted && stuck()) refresh(); });
+  }
+  let refreshing = null;
+  function refresh() {
+    if (!refreshing) refreshing = loadResortData().then(route).finally(() => { refreshing = null; });
+    return refreshing;
+  }
+  async function openReport(url) {
+    let slug = DEFAULT_RESORT;
+    try { slug = new URL(url, location.href).searchParams.get("resort") || DEFAULT_RESORT; } catch (e) {}
+    if (location.hash && location.hash !== "#today") history.replaceState(null, "", location.pathname + location.search);
+    if (slug !== R.slug && R.list.some((r) => r.slug === slug)) return switchResort(slug);
+    $("#main").innerHTML = `<div class="skeleton"></div><div class="skeleton"></div>`;
+    return refresh();
   }
   boot();
 })();
