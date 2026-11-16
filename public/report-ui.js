@@ -50,7 +50,9 @@
   }
   function dayLabel(day) {
     const p = parts(day);
-    return p?.day ? new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" }).format(new Date(p.day + "T12:00:00Z")) : null;
+    if (!p?.day) return null;  // weekday + MM/DD, e.g. "Sun 11/15"
+    const wd = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "short" }).format(new Date(p.day + "T12:00:00Z"));
+    return `${wd} ${p.day.slice(5, 7)}/${p.day.slice(8, 10)}`;
   }
   function clockLabel(p) { return p?.hour !== null && p?.hour !== undefined ? `${p.hour % 12 || 12}${p.minute ? ":" + pad(p.minute) : ""} ${p.hour < 12 ? "AM" : "PM"}` : null; }
   function stamp(value, zone, today, withDate = false) {

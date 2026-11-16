@@ -355,6 +355,11 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
     band_rows = _try("open-meteo bands", openmeteo.fetch_bands, errors, {})
     obs = _try("snotel", snotel.fetch, errors, {})
     resort_report = resort_report if resort_report is not None else resort.fetch()
+    # Readers return {} instead of raising; record that so missing data doesn't look normal.
+    if not obs and config.SNOTEL_STATIONS:
+        errors.append("snotel: no station answered")
+    if not resort_report and (config.DOR_API or config.RESORT_SNOW_REPORT_URL):
+        errors.append("resort snow report: empty or unreadable")
 
     if obs:
         verification = verify.compute(obs.get("daily", {}),

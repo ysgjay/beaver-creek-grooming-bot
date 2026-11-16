@@ -97,7 +97,8 @@ def _footer(token):
     return (f'<p style="margin:4px 8px 0;color:{INK2};font-size:12px;line-height:1.5">You get this because you signed up at '
             f'<a href="{config.DASHBOARD_URL}" style="{a}">snow.0xm.studio</a>. '
             f'<a href="{resorts_url(token)}" style="{a}">Choose resorts</a> or '
-            f'<a href="{unsub}" style="{a}">unsubscribe</a> with one tap. Chair 0 is not affiliated with Vail Resorts.</p>')
+            f'<a href="{unsub}" style="{a}">unsubscribe</a> with one tap. Chair 0 is not affiliated with Vail Resorts or any resort. '
+            f'Forecast data by Open-Meteo.com (CC BY 4.0), NWS and NRCS SNOTEL.</p>')
 
 
 def _message(email, token, subject, html_body, text_body):
@@ -487,7 +488,7 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
                      f'<td align="right" style="padding:4px 4px 0;font-size:13px"><a href="{_site()}" style="{LINK}">Live radar</a></td></tr></table>'
                      f'<a href="{_site()}"><img src="{radar_url}" alt="Weather radar over Colorado and Utah" width="616" '
                      f'style="display:block;width:100%;max-width:616px;height:auto;border:1px solid {LINE};border-radius:12px"></a>'
-                     f'<p style="{sub};margin:6px 4px 0">Darker blue is heavier precipitation. Dots are the resorts. NOAA radar via Iowa State Mesonet.</p>',
+                     f'<p style="{sub};margin:6px 4px 0">Darker blue is heavier precipitation. Dots are the resorts. NOAA radar via Iowa State Mesonet. Map © OpenStreetMap contributors.</p>',
                      pad="10px")
 
     bars = ""

@@ -291,12 +291,12 @@ def test_snow_calibration_against_resort_report(tmp_path):
 
 
 def test_calibration_and_bias_reach_the_range_too():
-    rows = openmeteo._split_models(openmeteo_payload(["gfs_seamless"], precip=0.01), ["gfs_seamless"])
+    rows = openmeteo._split_models(openmeteo_payload(["gfs_global"], precip=0.01), ["gfs_global"])
     ens = {f"member{i:02d}_gfs025": [{"time": t, "precipitation": 0.01, "temperature_2m": 20} for t in _hours()]
            for i in range(12)}
     plain = forecast.build(rows, ensemble_rows=ens, today=TODAY)
     fixed = forecast.build(rows, ensemble_rows=ens, today=TODAY, verification={
-        "models": {"gfs_seamless": {"bias_ratio": 1.5, "skill": 1.0}}, "snow_cal": {"ratio": 1.2}})
+        "models": {"gfs_global": {"bias_ratio": 1.5, "skill": 1.0}}, "snow_cal": {"ratio": 1.2}})
     assert fixed["snow_cal"] == 1.2
     assert fixed["days"][0]["snow"] == pytest.approx(plain["days"][0]["snow"] * 1.8, abs=0.1)
     assert fixed["days"][0]["high"] == pytest.approx(plain["days"][0]["high"] * 1.8, abs=0.1)
@@ -324,7 +324,7 @@ def test_extra_models_never_cost_the_core_ones(monkeypatch):
         return {m: [] for m in models}
     monkeypatch.setattr(openmeteo, "_fetch_models", fake)
     out = openmeteo.fetch_models()
-    assert len(calls) == 2 and "gfs_seamless" in out and "ecmwf_ifs" not in out
+    assert len(calls) == 2 and "gfs_global" in out and "ecmwf_ifs" not in out
 
 
 def test_humidity_sets_the_rain_snow_line():
@@ -344,7 +344,7 @@ def test_ensemble_payload_carries_humidity():
               "precipitation_ecmwf_ifs025": [0.0] * 24, "temperature_2m_ecmwf_ifs025": [35.0] * 24}
     out = openmeteo.split_ensemble({"hourly": hourly})
     assert out["member01_gfs025"][0]["relative_humidity_2m"] == 40
-    assert forecast._ensemble_parent("member01_gfs025") == "gfs_seamless"
+    assert forecast._ensemble_parent("member01_gfs025") == "gfs_global"
     assert forecast._ensemble_parent("ecmwf_ifs025") == "ecmwf_ifs025"
 
 

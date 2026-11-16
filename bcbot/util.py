@@ -28,7 +28,8 @@ def get(url, *, params=None, headers=None, timeout=30, retries=2):
             last = requests.HTTPError(f"{r.status_code} from {url}")
         except requests.RequestException as e:
             last = e
-        time.sleep(2 * (attempt + 1))
+        if attempt < retries:  # no pointless wait after the last try
+            time.sleep(2 * (attempt + 1))
     raise last
 
 

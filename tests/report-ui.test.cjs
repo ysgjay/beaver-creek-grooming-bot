@@ -5,7 +5,7 @@ const zone = 'America/Denver';
 const today = '2026-11-15';
 
 test('report timestamps use resort time, including a UTC date boundary', () => {
-  assert.equal(ui.stamp('2026-11-16T02:01:00Z', zone, today, true), 'Sun, Nov 15, 7:01 PM MT');
+  assert.equal(ui.stamp('2026-11-16T02:01:00Z', zone, today, true), 'Sun 11/15, 7:01 PM MT');
   assert.equal(ui.dateKey('2026-11-16T02:01:00Z', zone), today);
   assert.equal(ui.stamp('2026-11-15T05:34:00', zone, today), '5:34 AM MT');
 });
@@ -43,9 +43,9 @@ test('zero resort snow takes precedence over SNOTEL and retains its own report t
   assert.equal(snow.value,0); assert.equal(snow.source,'Resort snow'); assert.equal(snow.stamp,'5:34 AM MT');
 });
 test('a stale snow report includes its date, with a truthful observed fallback', () => {
-  assert.match(ui.snowSource({last_24h_in:1,stamps:{date:'November 13, 2026'},updated_time:'5:34 AM'},null,zone,today).stamp,/Fri, Nov 13/);
+  assert.match(ui.snowSource({last_24h_in:1,stamps:{date:'November 13, 2026'},updated_time:'5:34 AM'},null,zone,today).stamp,/Fri 11\/13/);
   const fallback = ui.snowSource({}, {snow_in:0.5,as_of:'2026-11-14'},zone,today);
-  assert.equal(fallback.source,'SNOTEL snow'); assert.equal(fallback.value,0.5); assert.match(fallback.stamp,/Nov 14/);
+  assert.equal(fallback.source,'SNOTEL snow'); assert.equal(fallback.value,0.5); assert.match(fallback.stamp,/11\/14/);
   assert.equal(ui.snowSource({},null,zone,today).value,null);
   assert.equal(ui.snowSource({},null,zone,today).stamp,'Report time unavailable');
 });

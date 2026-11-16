@@ -26,7 +26,9 @@ MODELS = {
     "gfs_hrrr": {"label": "HRRR 3 km", "w": (3.0, 0.0)},
     # ECMWF at 25 km flattens the mountain; it only votes on days the 9 km run is missing.
     "ecmwf_ifs025": {"label": "ECMWF 25 km", "w": (2.0, 2.5), "unless": "ecmwf_ifs"},
-    "gfs_seamless": {"label": "GFS", "w": (1.0, 1.0)},
+    # gfs_global, not gfs_seamless: "seamless" is HRRR for the first ~2 days, which would
+    # count HRRR twice in the blend (and grade HRRR numbers as "GFS" in Snow Audit).
+    "gfs_global": {"label": "GFS", "w": (1.0, 1.0)},
     "icon_seamless": {"label": "ICON (German)", "w": (1.5, 1.5)},
     "gem_seamless": {"label": "GEM (Canadian)", "w": (1.0, 1.0)},
     "ukmo_seamless": {"label": "UKMO", "w": (1.0, 1.0)},
@@ -40,7 +42,7 @@ NWS_WEIGHT = (2.5, 2.0)
 
 ENSEMBLE_MODELS = ["ecmwf_ifs025", "gfs025"]
 # Which scored model's bias correction each ensemble's members inherit.
-ENSEMBLE_PARENT = {"ecmwf_ifs025": "ecmwf_ifs025", "gfs025": "gfs_seamless"}
+ENSEMBLE_PARENT = {"ecmwf_ifs025": "ecmwf_ifs025", "gfs025": "gfs_global"}
 
 FORECAST_DAYS = 10
 

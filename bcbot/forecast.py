@@ -233,7 +233,7 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
     }
 
 
-_HOURLY_PREF = ["gfs_hrrr", "ncep_nbm_conus", "ecmwf_ifs025", "gfs_seamless"]
+_HOURLY_PREF = ["gfs_hrrr", "ncep_nbm_conus", "ecmwf_ifs025", "gfs_global"]
 
 
 def hourly_outlook(model_rows, now=None, hours=12):

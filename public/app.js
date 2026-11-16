@@ -1311,6 +1311,7 @@ ${tell}
           <div><p class="brand-kicker">Chair 0 · Snow Desk</p><h2>About the numbers</h2></div>
         </div>
         <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own. Chair 0 is independent and not affiliated with Vail Resorts or any resort.</p>
+        <p class="small muted" style="margin:6px 0 0">Data: weather models by <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0), National Weather Service, NRCS SNOTEL, NOAA radar via Iowa State Mesonet. Maps © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.</p>
         <p class="small" style="margin:0"><a class="link" href="/audit/${esc(R.slug || "")}">Snow Audit</a>: how every forecast model has scored against what actually fell here.</p>
       </section>`;
     wireEmailForm(v);
@@ -1366,6 +1367,7 @@ ${tell}
       S.offline = !!S.latest;
       S.failed = !S.latest;
     }
+    S.loadedAt = Date.now();
     const slug = R.slug;
     getJSON("/data/verification.json").then((v) => { if (slug !== R.slug) return; S.verification = v; if ((location.hash || "#today") === "#forecast") route(); });
   }
@@ -1441,9 +1443,12 @@ ${tell}
     }
     // Coming back to the app (a notification tap, or switching apps) with the loading cards
     // still up: load again rather than wait on a request iOS may have dropped.
+    // Also reload when the report on screen is over 10 minutes old: a Home Screen app has no
+    // reload button, so reopening it the next morning would otherwise show yesterday's report.
     const stuck = () => !!$("#main > .skeleton");
-    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && stuck()) refresh(); });
-    window.addEventListener("pageshow", (e) => { if (e.persisted && stuck()) refresh(); });
+    const stale = () => !S.loadedAt || Date.now() - S.loadedAt > 10 * 60 * 1000;
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && (stuck() || stale())) refresh(); });
+    window.addEventListener("pageshow", (e) => { if (e.persisted && (stuck() || stale())) refresh(); });
   }
   let refreshing = null;
   function refresh() {
