@@ -151,6 +151,8 @@ def send_decision(state, now, *, map_new, resort_fresh, send=True, has_map=True)
     """
     if not send or state.get("last_sent_date") == now.date().isoformat():
         return None
+    if now >= _at(now, config.SEND_CUTOFF):  # too late for a morning report
+        return None
     if now.date() < config.OPENING_DAY:
         return "preseason" if now >= _at(now, config.SEND_TIME) else None
     if now < _at(now, config.SEND_EARLIEST):

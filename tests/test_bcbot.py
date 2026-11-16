@@ -1061,3 +1061,12 @@ def test_resort_fetch_routes_to_dor(monkeypatch):
         assert resort.fetch() == {"overnight_in": 3.0}
     finally:
         config.use("beaver-creek")
+
+
+def test_no_send_in_the_evening():
+    """A resort added (or a run forced) at night refreshes its data but doesn't email until morning."""
+    tz = config.TZ
+    evening = datetime(2026, 11, 15, 19, 0, tzinfo=tz)
+    assert main.send_decision({}, evening, map_new=True, resort_fresh=True, has_map=False) is None
+    morning = datetime(2026, 11, 16, 9, 5, tzinfo=tz)
+    assert main.send_decision({}, morning, map_new=True, resort_fresh=None, has_map=False) is not None
