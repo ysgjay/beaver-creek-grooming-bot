@@ -582,7 +582,7 @@
   // A vector map (MapLibre, vendored in /vendor, with OpenFreeMap's keyless style) repainted in the theme's colours.
   // If the library, WebGL or the style can't load, it falls back to a fixed grid of 256px image tiles.
   // Past frames are NEXRAD composites and future frames are HRRR simulated radar, both from Iowa State's Mesonet tile cache.
-  const RADAR = { z: 8, zoom: 7.6, cols: 4, rows: 3, src: "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", base: "https://tile.openstreetmap.org", style: "https://tiles.openfreemap.org/styles/positron" };
+  const RADAR = { z: 8, zoom: 7, cols: 4, rows: 3, src: "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", base: "https://tile.openstreetmap.org", style: "https://tiles.openfreemap.org/styles/positron" };
   const worldPx = (lat, lon, z) => { const n = 256 * 2 ** z, sn = Math.sin(lat * Math.PI / 180); return [(lon + 180) / 360 * n, (0.5 - Math.log((1 + sn) / (1 - sn)) / (4 * Math.PI)) * n]; };
   function radarFrames(now) {
     const p2 = (n) => String(n).padStart(2, "0");
