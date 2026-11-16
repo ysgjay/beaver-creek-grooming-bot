@@ -75,10 +75,10 @@ The custom alpine family lives inline in `public/index.html`, shared visually by
 
 - **Today:** sunrise over a snow-capped ridge.
 - **Calendar:** bound calendar with a single marked day.
-- **Forecast:** a fine-lined snowflake overlapping a measuring ruler. A transparent mask hides the ruler behind the snowflake so its outline does not cross the branches; each navigation copy has its own mask ID.
+- **Forecast:** a fine-lined snowflake in front of a pale ice ruler. The ruler has rounded ends and a transparent-to-ice fill that softens its left edge. It has no outer stroke or cutout around the snowflake; only the measuring ticks are drawn. Each navigation copy has its own gradient ID.
 - **Help:** patrol shield with a cross.
 
-Use a 28 × 28 viewBox and rounded caps and joins. Most strokes are 1.75 units; the Forecast snowflake uses 1.25 units and its ruler 1.4 units to keep the finer detail light. Render at 26 px on mobile and 20 px in the desktop header. Idle icons are slate outlines; the selected icon uses ink with ice `#C5DFF2` in its `nav-ice` shapes. The surrounding selected tab stays flat, without an underline or raised bottom edge. Avoid texture, shadows, or burgundy in these small navigation symbols.
+Use a 28 × 28 viewBox and rounded caps and joins. Most strokes are 1.75 units; the Forecast snowflake uses 1.25 units and its ruler ticks 1.1 units at 65% opacity. Render at 26 px on mobile and 20 px in the desktop header. Idle icons are slate outlines; the selected icon uses ink with ice `#C5DFF2` in its `nav-ice` shapes. The Forecast ruler retains its subtle ice fill in either state. The surrounding selected tab stays flat, without an underline or raised bottom edge. Avoid texture, shadows, or burgundy in these small navigation symbols.
 
 Keep the visible labels, the link's `aria-current="page"`, and the existing generous touch targets. The SVGs are decorative (`aria-hidden="true"`, `focusable="false"`); the link supplies the name and keyboard focus. Both navigation copies must use the same geometry. No image downloads or additional JavaScript are needed.
 

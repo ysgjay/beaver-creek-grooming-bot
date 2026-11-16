@@ -55,14 +55,15 @@
       <a href="#forecast" data-tab="forecast">
       <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
         <defs>
-          <mask id="forecast-ruler-header" maskUnits="userSpaceOnUse" x="0" y="0" width="28" height="28" style="mask-type:luminance;forced-color-adjust:none">
-            <rect width="28" height="28" fill="white" stroke="none"/>
-            <circle cx="11.5" cy="16" r="9" fill="black" stroke="none"/>
-          </mask>
+          <linearGradient id="forecast-ice-header" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#a9cce6" stop-opacity="0"/>
+            <stop offset=".55" stop-color="#a9cce6" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#a9cce6" stop-opacity=".9"/>
+          </linearGradient>
         </defs>
-        <g mask="url(#forecast-ruler-header)" stroke-width="1.4">
-          <rect class="nav-ice" x="17.5" y="2.5" width="6.5" height="23" rx="1.5"/>
-          <path d="M21 7h3M21.5 12H24M21 17h3M21.5 22H24"/>
+        <g>
+          <rect x="16.5" y="2.5" width="8" height="23" rx="2.5" fill="url(#forecast-ice-header)" stroke="none"/>
+          <path d="M21 7h2.5M21.5 12h2M21 17h2.5M21.5 22h2" stroke-width="1.1" opacity=".65"/>
         </g>
         <path stroke-width="1.25" d="M11.5 16 11.50 7.60M13.10 9.10 11.50 10.70 9.90 9.10 M11.5 16 18.77 11.80M18.28 13.94 16.09 13.35 16.68 11.16 M11.5 16 18.77 20.20M16.68 20.84 16.09 18.65 18.28 18.06 M11.5 16 11.50 24.40M9.90 22.90 11.50 21.30 13.10 22.90 M11.5 16 4.23 20.20M4.72 18.06 6.91 18.65 6.32 20.84 M11.5 16 4.23 11.80M6.32 11.16 6.91 13.35 4.72 13.94"/>
       </svg>Forecast</a>
@@ -104,14 +105,15 @@
     <a href="#forecast" data-tab="forecast">
       <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
         <defs>
-          <mask id="forecast-ruler-mobile" maskUnits="userSpaceOnUse" x="0" y="0" width="28" height="28" style="mask-type:luminance;forced-color-adjust:none">
-            <rect width="28" height="28" fill="white" stroke="none"/>
-            <circle cx="11.5" cy="16" r="9" fill="black" stroke="none"/>
-          </mask>
+          <linearGradient id="forecast-ice-mobile" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#a9cce6" stop-opacity="0"/>
+            <stop offset=".55" stop-color="#a9cce6" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#a9cce6" stop-opacity=".9"/>
+          </linearGradient>
         </defs>
-        <g mask="url(#forecast-ruler-mobile)" stroke-width="1.4">
-          <rect class="nav-ice" x="17.5" y="2.5" width="6.5" height="23" rx="1.5"/>
-          <path d="M21 7h3M21.5 12H24M21 17h3M21.5 22H24"/>
+        <g>
+          <rect x="16.5" y="2.5" width="8" height="23" rx="2.5" fill="url(#forecast-ice-mobile)" stroke="none"/>
+          <path d="M21 7h2.5M21.5 12h2M21 17h2.5M21.5 22h2" stroke-width="1.1" opacity=".65"/>
         </g>
         <path stroke-width="1.25" d="M11.5 16 11.50 7.60M13.10 9.10 11.50 10.70 9.90 9.10 M11.5 16 18.77 11.80M18.28 13.94 16.09 13.35 16.68 11.16 M11.5 16 18.77 20.20M16.68 20.84 16.09 18.65 18.28 18.06 M11.5 16 11.50 24.40M9.90 22.90 11.50 21.30 13.10 22.90 M11.5 16 4.23 20.20M4.72 18.06 6.91 18.65 6.32 20.84 M11.5 16 4.23 11.80M6.32 11.16 6.91 13.35 4.72 13.94"/>
       </svg>Forecast</a>
