@@ -89,13 +89,12 @@
   }
 
   /* ---------------- themes ---------------- */
-  // One look, light only: Bluebird, even when the phone is in dark mode.
-  function currentTheme() { return "bluebird"; }
-  function applyTheme() {
-    document.documentElement.dataset.theme = "bluebird";
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#dcebfa";
-  }
+  // appearance.js resolves the saved/device appearance before the first paint.
+  document.addEventListener("appearancechange", (event) => {
+    document.querySelectorAll('input[name="appearance"]').forEach((input) => { input.checked = input.value === window.Appearance.preference(); });
+    const radar = $(".v-fc #radar-card");
+    if (event.detail.changed && radar) mountRadar(radar, Number($("#radar-time", radar)?.value));
+  });
   try { localStorage.removeItem("theme"); } catch (e) {}   // the old colour picker's choice
   // One finish: Frost. Clear the old Look sheet's saved choice.
   function applyMaterial() {
@@ -746,7 +745,7 @@
     layers: [{ id: "bg", type: "background", paint: { "background-color": c.land } }, { id: "osm", type: "raster", source: "osm", paint: { "raster-saturation": -1, "raster-contrast": -0.25, "raster-opacity": dark ? 0.25 : 0.7 } }] });
 
   let radarMap = null;
-  function mountRadar(card) {
+  function mountRadar(card, selectedFrame) {
     const r = resortInfo();
     if (radarMap) { try { radarMap.remove(); } catch {} radarMap = null; }
     if (!card || r?.lat == null || r?.lon == null) { card?.remove(); return; }
@@ -805,7 +804,7 @@
       play.textContent = "Pause";
       if (cur === frames.length - 1) show(0);
       timer = setInterval(() => {
-        if (!card.isConnected) return stop();
+        if (!map.isConnected) return stop();
         const next = (cur + 1) % frames.length;
         show(next);
         view?.preload((next + 1) % frames.length);   // start loading the frame after this one
@@ -814,10 +813,10 @@
     });
     slider.addEventListener("input", () => { stop(); show(Number(slider.value)); });
     $("#radar-now", card).addEventListener("click", () => { stop(); show(nowIdx); });
-    show(nowIdx);
+    show(Number.isInteger(selectedFrame) ? Math.max(0, Math.min(frames.length - 1, selectedFrame)) : nowIdx);
     const refresh = () => { if (view) none.hidden = !view.failed(cur); };
-    const start = (v) => { if (!card.isConnected) return; view = v; view.show(cur, -1); refresh(); };
-    radarVector(map, r, resortsOnMap, frames, refresh, pal).then(start).catch(() => { if (card.isConnected) start(radarTiles(map, r, resortsOnMap, frames, refresh)); });
+    const start = (v) => { if (!map.isConnected) return; view = v; view.show(cur, -1); refresh(); };
+    radarVector(map, r, resortsOnMap, frames, refresh, pal).then(start).catch(() => { if (map.isConnected) start(radarTiles(map, r, resortsOnMap, frames, refresh)); });
   }
 
   // Sharp vector map (MapLibre + OpenFreeMap, no API key) that can be moved and zoomed.
@@ -1277,6 +1276,14 @@ ${tell}
       ${patrolCards()}
 
       <section class="card">
+        <fieldset class="appearance-options">
+          <legend>Appearance</legend>
+          <p>Choose a look, or follow your device.</p>
+          <div class="choices">${["system", "light", "dark"].map((mode) => `<label><input type="radio" name="appearance" value="${mode}" ${window.Appearance.preference() === mode ? "checked" : ""}><span>${mode[0].toUpperCase() + mode.slice(1)}</span></label>`).join("")}</div>
+        </fieldset>
+      </section>
+
+      <section class="card">
         <h2 id="alerts">Get the 7:00 report</h2>
         ${notice}
         ${signupBlocks()}
@@ -1291,6 +1298,7 @@ ${tell}
       </section>`;
     wireEmailForm(v);
     wirePush(v);
+    v.querySelectorAll('input[name="appearance"]').forEach((input) => input.addEventListener("change", () => { if (input.checked) window.Appearance.set(input.value); }));
     v.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", async () => {
       try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = "Copied"; } catch (e) { b.textContent = b.dataset.copy; }
     }));
@@ -1394,7 +1402,6 @@ ${tell}
   }
 
   async function boot() {
-    applyTheme(currentTheme());
     applyMaterial();
     const [list, cfg] = await Promise.all([getJSON("/resorts.json"), getJSON("/config.json")]);
     S.cfg = cfg;

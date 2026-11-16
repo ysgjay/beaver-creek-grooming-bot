@@ -1,0 +1,55 @@
+/* Midnight Ice: the dark companion to Frosted Snow. Keep reports opaque and snow blue. */
+.appearance-options{border:0;padding:0;margin:0;min-width:0}
+.appearance-options legend{font:600 22px/1.1 var(--font-display);letter-spacing:-.035em;margin-bottom:12px}
+.appearance-options p{margin:0 0 12px;color:var(--ink-2);font-size:13px}
+.appearance-options .choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.appearance-options label{position:relative;cursor:pointer;min-width:0}
+.appearance-options input{position:absolute;opacity:0;width:1px;height:1px}
+.appearance-options label span{display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid var(--frost-control);border-radius:12px;color:var(--ink-2)}
+.appearance-options input:checked+span{background:var(--frost-selected);color:var(--ink);border-color:var(--frost-action);font-weight:600}
+.appearance-options input:focus-visible+span{outline:3px solid var(--frost-action);outline-offset:3px}
+html[data-brand="frosted-snow"][data-appearance="dark"]{
+ --bg:#071b2e;--surface:#102c43;--surface-2:#18384f;--ink:#e7f2fc;--ink-2:#a9bfd2;
+ --accent:#a0ccec;--on-accent:#071b2e;--accent-soft:#203e55;--line:#32516a;
+ --snow:#8dc4eb;--snow-fill:#376b92;--frost-metric-soft:#173b55;--frost-metric-heat:#315d7b;
+ --frost-paper:#102a40;--frost-control:#65859f;--frost-action:#b8dcf6;--frost-selected:#24475e;
+ --frost-pine:#a6d4c6;--frost-amber:#eac182;--card-border:1px solid #365870;
+ --frost-shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
+ --frost-float:0 20px 64px #00000066;color-scheme:dark;
+}
+html[data-appearance="dark"] body{background-color:var(--bg);background-image:radial-gradient(ellipse at 15% 0%,#24517166,transparent 48%),linear-gradient(145deg,#0b243b,#071b2e 65%,#0c2940)}
+html[data-appearance="dark"] .top{background:#0b2135f2;border-bottom-color:#32516a}
+html[data-appearance="dark"] :is(.card,.sheet,.resort-menu){background:var(--frost-paper);border-color:#365870}
+html[data-appearance="dark"] .hour{background:#18384f}
+html[data-appearance="dark"] .map-btn{background:var(--surface-2)}
+html[data-appearance="dark"] :is(.chips li,.seg,.pill.quiet,.map-age,.chart-controls button,.model-details summary span){background:var(--surface-2)}
+html[data-appearance="dark"] .chips.featured li{background:#402437;color:#f0bfca}
+html[data-appearance="dark"] .btn{background:#8b2941;color:#fff;box-shadow:inset 0 1px 0 #ffffff14}
+html[data-appearance="dark"] .btn:hover{background:#a13a53}
+html[data-appearance="dark"] :is(.btn.secondary,.btn.top-cta,.signup input[type="email"]){background:var(--surface);color:var(--ink);box-shadow:none}
+html[data-appearance="dark"] :is(.btn.secondary,.btn.top-cta):hover{background:var(--frost-selected)}
+html[data-appearance="dark"] .seg button[aria-pressed="true"]{background:var(--frost-selected);color:var(--ink)}
+html[data-appearance="dark"] .tabbar{background:#0b2135f5;border-top-color:#32516a;box-shadow:0 -4px 20px #00000024}
+html[data-appearance="dark"] .cal button[style*="background"]{background-image:none}
+/* Heavy-snow calendar cells still need light text to contrast with the fill. */
+html[data-appearance="dark"] .cal{--snow:var(--frost-metric-heat);--accent:#8dc4eb}
+html[data-appearance="dark"] .patrol{background:var(--frost-paper);border-color:#8b2941}
+html[data-appearance="dark"] .offline{background:#302b27;color:#eac182;border-color:#8c714c}
+html[data-appearance="dark"] .skip-link{background:var(--ink);color:var(--bg)}
+html[data-appearance="dark"] .top-tabs a:hover{background:var(--surface-2)}
+html[data-appearance="dark"] .favs{border-top-color:var(--line)}
+html[data-appearance="dark"] .snow-outlook{background:#153951;border-color:#47708c}
+html[data-appearance="dark"] .map-age.old{background:#302b27;color:#eac182}
+html[data-appearance="dark"] .chart-scroll{scrollbar-color:#65859f transparent}
+html[data-appearance="dark"] .day-hero{background:#173b55}
+html[data-appearance="dark"] dialog.sheet::backdrop{background:#020b16b8}
+html[data-appearance="dark"] .radar-bubble{color:var(--bg)}
+html[data-appearance="dark"] .radar-map .maplibregl-ctrl-attrib{background:#102c43e6;color:var(--ink-2)}
+html[data-appearance="dark"] .radar-map .maplibregl-ctrl-attrib a{color:var(--ink-2)}
+html[data-appearance="dark"] .radar-map .maplibregl-ctrl-attrib-button{filter:invert(1)}
+html[data-appearance="dark"] :is(input,select,textarea){accent-color:var(--snow)}
+@media(prefers-reduced-transparency:reduce){html[data-appearance="dark"] :is(.top,.tabbar){background:#0b2135}}
+@media(forced-colors:active){
+ html[data-appearance="dark"] :is(.card,.btn,.tabbar a[aria-current="page"]){border-color:CanvasText;box-shadow:none}
+ .appearance-options input:checked+span{outline:2px solid Highlight;outline-offset:-3px}
+}
