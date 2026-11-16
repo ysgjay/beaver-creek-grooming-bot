@@ -1,9 +1,9 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v12-alpine-nav";
+const SHELL = "shell-v13-clear-reports";
 const DATA = "data-v1";
 const SHELL_FILES = [
-  "/", "/index.html", "/app.js", "/app.css", "/themes.css", "/frost.css",
+  "/", "/index.html", "/report-ui.js", "/app.js", "/app.css", "/themes.css", "/frost.css",
   "/config.json", "/resorts.json", "/icon.svg", "/icon-180.png", "/icon-192.png", "/icon-512.png", "/manifest.webmanifest",
   "/brand/fonts/outfit.woff2", "/brand/fonts/plex-sans.woff2", "/brand/fonts/plex-mono.woff2", "/brand/frosted-logo.webp",
 ];

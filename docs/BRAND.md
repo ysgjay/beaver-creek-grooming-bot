@@ -52,6 +52,14 @@ The original snowfall charts are part of the identity. Preserve the Today heat s
 
 Preserve the compact layout: one column and bottom tabs below 900 px, two columns from 900 px, and map-led Today with header tabs from 1200 px. On wide screens the section tabs sit right after the resort name (top left), "Get the morning report" sits alone at the right, and favorite resorts get their own slim row under the header. Desktop spacing is tighter so Today, Forecast, and Calendar fit 1440 × 900. Large frosted artwork belongs in a supporting brand moment, not in place of the report content.
 
+## Reading the report
+
+Today separates the saved report time from resort snow and forecast valid times. Base depth, mph, and gust labels are explicit. Grooming shows the printed map date and its age; an unknown date stays unknown. List-based feeds label when they were checked. A compact blue snow outlook appears above grooming on phones.
+
+On phones, Forecast starts with snowfall. Keep the original stake geometry and give each day roughly 50 px of width, using horizontal scrolling and labeled 44 px arrow buttons. All ten days fit on desktop. A selected day leads with the expected snowfall and likely range; model votes expand underneath. Modal sheets and full-size maps use native dialogs with Escape, contained keyboard focus, and focus restoration.
+
+Source labels and summaries must use real report dates and numbers. Past hours must not be labeled Now, missing days must not count as zero, and five-day summaries require five dated daily values. Forecast source dates remain visible when the report is older.
+
 ## Reusing the style
 
 For a new page, email header, or sibling product, start from these defaults:
