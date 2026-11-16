@@ -92,11 +92,12 @@ def _recolor(radar):
         for x in range(w):
             r, g, b, a = px[x, y]
             if not a:
+                px[x, y] = (*RAMP[0], 0)         # transparent but ice-colored, so the blur adds no gray fringe
                 continue
             e = echo_strength(r, g, b)
             mx = max(r, g, b)
             if not mx or (mx - min(r, g, b)) / mx < 0.2:
-                px[x, y] = (0, 0, 0, 0)          # gray clear-air returns and clutter: speckle at email size
+                px[x, y] = (*RAMP[0], 0)         # gray clear-air returns and clutter: speckle at email size
                 continue
             t = e * (len(RAMP) - 1)
             k = min(len(RAMP) - 2, int(t))
