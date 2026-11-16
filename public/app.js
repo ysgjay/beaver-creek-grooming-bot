@@ -350,10 +350,25 @@
   const WIDE = "(min-width: 1200px)";
 
   /* ---------------- TODAY ---------------- */
+  // No report saved for this resort yet (a newly added resort before its first run), or no connection.
+  function viewTodayEmpty(v) {
+    const r = resortInfo() || {};
+    v.classList.add("empty");
+    const site = r.site ? `<a href="${esc(r.site)}" target="_blank" rel="noopener">${esc(r.name)}'s website</a>` : "the resort's website";
+    v.innerHTML = navigator.onLine === false
+      ? `<p class="offline">You're offline and there's no saved report for ${esc(r.name || "this resort")}. Try again once you're connected.</p>`
+      : `<section class="card empty-note"><h2>${esc(r.name || "This resort")} is new on Snow Desk</h2>
+          <p>Its first morning report is on the way. Snow totals, the forecast and the nearby snow station show here after the next update.</p>
+          <p class="muted small">Until then, the radar below is live, and the latest conditions are on ${site}.</p></section>
+         <section class="card a-radar" id="radar-card"></section>`;
+    requestAnimationFrame(() => mountRadar($("#radar-card", v)));
+    return v;
+  }
+
   function viewToday() {
     const L = S.latest, v = document.createElement("div");
     v.className = "view v-today";
-    if (!L) { v.innerHTML = `<p class="offline">The morning report isn't available yet. Check your connection and try again.</p>`; return v; }
+    if (!L) return viewTodayEmpty(v);
     const g = L.grooming || {}, fc = L.forecast || {}, rs = L.resort || {}, zone = resortInfo().timezone || RESORT_TZ;
     const today = todayIso(), snow = UI.snowSource(rs, L.observed, zone, today);
     const weather = UI.forecastHours(L.hourly?.hours, zone), now = weather.selected;

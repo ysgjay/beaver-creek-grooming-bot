@@ -73,6 +73,9 @@ REFRESH_HOURS = float(os.environ.get("REFRESH_HOURS", "6"))
 SEND_TIME = os.environ.get("SEND_TIME", "07:00")
 SEND_EARLIEST = os.environ.get("SEND_EARLIEST", "05:00")
 SEND_LATEST = os.environ.get("SEND_LATEST", "09:00")
+# No morning report goes out after this (a resort added, or a run forced, in the evening
+# refreshes its data but waits for the next morning to send).
+SEND_CUTOFF = os.environ.get("SEND_CUTOFF", "12:00")
 # In the half hour before SEND_TIME, refresh anything older than an hour.
 PRE_SEND_MINUTES = 30
 # After opening: if the map hasn't changed in this many days, the season is over; stay quiet.
