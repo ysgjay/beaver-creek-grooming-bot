@@ -108,6 +108,15 @@ def read_html(text):
     feeds = sorted(set(m for m in _FEED.findall(text)))[:15]
     i = visible.lower().find("snow")
     detail = {"snow_numbers": nums[:24], "feeds": feeds, "text": visible[max(0, i - 100):i + 400] if i >= 0 else visible[:300]}
+    # Mtn Powder widget (v4.mtnfeed.com: A-Basin, Deer Valley, Solitude, Winter Park): keep the raw
+    # HTML around it and any resort id, which is what its data feed is keyed by.
+    hints = []
+    for pat in (r"mtnfeed", r"mtnpowder", r"resort[_-]?id", r"data-resort", r"bearer|token"):
+        m = re.search(pat, text, re.I)
+        if m:
+            hints.append(text[max(0, m.start() - 200):m.start() + 300])
+    if hints:
+        detail["hints"] = hints[:4]
     return stamp, _sha(" ".join(nums)) if nums else _sha(visible), detail
 
 
@@ -154,6 +163,15 @@ def read(kind, resp):
     return read_html(resp.text)
 
 
+def _cap(detail, limit=6000):
+    """JSON for the jsonb column, never cut mid-document (a cut string would fail the whole insert)."""
+    out = json.dumps(detail, default=str)
+    if len(out) > limit:
+        out = json.dumps({k: (str(v)[:limit // 8] if not isinstance(v, (int, float, type(None))) else v)
+                          for k, v in detail.items()}, default=str)
+    return out if len(out) <= limit else json.dumps({"truncated": True})
+
+
 def poll_one(probe, session):
     slug, source, kind, url = probe
     if isinstance(url, list):  # candidates: the first one that answers 200 wins
@@ -172,7 +190,7 @@ def poll_one(probe, session):
         row.update(http=resp.status_code, bytes=len(resp.content))
         if resp.ok:
             stamp, fp, detail = read(kind, resp)
-            row.update(stamp=(stamp or None) and str(stamp)[:200], fp=fp, detail=json.dumps(detail, default=str)[:2000])
+            row.update(stamp=(stamp or None) and str(stamp)[:200], fp=fp, detail=_cap(detail))
     except Exception as e:
         row["error"] = f"{type(e).__name__}: {e}"[:300]
     row["ms"] = int((time.monotonic() - t0) * 1000)
