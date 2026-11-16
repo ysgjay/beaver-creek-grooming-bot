@@ -91,6 +91,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .top-cta svg { width: 18px; height: 18px; flex: none; }
 .top-cta .cta-long { display: none; }
 @media (max-width: 359px) { .top-cta svg { display: none; } }
+/* Phone: email and notification icon buttons replace the Sign up pill. */
+.top-icons { display: flex; gap: 8px; margin-left: auto; flex: none; }
+.icon-btn { position: relative; width: 42px; height: 42px; display: grid; place-items: center; padding: 0; border-radius: 999px; border: 1px solid var(--frost-control, var(--line)); background: var(--frost-paper, var(--surface)); color: var(--ink); cursor: pointer; }
+.icon-btn:hover { background: var(--frost-selected, var(--surface-2)); }
+.icon-btn svg { width: 21px; height: 21px; }
+.icon-btn.on::after { content: ""; position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--frost-paper, var(--surface)); }
+@media (max-width: 899px) { #signup-btn.top-cta { display: none; } }
+@media (min-width: 900px) { .top-icons { display: none; } }
 
 main { display: flex; flex-direction: column; gap: var(--gap); padding-block: 4px 10px; }
 .view { display: flex; flex-direction: column; gap: var(--gap); }

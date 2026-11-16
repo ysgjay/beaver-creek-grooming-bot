@@ -1231,8 +1231,8 @@ ${tell}
   const picked = (v, name) => { const a = [...v.querySelectorAll(`input[name="${name}"]:checked`)].map((i) => i.value); return a.length ? a : [R.slug]; };
 
   // Email and notification sign-up, shared by the Help page and the top bar pop-up.
-  const signupBlocks = () => `
-        <form id="email-form" class="signup" novalidate>
+  const signupBlocks = (only) => `
+        ${only === "push" ? "" : `<form id="email-form" class="signup" novalidate>
           <label for="email-input" class="label">Email, every morning</label>
           ${resortPicks("email-resort")}
           <div class="signup-row">
@@ -1241,13 +1241,13 @@ ${tell}
             <button class="btn" type="submit">Sign up</button>
           </div>
           <p class="small muted" id="email-msg" style="margin:0">We'll send one confirmation email first. Every report has a one-tap unsubscribe.</p>
-        </form>
-        <div class="signup">
+        </form>`}
+        ${only === "email" ? "" : `<div class="signup">
           <span class="label">App notifications</span>
           ${resortPicks("push-resort")}
           <div class="signup-row"><span class="small" id="push-state" style="flex:1">Checking…</span><button class="btn secondary" type="button" id="push-btn" hidden>Turn on</button></div>
           <p class="small muted" id="push-hint" style="margin:0"></p>
-        </div>`;
+        </div>`}`;
 
   /* The top bar's sign-up button. It shows until this browser has asked for the email or turned on notifications. */
   const cta = { push: false, email: false };
@@ -1256,6 +1256,9 @@ ${tell}
     cta[kind] = on;
     if (kind === "email" && on) { try { localStorage.setItem("emailSignup", "1"); } catch (e) {} }
     const b = $("#signup-btn"); if (b) b.hidden = cta.push || cta.email;
+    // Phone header icons stay visible; a dot shows which ones are on.
+    const icon = $(kind === "email" ? "#email-top-btn" : "#push-top-btn");
+    if (icon) { icon.classList.toggle("on", on); icon.setAttribute("aria-label", (kind === "email" ? "Email report" : "Notifications") + (on ? ", on" : "")); }
   }
   function openSignup() {
     if ($("#alerts")) { $("#alerts").closest(".card").scrollIntoView({ block: "start" }); return; }   // already on the Help page
@@ -1306,6 +1309,8 @@ ${tell}
   }
 
   $("#signup-btn").addEventListener("click", openSignup);
+  $("#email-top-btn").addEventListener("click", () => openSheet("Email report", `<p class="small muted" style="margin:0">Grooming, new snow and the forecast for your resort, every morning.</p>${signupBlocks("email")}`, (ov) => wireEmailForm(ov)));
+  $("#push-top-btn").addEventListener("click", () => openSheet("Notifications", `<p class="small muted" style="margin:0">The morning report on this device, with any powder alert in it.</p>${signupBlocks("push")}`, (ov) => wirePush(ov)));
   if (new URLSearchParams(location.search).get("email") === "confirmed") cta.email = true, setSignedUp("email", true);
   setSignedUp("push", false);
   (async () => { // a browser that already has notifications on doesn't need the button
