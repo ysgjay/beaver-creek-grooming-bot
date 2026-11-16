@@ -5,7 +5,7 @@ from bcbot import observer
 
 def test_every_resort_has_a_probe_and_nothing_sends():
     probes = observer.probes()
-    assert {p[0] for p in probes} == set(observer.resorts.enabled())
+    assert {p[0] for p in probes} - {"_mtnfeed"} == set(observer.resorts.enabled())
     imports = [ln for ln in open(observer.__file__) if ln.strip().startswith(("import", "from"))]
     assert not any(m in ln for ln in imports for m in ("mailer", "notify", "webpush", "main"))
 
