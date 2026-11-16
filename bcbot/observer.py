@@ -204,7 +204,8 @@ def poll_one(probe, session):
 
 
 def due(slug, now):
-    local = now.astimezone(ZoneInfo(resorts.get(slug)["tz"]))
+    tz = resorts.get(slug)["tz"] if slug in resorts.RESORTS else "America/Denver"  # "_mtnfeed" isn't a resort
+    local = now.astimezone(ZoneInfo(tz))
     return WINDOW[0] <= local.hour < WINDOW[1] or now.minute % 15 < 2
 
 

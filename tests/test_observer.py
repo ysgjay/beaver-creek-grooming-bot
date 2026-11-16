@@ -35,3 +35,8 @@ def test_detail_is_always_valid_json():
     import json
     big = {"hints": ["x" * 5000] * 4, "text": "y" * 3000, "n": 3}
     assert json.loads(observer._cap(big))
+
+
+def test_every_probe_can_be_scheduled():
+    now = datetime(2026, 11, 17, 13, 0, tzinfo=timezone.utc)
+    assert all(observer.due(p[0], now) for p in observer.probes())
