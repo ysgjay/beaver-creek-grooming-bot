@@ -159,11 +159,31 @@ DIGEST_SCHEMA = """CREATE TABLE IF NOT EXISTS digest_sends (   -- once-a-day cla
 );"""
 
 
+# Grooming map images in the combined email are opt-in (Young, 11/16), set on the resort page.
+MAPS_COLUMN = "ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS email_maps boolean NOT NULL DEFAULT false"
+
+
 def multi_resort_subscribers(conn):
-    """[(email, token, [resorts])] of active subscribers with two or more resorts."""
+    """[(email, token, [resorts], email_maps)] of active subscribers with two or more resorts."""
     with conn.cursor() as cur:
-        cur.execute("SELECT email, token, resorts FROM subscribers WHERE status = 'active' AND cardinality(resorts) > 1 ORDER BY id")
-        return [(e, t, list(r)) for e, t, r in cur.fetchall()]
+        cur.execute(MAPS_COLUMN)
+        cur.execute("SELECT email, token, resorts, email_maps FROM subscribers "
+                    "WHERE status = 'active' AND cardinality(resorts) > 1 ORDER BY id")
+        return [(e, t, list(r), bool(m)) for e, t, r, m in cur.fetchall()]
+
+
+def email_maps(conn, token):
+    with conn.cursor() as cur:
+        cur.execute(MAPS_COLUMN)
+        cur.execute("SELECT email_maps FROM subscribers WHERE token = %s", (token,))
+        row = cur.fetchone()
+        return bool(row and row[0])
+
+
+def set_email_maps(conn, token, on):
+    with conn.cursor() as cur:
+        cur.execute(MAPS_COLUMN)
+        cur.execute("UPDATE subscribers SET email_maps = %s WHERE token = %s AND status = 'active'", (bool(on), token))
 
 
 def sent_resorts(conn, day):

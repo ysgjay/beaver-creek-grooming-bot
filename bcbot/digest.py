@@ -13,7 +13,7 @@ import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from . import db, mailer, resorts
+from . import db, mailer, radar, resorts
 from .store import get_store, resort_store
 
 log = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def _today_day(store, slug, today):
 def plan(subs, sent, days, now):
     """[(email, token, ready, pending)] to send now. Pure, for tests."""
     out = []
-    for email, token, picked in subs:
+    for email, token, picked, *_ in subs:
         picked = [s for s in picked if s in resorts.RESORTS]
         cutoff = (now.hour, now.minute) >= CUTOFF
         if not cutoff and not all(s in sent and days.get(s) for s in picked):
@@ -57,7 +57,8 @@ def run(now=None, store=None):
         sent = db.sent_resorts(conn, today)
         done = db.digest_sent(conn, today)
         subs = [s for s in subs if s[1] not in done]
-        wanted = {r for _, _, picked in subs for r in picked if r in resorts.RESORTS}
+        wanted = {r for _, _, picked, *_ in subs for r in picked if r in resorts.RESORTS}
+        maps_on = {t: m for _, t, _, m in subs}
         days = {}
         for slug in wanted:
             try:
@@ -66,13 +67,15 @@ def run(now=None, store=None):
                 log.exception("digest: could not read %s", slug)
         due = plan(subs, sent, days, now)
         messages = []
+        radar_url = radar.snapshot(store, now) if due else None
         for email, token, ready, pending in due:
             if not db.claim_digest(conn, today, token, ready, pending):
                 continue
             ordered = sorted(ready, key=lambda s: -(mailer.new_snow(days[s]) or 0))
             picked = [(s, days[s]) for s in ordered]
             messages.append((email, token, mailer.digest_subject(picked, pending),
-                             mailer.digest_html(picked, pending, now), mailer.digest_text(picked, pending)))
+                             mailer.digest_html(picked, pending, now, radar_url=radar_url, maps=maps_on.get(token), token=token),
+                             mailer.digest_text(picked, pending)))
     if messages:
         mailer.send_personal(messages)
     return {"status": "ok", "sent": len(messages), "waiting": len(subs) - len(due)}
