@@ -75,7 +75,7 @@ The custom alpine family lives inline in `public/index.html`, shared visually by
 
 - **Today:** sunrise over a snow-capped ridge.
 - **Calendar:** bound calendar with a single marked day.
-- **Forecast:** three snow stakes with drift tops, echoing the forecast chart.
+- **Forecast:** a snowflake in the foreground with a single measuring stake set behind it.
 - **Help:** patrol shield with a cross.
 
 Use a 28 × 28 viewBox, 1.75-unit strokes, and rounded caps and joins. Render at 26 px on mobile and 20 px in the desktop header. Idle icons are slate outlines; the selected icon uses ink with ice `#C5DFF2` in its `nav-ice` shapes. The surrounding selected tab stays flat, without an underline or raised bottom edge. Avoid texture, shadows, or burgundy in these small navigation symbols.
