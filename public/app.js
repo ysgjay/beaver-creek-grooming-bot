@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  const UI = window.ReportUI;
 
   /* ---------------- helpers ---------------- */
   const $ = (sel, el = document) => el.querySelector(sel);
@@ -182,7 +183,7 @@
         const x = i * (cw + gap), t = Math.min(1, d.snow / 10), k = dayTick(d.date);
         const fill = d.snow < 0.1 ? "var(--surface-2)" : `color-mix(in oklab, var(--accent) ${Math.round(16 + t * 84)}%, var(--surface))`;
         const ink = t > 0.5 ? "var(--on-accent)" : "var(--ink)";
-        s += `<rect x="${x}" y="0" width="${cw}" height="38" rx="7" fill="${fill}" tabindex="0" data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected, likely ${inch(d.low)}–${inch(d.high)}"/>`;
+        s += `<rect x="${x}" y="0" width="${cw}" height="38" rx="7" fill="${fill}" tabindex="0" data-tip="${esc(`${fmtDay(d.date)}: ${inch(d.snow)} expected, likely ${inch(d.low)}–${inch(d.high)}`)}"/>`;
         s += `<text class="val" x="${x + cw / 2}" y="24" text-anchor="middle" style="fill:${ink};pointer-events:none">${d.snow < 0.1 ? "–" : val(d.snow)}</text>`;
         s += `<text class="wd${k.wk ? " wk" : ""}" x="${x + cw / 2}" y="52" text-anchor="middle"${tickSize(cw + gap)}>${k.wd}</text><text class="${k.wk ? "wk" : ""}" x="${x + cw / 2}" y="${52 + DAY_LINE}" text-anchor="middle"${tickSize(cw + gap)}>${k.label}</text>`;
       });
@@ -222,7 +223,7 @@
         if (lo < d.snow - 0.2) { const ly = Math.min(y(0) - 3, y(lo)); s += `<path d="M${x0 + sw + 1},${ly}l4.5,-3v6Z" fill="var(--ink)" opacity=".8"/>`; }
         s += d.snow >= 0.1 ? `<text class="val" x="${cx}" y="${valY}" text-anchor="middle">${val(d.snow)}</text>`
                            : `<text x="${cx}" y="${valY}" text-anchor="middle" opacity=".55">–</text>`;
-        s += `<rect x="${cx - slot / 2}" y="0" width="${slot}" height="${H}" rx="8" fill="transparent" tabindex="0" ${pick ? `class="day-hit" role="button" data-day="${i}" aria-label="${fmtDay(d.date)}, show each model's call" ` : ""}data-tip="${fmtDay(d.date)}: ${inch(d.snow)} expected. Low end ${inch(lo)}, could reach ${inch(hi)}"/>`;
+        s += `<rect x="${cx - slot / 2}" y="0" width="${slot}" height="${H}" rx="8" fill="transparent" tabindex="0" ${pick ? `class="day-hit" role="button" data-day="${i}" aria-label="${fmtDay(d.date)}, show each model's call" ` : ""}data-tip="${esc(`${fmtDay(d.date)}: ${inch(d.snow)} expected. Low end ${inch(lo)}, could reach ${inch(hi)}`)}"/>`;
       });
       return [H, `<g class="stakes${small ? " small" : ""}">` + s + dayLabels(days.map((d) => d.date), (i) => L + slot * i + slot / 2, dateY) + "</g>"];
     }, "Snow stakes: expected snow per day with its upper estimate");
@@ -299,38 +300,47 @@
     }, "Hourly temperature and snowfall");
   }
 
-  function openLightbox(src, alt) {
-    const ov = $("#overlay");
-    ov.innerHTML = `<div class="lightbox" role="dialog" aria-label="${esc(alt)}"><button class="close" type="button">Close</button><div class="scrollbox"><img src="${esc(src)}" alt="${esc(alt)}"></div></div>`;
-    const bd = ov.firstElementChild;
-    // Closing plays the leave transition, then removes only this sheet (a newer one may already be open).
-    const close = () => {
-      document.removeEventListener("keydown", onKey);
-      if (!bd.isConnected || bd.classList.contains("closing")) return;
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches) { bd.remove(); return; }
-      bd.classList.add("closing"); setTimeout(() => bd.remove(), 190);
-    };
-    const onKey = (e) => { if (e.key === "Escape") close(); };
-    $(".close", ov).addEventListener("click", close);
-    document.addEventListener("keydown", onKey);
-    $(".close", ov).focus();
+  function openModal(className, title, html, onMount, returnTo = document.activeElement) {
+    const ov = $("#overlay"), dialog = document.createElement("dialog");
+    dialog.className = className;
+    dialog.setAttribute("aria-label", title);
+    dialog.setAttribute("aria-modal", "true");
+    dialog.tabIndex = -1;
+    dialog.innerHTML = html;
+    // Append so a calendar sheet can open a map and regain focus when the map closes.
+    ov.appendChild(dialog);
+    const close = () => { if (dialog.open) dialog.close(); };
+    dialog.querySelector("[data-close]").addEventListener("click", close);
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key !== "Tab") return;
+      const items = [...dialog.querySelectorAll('button,a[href],input,select,textarea,summary,[tabindex]:not([tabindex="-1"])')]
+        .filter((el) => !el.matches(":disabled,[type=hidden]") && el.getClientRects().length);
+      const first = items[0], last = items.at(-1);
+      if (!first) { event.preventDefault(); dialog.focus(); }
+      else if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
+    const outside = (event) => { const r = dialog.getBoundingClientRect(); return event.target === dialog && (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom); };
+    let downOutside = false;
+    dialog.addEventListener("pointerdown", (event) => { downOutside = outside(event); });
+    dialog.addEventListener("pointerup", (event) => { if (downOutside && outside(event)) close(); downOutside = false; });
+    dialog.addEventListener("close", () => {
+      dialog.remove();
+      document.body.classList.toggle("modal-open", !!ov.querySelector("dialog[open]"));
+      const target = returnTo?.isConnected ? returnTo : ov.querySelector("dialog[open] [data-close]") || $("#main");
+      target?.focus({ preventScroll: true });
+    }, { once: true });
+    dialog.showModal();
+    document.body.classList.add("modal-open");
+    // Preserve callers that focus a field or mount a chart once the sheet has a real width.
+    onMount && onMount(dialog, close);
+    return dialog;
   }
-
-  function openSheet(title, html, onMount) {
-    const ov = $("#overlay");
-    ov.innerHTML = `<div class="sheet-backdrop"><div class="sheet" role="dialog" aria-label="${esc(title)}"><div class="sheet-head"><h2>${esc(title)}</h2><button class="btn secondary" type="button" data-close>Done</button></div>${html}</div></div>`;
-    const bd = ov.firstElementChild;
-    const close = () => {
-      document.removeEventListener("keydown", onKey);
-      if (!bd.isConnected || bd.classList.contains("closing")) return;
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches) { bd.remove(); return; }
-      bd.classList.add("closing"); setTimeout(() => bd.remove(), 190);
-    };
-    const onKey = (e) => { if (e.key === "Escape") close(); };
-    ov.querySelector("[data-close]").addEventListener("click", close);
-    ov.querySelector(".sheet-backdrop").addEventListener("click", (e) => { if (e.target.classList.contains("sheet-backdrop")) close(); });
-    document.addEventListener("keydown", onKey);
-    onMount && onMount(ov, close);
+  function openLightbox(src, alt, returnTo) {
+    openModal("lightbox", alt, `<button class="close" type="button" data-close>Close</button><div class="scrollbox" tabindex="0" aria-label="Map; scroll or pinch to zoom"><img src="${esc(src)}" alt="${esc(alt)}"></div>`, null, returnTo);
+  }
+  function openSheet(title, html, onMount, returnTo) {
+    return openModal("sheet", title, `<div class="sheet-head"><h2>${esc(title)}</h2><button class="btn secondary" type="button" data-close>Done</button></div>${html}`, onMount, returnTo);
   }
 
   // Temperatures at the resort's elevation bands (base, mid, peak), when the report carries them.
@@ -341,61 +351,62 @@
 
   /* ---------------- TODAY ---------------- */
   function viewToday() {
-    const L = S.latest;
-    const v = document.createElement("div");
+    const L = S.latest, v = document.createElement("div");
     v.className = "view v-today";
     if (!L) { v.innerHTML = `<p class="offline">The morning report isn't available yet. Check your connection and try again.</p>`; return v; }
-    const g = L.grooming || {}, fc = L.forecast || {}, obs = L.observed || {}, rs = L.resort || {};
-    const r24 = rs.last_24h_in ?? obs.snow_in;
-    const isToday = L.date === todayIso();
-    const now = (L.hourly?.hours || [])[0];
-    const bands = bandsOf(L);
+    const g = L.grooming || {}, fc = L.forecast || {}, rs = L.resort || {}, zone = resortInfo().timezone || RESORT_TZ;
+    const today = todayIso(), snow = UI.snowSource(rs, L.observed, zone, today);
+    const weather = UI.forecastHours(L.hourly?.hours, zone), now = weather.selected;
+    const outlook = UI.outlook(fc.days, today), grooming = UI.groomingDate(g, L.generated, zone, today);
+    const saved = UI.stamp(L.generated, zone, today, true), validAt = now && UI.stamp(now.time, zone, today);
+    const temperature = now && UI.number(now.temp) ? now.temp + "°" : "–";
+    const weatherLabel = now ? `${UI.clockLabel(UI.parts(now.time, zone))} temp` : "Temp";
+    const elevation = UI.number(fc.point?.elevation_ft) ? `${fc.point.elevation_ft.toLocaleString("en-US")} ft · ` : "";
+    const oldMap = grooming.age !== null && grooming.age > 0;
+    const mapBadge = grooming.age === null ? "Date unavailable" : oldMap ? `${grooming.age} ${grooming.age === 1 ? "day" : "days"} old` : grooming.age === 0 ? (g.list ? "Checked today" : "Today's map") : "Dated ahead";
+    const mapNote = grooming.day ? `${g.list ? "Feed checked" : "Map from"} ${grooming.label}${oldMap ? " · awaiting a newer report" : ""}` : "Map date unavailable";
+    const tenths = (x) => UI.number(x) ? `${Math.round(x * 10) / 10}″` : "–";
+    const firstRange = outlook.startsToday && fc.next_1_5_range;
     if (g.none) v.classList.add("no-groom");
     if (S.offline) v.classList.add("is-offline");
-
-    const sentAt = L.delivery?.sent_at ? L.delivery.sent_at.slice(11, 16) : null;
     v.innerHTML = `
       ${S.offline ? `<p class="offline">You're offline. Showing the report saved on ${fmtDay(L.date)}.</p>` : ""}
-      <div class="status-line">
-        ${g.none ? "" : `<span class="pill ${g.new_map ? "" : "quiet"}">${g.new_map ? (g.list ? "Grooming report" : "New grooming report") : "No new grooming report yet"}</span>`}
-        <span>${sentAt ? `Sent ${sentAt}` : `Updated ${isToday ? "" : fmtDay(L.date) + " "}${(L.generated || "").slice(11, 16)}`}</span>
-        ${rs.updated_time ? `<span>· Snow report ${esc(rs.updated_time)}</span>` : ""}
-      </div>
-
+      <div class="status-line report-saved"><span>${saved ? `Saved report · ${esc(saved)}` : "Saved report · time unavailable"}</span></div>
       <section class="card a-cond" aria-label="Conditions">
         <div class="cond">
-          <div><span class="label">New 24h</span><span class="big">${inch(r24)}</span></div>
-          <div><span class="label">Base<span class="wide-only"> depth</span></span><span class="mid">${inch(rs.base_in)}</span><span class="sub">Season ${inch(rs.season_in)}</span></div>
-          <div><span class="label">Now</span><span class="mid">${now ? now.temp + "°" : "–"}</span><span class="sub">${now ? `Feels ${now.feels}°` : ""}</span></div>
-          <div><span class="label">Wind</span><span class="mid">${now ? now.wind : "–"}</span><span class="sub">${now ? `${esc(now.dir)} g${now.gust ?? "–"}` : ""}</span></div>
+          <div><span class="label">New 24h</span><span class="big">${inch(snow.value)}</span></div>
+          <div><span class="label">Base depth</span><span class="mid">${inch(rs.base_in)}</span><span class="sub">Season ${inch(rs.season_in)}</span></div>
+          <div><span class="label">${esc(weatherLabel)}</span><span class="mid">${temperature}</span><span class="sub">${now && UI.number(now.feels) ? `Feels ${now.feels}°` : ""}</span></div>
+          <div><span class="label">Wind</span><span class="mid">${now && UI.number(now.wind) ? now.wind : "–"}<small class="metric-unit"> mph</small></span><span class="sub">${now ? `${esc(now.dir || "")}${UI.number(now.gust) ? ` · Gust ${now.gust}` : ""}` : ""}</span></div>
         </div>
-        ${bands.length ? `<div class="status-line bands"><span>Temp now</span>${bands.map((b) => { const t = b.now?.temp ?? b.hours?.[0]?.temp; return t == null ? "" : `<span title="${bandFt(b)}">· ${esc(b.label)} <strong class="num">${t}°</strong></span>`; }).join("")}</div>` : ""}
-        ${now ? `<div class="hours">${L.hourly.hours.slice(1).map((h) => `<div class="hour"><span class="t">${hourLabel(h.time)}</span><span class="temp">${h.temp}°</span><span class="small">${esc(h.dir)} ${h.wind}</span>${h.snow ? `<span class="num small">${h.snow}"</span>` : ""}</div>`).join("")}</div>` : ""}
+        <div class="source-grid"><span>${esc(snow.source)} · ${esc(snow.stamp)}</span><span>${validAt ? `${weather.status === "past" ? "Saved forecast" : "Forecast"} · ${esc(validAt)}` : "Weather forecast unavailable"}<br>${esc(elevation)}temperatures °F</span></div>
+        ${weather.status === "past" ? '<p class="weather-note">Current hour unavailable; showing the last saved forecast hour.</p>' : ""}
+        ${weather.later.length ? `<div class="hours" aria-label="Upcoming hourly temperature in Fahrenheit and wind in miles per hour">${weather.later.map((h) => `<div class="hour"><span class="t">${hourLabel(h.time)}</span><span class="temp">${UI.number(h.temp) ? h.temp + "°" : "–"}</span><span class="small">${esc(h.dir || "")} ${UI.number(h.wind) ? h.wind : "–"}</span>${h.snow ? `<span class="num small">${h.snow}"</span>` : ""}</div>`).join("")}</div>` : ""}
       </section>
-
+      ${outlook.available ? `<a href="#forecast" class="snow-outlook" aria-label="Expected snow; open full forecast">
+        <span class="outlook-eyebrow">Expected snow <span aria-hidden="true">↗</span></span>
+        <span class="outlook-values"><span><small>Next 5 days</small><strong>${tenths(outlook.first)}</strong></span><span><small>${outlook.peak ? fmtDay(outlook.peak.date) : "Days 6–10"}</small><strong>${tenths(outlook.peak?.snow ?? outlook.second)}</strong></span></span>
+      </a>` : ""}
       ${g.none ? "" : `<section class="card a-groom" aria-labelledby="h-groom">
-        <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="muted small">${g.runs?.map_date ? esc(mapDate(g.runs.map_date)) : ""}</span></div>
+        <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="map-age${oldMap ? " old" : ""}">${esc(mapBadge)}</span></div><p class="map-note">${esc(mapNote)}</p>
         <div class="groom">
           ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="${esc(resortInfo().name)} grooming map" decoding="async"></button>` : g.list ? (groomedRuns(g.runs).length ? "" : `<p class="muted">No groomed runs reported yet today.</p>`) : `<p class="muted">No grooming map yet.</p>`}
           ${runsBlock(g.runs)}
         </div>
       </section>`}
-
       <section class="card a-fc" aria-labelledby="h-fc">
         <div class="card-head"><h2 id="h-fc">Snow forecast</h2><a class="link" href="#forecast">Full forecast</a></div>
-        <div class="status-line"><span>Next 5 days <strong class="num">${inch(fc.next_1_5)}</strong>${fc.next_1_5_range ? ` (likely ${inch(fc.next_1_5_range[0])}–${inch(fc.next_1_5_range[1])})` : ""}</span><span>· Days 6–10 <strong class="num">${inch(fc.next_6_10)}</strong></span></div>
-        <div id="fc-mini"></div>
+        <div class="status-line"><span>Next 5 days <strong class="num">${inch(outlook.first)}</strong>${firstRange ? ` (likely ${inch(firstRange[0])}–${inch(firstRange[1])})` : ""}</span><span>· Days 6–10 <strong class="num">${inch(outlook.second)}</strong></span></div>
+        <div id="fc-mini">${outlook.available ? "" : '<p class="muted small">No upcoming forecast in this saved report.</p>'}</div>
       </section>
-
       <section class="card a-cam" aria-labelledby="h-cam">
         <div class="card-head"><h2 id="h-cam">${/stake/i.test(resortInfo().cams?.[0]?.label || "") || L.cam ? "Snow stake" : "Cams"}</h2>${resortInfo().cams?.length ? `<span class="muted small">Tap to switch cams</span>` : ""}</div>
         <div id="cams"></div>
       </section>
       <a class="btn secondary block a-cta" href="#help" data-goto="alerts">Get this report at 7:00 by email or notification</a>`;
-
     if (fc.days?.length) $("#fc-mini", v).appendChild(heatStrip(fc.days));
     const mb = $("#map-open", v);
-    if (mb) mb.addEventListener("click", () => openLightbox("/" + g.image, "Grooming map"));
+    if (mb) mb.addEventListener("click", () => openLightbox("/" + g.image, "Grooming map", mb));
     renderCams($("#cams", v), L);
     return v;
   }
@@ -565,7 +576,7 @@
     }
     el.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => { S.cal.sel = addDays(d, +b.dataset.step); S.cal.month = S.cal.sel.slice(0, 7); route(); }));
     const mb = el.querySelector("[data-map]");
-    if (mb) mb.addEventListener("click", () => openLightbox("/" + mb.dataset.map, "Grooming map"));
+    if (mb) mb.addEventListener("click", () => openLightbox("/" + mb.dataset.map, "Grooming map", mb));
     return el;
   }
 
@@ -573,11 +584,11 @@
     const card = await dayCard(d);
     openSheet(fmtDay(d), "", (ov, close) => {
       card.querySelector(".month-nav").remove();
-      ov.querySelector(".sheet").appendChild(card);
+      ov.appendChild(card);
       const full = document.createElement("button");
       full.className = "btn secondary block"; full.type = "button"; full.textContent = "Open in day view";
       full.addEventListener("click", () => { close(); S.cal.mode = "day"; S.cal.sel = d; route(); });
-      ov.querySelector(".sheet").appendChild(full);
+      ov.appendChild(full);
     });
   }
 
@@ -895,16 +906,17 @@
     let open = -1, pop = null;
     const one = (x) => (x >= 0.05 ? `${Math.round(x * 10) / 10}"` : '0"');   // tenths, so close calls stay distinguishable
     const body = (d) => {
-      const votes = Object.entries(d.models || {}).filter(([, x]) => x != null).sort((a, b) => b[1] - a[1]);
+      const votes = Object.entries(d.models || {}).filter(([, x]) => UI.number(x)).sort((a, b) => b[1] - a[1]);
       const max = Math.max(1, d.high ?? 0, d.snow, ...votes.map(([, x]) => x));
       const row = (name, x, blend) => `<div class="vp-row${blend ? " blend" : ""}"><span>${esc(name)}</span><span class="vp-bar"><i style="width:${Math.round((x / max) * 100)}%"></i></span><span class="num">${one(x)}</span></div>`;
       let rowsHtml = "", placed = false;
       votes.forEach(([m, x]) => { if (!placed && x < d.snow) { rowsHtml += row("Blend", d.snow, true); placed = true; } rowsHtml += row(labels[m] || m, x); });
       if (!placed) rowsHtml += row("Blend", d.snow, true);
       const mark = d.snow >= 1 ? Math.floor(d.snow) : 0, agree = votes.filter(([, x]) => (mark ? x >= mark : x >= 0.1)).length;
-      return `<p class="muted small">Blend ${one(d.snow)}. Range ${one(d.low ?? d.snow)} to ${one(d.high ?? d.snow)}. ${votes.length} of ${modelCount || votes.length} models reach this day.</p>
-        <div class="vp-rows">${rowsHtml}</div>
-        <p class="small">${votes.length ? `${agree} of ${votes.length} models show ${mark ? `${mark} ${mark === 1 ? "inch" : "inches"} or more` : "some snow"}.` : "No model reaches this day yet."}</p>`;
+      return `<div class="day-hero"><span class="label">Expected snowfall</span><strong>${UI.number(d.snow) ? one(d.snow) : "–"}</strong><span>Likely range ${one(d.low ?? d.snow)}–${one(d.high ?? d.snow)}</span></div>
+        <p class="day-note">The expected amount blends the available forecasts. The range shows the uncertainty.</p>
+        <details class="model-details"><summary>Compare models <span>${votes.length}</span></summary><div class="vp-rows">${rowsHtml}</div>
+        <p class="day-note">${votes.length ? `${votes.length} of ${modelCount || votes.length} models reach this day. ${agree} of ${votes.length} show ${mark ? `${mark} ${mark === 1 ? "inch" : "inches"} or more` : "some snow"}.` : "No model reaches this day yet."}</p></details>`;
     };
     const close = () => {
       if (pop) { const old = pop; if (matchMedia("(prefers-reduced-motion: reduce)").matches) old.remove(); else { old.classList.add("closing"); setTimeout(() => old.remove(), 150); } }
@@ -915,9 +927,9 @@
     const onKey = (e) => { if (e.key === "Escape") close(); };
     const onOutside = (e) => { if (pop && !pop.contains(e.target) && !e.target.closest(".day-hit")) close(); };
     const show = (i, hit) => {
-      const d = days[i], title = `Model votes, ${fmtDay(d.date)}`;
+      const d = days[i], title = `Snowfall · ${fmtDay(d.date)}`;
       $("#tip").hidden = true;
-      if (!matchMedia("(min-width: 900px)").matches) { close(); openSheet(title, body(d)); return; }
+      if (!matchMedia("(min-width: 900px)").matches) { close(); openSheet(title, body(d), null, hit); return; }
       if (open === i) return close();
       close(); open = i; hit.classList.add("sel");
       pop = document.createElement("div");
@@ -936,11 +948,17 @@
     chart.addEventListener("keydown", (e) => {
       const hit = e.target.closest?.(".day-hit"); if (!hit) return;
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(+hit.dataset.day, hit); }
-      if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const n = chart.querySelector(`.day-hit[data-day="${+hit.dataset.day + (e.key === "ArrowRight" ? 1 : -1)}"]`); if (n) { e.preventDefault(); n.focus(); } }
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const n = chart.querySelector(`.day-hit[data-day="${+hit.dataset.day + (e.key === "ArrowRight" ? 1 : -1)}"]`); if (n) { e.preventDefault(); n.focus({ preventScroll: true }); n.scrollIntoView({ block: "nearest", inline: "nearest" }); } }
     });
     // A redraw (resize) replaces the bars, so drop any open pop-up with them.
     new ResizeObserver(() => { if (pop && !chart.querySelector(".day-hit.sel")) close(); }).observe(chart);
   }
+
+  const forecastWide = matchMedia("(min-width: 900px)");
+  function orderForecast(view = $(".v-fc")) {
+    if (view) view.prepend(view.querySelector(forecastWide.matches ? ".a-hours" : ".a-ten"));
+  }
+  forecastWide.addEventListener("change", () => orderForecast());
 
   /* ---------------- FORECAST ---------------- */
   function viewForecast() {
@@ -950,15 +968,20 @@
     const bands = bandsOf(S.latest);
     // The hourly strip stacks the temperatures like the mountain: peak on top, base at the bottom.
     const rows = bands.slice().reverse(), midBand = rows.find((b) => b.key === "mid") || rows[Math.floor(rows.length / 2)];
-    const hours = S.latest?.hourly?.hours || [], snowMax = Math.max(0.5, ...hours.map((h) => h.snow || 0));
+    const zone = resortInfo().timezone || RESORT_TZ, today = todayIso();
+    const weather = UI.forecastHours(S.latest?.hourly?.hours, zone);
+    const hours = weather.upcoming.slice(0, 12), snowMax = Math.max(0.5, ...hours.map((h) => h.snow || 0));
+    const forecastStamp = UI.stamp(S.latest?.generated, zone, today, true);
+    const rangeLabel = days.length ? `${fmtDay(days[0].date)}–${fmtDay(days.at(-1).date)}` : "Dates unavailable";
     const vm = S.verification?.models || {};
     const hist = (S.verification?.history || []).slice(-10).reverse();
     v.innerHTML = `
       <section class="card a-hours">
-        <div class="card-head"><h2>Next 12 hours</h2><span class="muted small">${rows.length > 1 ? "Temperature at " + rows.map((b) => `${esc(b.label).toLowerCase()} ${bandFt(b)}`).join(", ") + " · wind in mph" : "Wind in mph"}</span></div>
+        <div class="card-head"><h2>${hours.length === 12 ? "Next 12 hours" : "Hourly forecast"}</h2><span class="muted small">${rows.length > 1 ? "Temperature at " + rows.map((b) => `${esc(b.label).toLowerCase()} ${bandFt(b)}`).join(", ") + " · wind in mph" : "Wind in mph"}</span></div>
+        ${!hours.length ? '<p class="muted small">No upcoming hours in this saved report.</p>' : ""}
         <div class="hs-wrap">
           <div class="hs-col hs-labels" aria-hidden="true"><span class="t"></span><span class="sn">Snow</span>${rows.length ? rows.map((b) => `<span class="${b === midBand ? "mid" : "tmp"}">${esc(b.label)}</span>`).join("") : '<span class="mid">Temp</span>'}<span class="w">Wind</span></div>
-        <div class="hstrip" role="group" aria-label="Next 12 hours, hour by hour">
+        <div class="hstrip" role="group" aria-label="Upcoming forecast, hour by hour">
           ${hours.map((h) => `<div class="hs-col" tabindex="0" data-tip="${hourLabel(h.time)}: ${rows.length ? rows.map((b) => `${esc(b.label)} ${bandTemp(b, h.time)}`).join(", ") : h.temp + "°"}, feels ${h.feels}°. Wind ${esc(h.dir)} ${h.wind} mph${h.gust != null ? ", gusts " + h.gust : ""}. ${h.snow ? h.snow + " in. snow" : "No snow"}, cloud ${h.cloud}%">
             <span class="t">${hourLabel(h.time)}</span>
             <span class="sn">${h.snow ? `<b>${h.snow}"</b>` : ""}<i class="${h.snow ? "on" : ""}" style="height:${h.snow ? Math.max(3, Math.round((h.snow / snowMax) * 20)) : 2}px"></i></span>
@@ -970,14 +993,17 @@
       </section>
 
       <section class="card a-ten">
-        <div class="card-head"><h2>10-day snowfall</h2><span class="muted small">Blended from ${(fc.models_used || []).length} models</span></div>
+        <div class="card-head"><h2>10-day snowfall</h2><span class="muted small">${(fc.models_used || []).length} models</span></div>
+        <p class="forecast-stamp">${forecastStamp ? `Saved ${esc(forecastStamp)}` : "Report time unavailable"} · ${esc(rangeLabel)}</p>
         <div class="snow-grid">
           <div><span class="label">Days 1–5</span><span class="big">${inch(fc.next_1_5)}</span><span class="sub">${fc.next_1_5_range ? `likely ${inch(fc.next_1_5_range[0])}–${inch(fc.next_1_5_range[1])}` : ""}</span></div>
           <div><span class="label">Days 6–10</span><span class="mid">${inch(fc.next_6_10)}</span><span class="sub">${fc.next_6_10_range ? `${inch(fc.next_6_10_range[0])}–${inch(fc.next_6_10_range[1])}` : ""}</span></div>
-          <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">next 5 days</span></div>
+          <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">first 5 forecast days</span></div>
         </div>
-        <div id="fc-chart"></div>
-        <div class="legend stake-legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span><span class="pick-hint">Select a day to see each model's call.</span></div>
+        <div id="fc-chart" class="chart-scroll" aria-label="Daily snowfall; scroll to see later days">${days.length ? "" : '<p class="muted small">No daily forecast available.</p>'}</div>
+        ${days.length ? `<div class="chart-controls"><span>Swipe for later days</span><button type="button" data-scroll="-1" aria-label="Earlier forecast days">←</button><button type="button" data-scroll="1" aria-label="Later forecast days">→</button></div>` : ""}
+        ${fc.powder_odds_pct == null ? "" : `<p class="powder-note">${fc.powder_odds_pct}% chance of a 6″+ day · first 5 forecast days</p>`}
+        <div class="legend stake-legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span><span class="pick-hint">Tap a day for the range and models.</span></div>
       </section>
 
       <section class="card a-radar" id="radar-card"></section>
@@ -1006,8 +1032,14 @@
         </details>
       </section>`;
     if (days.length) {
+      const scroller = $("#fc-chart", v), controls = $(".chart-controls", v);
+      scroller.style.setProperty("--chart-min", `${Math.max(280, days.length * 50 + 24)}px`);
+      const updateScroll = () => controls.querySelectorAll("button").forEach((b) => { b.disabled = +b.dataset.scroll < 0 ? scroller.scrollLeft < 2 : scroller.scrollLeft >= scroller.scrollWidth - scroller.clientWidth - 2; });
+      controls.addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) scroller.scrollBy({ left: +b.dataset.scroll * Math.max(100, scroller.clientWidth - 100), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); });
+      scroller.addEventListener("scroll", updateScroll, { passive: true });
+      const scrollObserver = new ResizeObserver(updateScroll); scrollObserver.observe(scroller);
       // On wide screens the stakes grow to fill the card beside the radar.
-      const plotH = matchMedia(WIDE).matches ? Math.max(168, Math.min(380, innerHeight - 564 - DAY_LINE)) : 168;
+      const plotH = matchMedia(WIDE).matches ? Math.max(168, Math.min(380, innerHeight - 600 - DAY_LINE)) : 168;
       $("#fc-chart", v).appendChild(stakeChart(days, plotH, true));
       $("#fc-votes", v).appendChild(votesChart(days, labels));
       dayVotes($(".a-ten", v), days, labels, (fc.models_used || []).length);
@@ -1020,12 +1052,13 @@
       const box = sum.parentElement.cloneNode(true);
       box.querySelector("summary").remove();
       openSheet(sum.textContent, `<div class="more-body">${box.innerHTML}</div>`, (ov) => {
-        ov.querySelector(".sheet").classList.add("wide");
+        ov.classList.add("wide");
         const votes = ov.querySelector("#fc-votes");
         if (votes) { votes.removeAttribute("id"); votes.innerHTML = ""; votes.appendChild(votesChart(days, labels)); }
         ov.querySelector("[data-close]").focus();
       });
     });
+    orderForecast(v);
     bindTips($(".hstrip", v));
     mountRadar($("#radar-card", v));
     return v;
@@ -1265,6 +1298,7 @@ ${tell}
   const VIEWS = { today: viewToday, calendar: viewCalendar, forecast: viewForecast, help: viewHelp };
   let routing = 0;
   async function route() {
+    document.querySelectorAll("#overlay dialog[open]").forEach((d) => d.close());
     const tab = (location.hash.slice(1) || "today");
     const name = VIEWS[tab] ? tab : "today";
     document.querySelectorAll(".tabbar a, .top-tabs a").forEach((a) => { if (a.dataset.tab === name) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });

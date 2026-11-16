@@ -65,9 +65,15 @@ html[data-brand="frosted-snow"] .pill{color:var(--accent);background:var(--accen
 html[data-brand="frosted-snow"] .pill.quiet{background:#e5edf4;color:var(--ink-2)}
 html[data-brand="frosted-snow"] .link{color:var(--frost-action);text-decoration:underline;text-underline-offset:3px}
 html[data-brand="frosted-snow"] .tabbar{background:#f5f9fcf5;border-top:1px solid #fff;box-shadow:0 -4px 20px #0c2a4a08}
-html[data-brand="frosted-snow"] .tabbar a{min-height:48px;border-radius:12px;gap:5px}
+html[data-brand="frosted-snow"] .tabbar a{min-height:48px;border-radius:12px;gap:3px}
 html[data-brand="frosted-snow"] .tabbar a[aria-current="page"]{background:var(--frost-selected);color:var(--ink);box-shadow:none}
 html[data-brand="frosted-snow"] .tabbar nav{gap:5px;padding-block:6px;padding-inline:12px}
+/* Custom alpine navigation: outline at rest, a restrained ice fill when selected.
+   Keep the text labels and let the link own focus/current-page semantics. */
+html[data-brand="frosted-snow"] .nav-icon{flex:none}
+html[data-brand="frosted-snow"] .nav-icon .nav-ice{fill:none}
+html[data-brand="frosted-snow"] a[aria-current="page"] .nav-icon .nav-ice{fill:var(--snow-fill)}
+html[data-brand="frosted-snow"] .tabbar a .nav-icon{width:26px;height:26px}
 html[data-brand="frosted-snow"] .seg{background:#e5eef5;border-color:var(--line);border-radius:14px}
 html[data-brand="frosted-snow"] .seg button{min-height:44px;border-radius:10px}
 html[data-brand="frosted-snow"] .seg button[aria-pressed="true"]{background:var(--frost-action);color:white;box-shadow:none}
@@ -156,7 +162,7 @@ html[data-brand="frosted-snow"] .hours .small { font-size:11px; white-space:nowr
  html[data-brand="frosted-snow"] .brand { flex:none; }
  html[data-brand="frosted-snow"] .top-tabs { display:flex; align-items:center; gap:4px; flex:none; margin-left:6px; padding-left:14px; border-left:1px solid var(--line, #C3D3E0); }
  html[data-brand="frosted-snow"] .top-tabs a { display:inline-flex; align-items:center; gap:6px; height:44px; padding:0 13px; border-radius:999px; font-size:15px; font-weight:500; color:var(--ink); text-decoration:none; }
- html[data-brand="frosted-snow"] .top-tabs a svg { width:18px; height:18px; }
+ html[data-brand="frosted-snow"] .top-tabs a svg { width:20px; height:20px; }
  html[data-brand="frosted-snow"] .top-tabs a:hover { background:#f5f9fc; }
  html[data-brand="frosted-snow"] .top-tabs a[aria-current="page"] { background:var(--frost-selected, #DCE8F2); color:var(--ink); font-weight:600; }
  html[data-brand="frosted-snow"] .top-tabs a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
@@ -170,3 +176,50 @@ html[data-brand="frosted-snow"] .hours .small { font-size:11px; white-space:nowr
  html[data-brand="frosted-snow"] .favs .fav-edit { display:inline-flex; align-items:center; height:30px; padding:0 8px; margin-left:4px; border:0; background:none; font:inherit; font-size:13px; color:var(--frost-action); cursor:pointer; }
  html[data-brand="frosted-snow"] .favs .fav-edit:hover { text-decoration:underline; }
 }
+@media(forced-colors:active){
+ html[data-brand="frosted-snow"] a[aria-current="page"] .nav-icon .nav-ice{fill:none}
+ html[data-brand="frosted-snow"] :is(.tabbar,.top-tabs) a[aria-current="page"]{outline:1px solid Highlight;outline-offset:-3px}
+ html[data-brand="frosted-snow"] :is(.tabbar,.top-tabs) a:focus-visible{outline:3px solid Highlight;outline-offset:2px}
+}
+
+/* Report hierarchy: source times and uncertainty stay next to the numbers. */
+.report-saved{font-size:12px;color:var(--ink-2)}
+.source-grid{display:grid;grid-template-columns:1fr 1fr;font-size:11px;line-height:1.45;color:var(--ink-2);border-top:1px solid var(--line);padding-top:8px;gap:10px}
+.source-grid>span+span{padding-left:8px;border-left:1px solid var(--line)}
+.metric-unit{font-family:var(--font-body);font-size:11px;font-weight:500;letter-spacing:0}
+html[data-brand="frosted-snow"] .cond .label{font-size:10.5px;letter-spacing:.025em;white-space:nowrap}
+html[data-brand="frosted-snow"] .cond .sub{font-size:10px}
+.weather-note,.map-note,.forecast-stamp,.powder-note{margin:0;font-size:11px;color:var(--ink-2)}
+.snow-outlook{display:block;border:1px solid white;border-radius:20px;background:#dcecf8;color:var(--ink);text-decoration:none;padding:12px 16px}
+.outlook-eyebrow{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.outlook-eyebrow>span{font-size:20px;line-height:12px;color:var(--frost-action)}
+.outlook-values{display:flex;gap:24px;margin-top:7px}.outlook-values>span{display:flex;align-items:baseline;gap:10px;flex:1}.outlook-values small{font-size:12px;white-space:nowrap}.outlook-values strong{font-family:var(--font-display);font-size:25px;line-height:1}
+.map-age{background:#e5eef5;color:var(--ink-2);padding:4px 8px;border-radius:7px;font-size:11px;white-space:nowrap}
+.map-age.old{background:#fff1da;color:#795011}
+.chart-scroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#9dbbd1 transparent}
+.chart-controls{display:flex;align-items:center;gap:6px}.chart-controls>span{font-size:12px;color:var(--ink-2);margin-right:auto}
+.chart-controls button{background:#e5eef5;color:var(--ink);border:0;font-size:18px;border-radius:10px;min-width:44px;min-height:44px;cursor:pointer}
+.chart-controls button:disabled{opacity:.35;cursor:default}
+.day-hero{display:flex;flex-direction:column;gap:4px;background:#e5f1fa;padding:18px;border-radius:16px}.day-hero>strong{font:600 48px/1.1 var(--font-display);letter-spacing:-.04em}.day-hero>span:last-child{font-size:14px}
+.day-note{margin:0;color:var(--ink-2);font-size:12px;line-height:1.55}
+.model-details{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.model-details summary{font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:space-between;cursor:pointer}.model-details summary::after{content:'＋';font-size:20px;font-weight:400}.model-details summary span{margin-left:auto;margin-right:12px;background:#e5eef5;border-radius:8px;padding:2px 8px;color:var(--ink-2);font-size:12px}.model-details[open] summary::after{content:'−'}
+.model-details .day-note{padding-bottom:12px}.model-details summary::-webkit-details-marker{display:none}
+.votes-pop{max-height:min(65vh,480px);overflow:auto}.votes-pop .day-hero{padding:12px;margin-top:10px}.votes-pop .day-hero>strong{font-size:32px}
+body.modal-open{overflow:hidden}
+html[data-brand="frosted-snow"] dialog.sheet{position:fixed;top:auto;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-height:88dvh;box-sizing:border-box;border-radius:24px 24px 0 0;gap:16px;color:var(--ink)}
+dialog.sheet::backdrop{background:rgba(12,42,74,.38)}
+dialog.sheet .sheet-head h2{font-size:19px;line-height:1.2}.sheet-head button{flex-shrink:0}
+dialog:not([open]){display:none}
+dialog.lightbox{margin:0;width:100vw;height:100dvh;max-width:none;max-height:none;border:0;color:white;padding-inline:0;padding-bottom:0}
+dialog.lightbox::backdrop{background:#05101a}
+@media(max-width:899px){
+ .a-ten #fc-chart .chart{min-width:var(--chart-min,524px)}
+ html[data-brand="frosted-snow"] .a-ten .snow-grid{grid-template-columns:1fr 1fr}
+ .a-ten .snow-grid>div:last-child{display:none}
+ .a-ten .legend{font-size:11px;gap:8px 12px}.a-ten .pick-hint{margin-left:0;width:100%}
+}
+@media(min-width:900px){
+ .snow-outlook,.chart-controls,.powder-note{display:none}
+ html[data-brand="frosted-snow"] dialog.sheet{top:0;bottom:0;margin:auto;max-height:calc(100dvh - 48px);height:max-content;border-radius:24px}
+}
+@media(max-width:359px){.outlook-values{gap:16px}.outlook-values>span{gap:6px;flex-wrap:wrap}.outlook-values strong{font-size:23px}.source-grid{gap:6px}}
