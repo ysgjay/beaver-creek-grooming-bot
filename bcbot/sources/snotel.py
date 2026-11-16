@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 API = "https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data"
 
 
-def _fetch(triplet, duration, begin, end, elements="SNWD,WTEQ,PREC,TOBS"):
+def _fetch(triplet, duration, begin, end, elements="SNWD,WTEQ,PREC,TOBS", timeout=45, retries=2):
     r = get(
         API,
         params={
@@ -24,7 +24,8 @@ def _fetch(triplet, duration, begin, end, elements="SNWD,WTEQ,PREC,TOBS"):
             "beginDate": begin,
             "endDate": end,
         },
-        timeout=45,
+        timeout=timeout,
+        retries=retries,
     )
     r.raise_for_status()
     series = {}
@@ -73,10 +74,11 @@ def fetch(days_back=21):
     begin = (today - timedelta(days=days_back)).isoformat()
     for triplet in config.SNOTEL_STATIONS:
         try:
-            daily = _fetch(triplet, "DAILY", begin, today.isoformat())
+            # Live run: fail fast (one try, 10 s) so a dead station can't eat the function's 60 s.
+            daily = _fetch(triplet, "DAILY", begin, today.isoformat(), timeout=10, retries=0)
             hourly = _fetch(
                 triplet, "HOURLY", (today - timedelta(days=2)).isoformat(),
-                (today + timedelta(days=1)).isoformat(), elements="SNWD,PREC",
+                (today + timedelta(days=1)).isoformat(), elements="SNWD,PREC", timeout=10, retries=0,
             )
             obs = daily_observations(daily)
             if not obs:
