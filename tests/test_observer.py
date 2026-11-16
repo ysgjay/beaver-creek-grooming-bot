@@ -29,3 +29,9 @@ def test_window_is_every_tick_3_to_10_local_otherwise_quarter_hours():
 
 def test_stops_after_the_week():
     assert observer.run(now=datetime(2026, 11, 25, 14, 0, tzinfo=timezone.utc))["status"] == "skipped"
+
+
+def test_detail_is_always_valid_json():
+    import json
+    big = {"hints": ["x" * 5000] * 4, "text": "y" * 3000, "n": 3}
+    assert json.loads(observer._cap(big))
