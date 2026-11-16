@@ -20,7 +20,7 @@ import sys
 from datetime import date, datetime, timedelta
 
 from . import alert, config, forecast, notify, report, resorts, verify
-from .sources import grooming, nws, openmeteo, resort, snotel
+from .sources import dor, grooming, nws, openmeteo, resort, snotel
 from .store import get_store, resort_store
 from .util import get, now_local
 
@@ -361,6 +361,10 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
     g = dict(prev.get("grooming") or {"new_map": False, "image": state.get("last_map_image")})
     if not config.GROOMING_PDF_URL:
         g = {"new_map": False, "image": None, "none": True}  # this resort posts no grooming map
+        if config.DOR_API:  # no map, but the resort's trail feed says which runs are groomed
+            runs = _try("grooming feed", dor.fetch_grooming, errors, None)
+            if runs is not None:
+                g = {"new_map": bool(runs["groomed"]), "image": None, "runs": runs, "list": True}
     if groom and not g.get("runs"):
         g["runs"] = groom.get("runs")  # same map as before: still show its run names and date
     if groom and map_changed:

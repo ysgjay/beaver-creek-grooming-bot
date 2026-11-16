@@ -211,7 +211,7 @@ RESORTS = {
     },
     "copper": {
         "name": "Copper Mountain", "region": "Colorado", "pass": "Ikon",
-        "site": "https://www.coppercolorado.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.coppercolorado.com", "snow_report_path": None, "dor_api": "https://api.coppercolorado.com", "grooming_pdf": None,
         "lat": 39.4800, "lon": -106.1600, "elevation_ft": 11000,
         "bands": _bands((39.5020, -106.1520, 9712, "base"), (39.4800, -106.1600, 11000, "mid-mountain"),
                         (39.4670, -106.1700, 12313, "summit")),
@@ -231,7 +231,7 @@ RESORTS = {
     },
     "eldora": {
         "name": "Eldora", "region": "Colorado", "pass": "Ikon",
-        "site": "https://www.eldora.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.eldora.com", "snow_report_path": None, "dor_api": "https://api.eldora.com", "grooming_pdf": None,
         "lat": 39.9400, "lon": -105.5970, "elevation_ft": 10000,
         "bands": _bands((39.9380, -105.5830, 9200, "base"), (39.9400, -105.5970, 10000, "mid-mountain"),
                         (39.9420, -105.6070, 10800, "summit")),
@@ -281,7 +281,7 @@ RESORTS = {
     },
     "snowbird": {
         "name": "Snowbird", "region": "Utah", "pass": "Ikon",
-        "site": "https://www.snowbird.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.snowbird.com", "snow_report_path": None, "dor_api": "https://api.snowbird.com", "grooming_pdf": None,
         "lat": 40.5700, "lon": -111.6600, "elevation_ft": 9600,
         "bands": _bands((40.5810, -111.6560, 7760, "base"), (40.5700, -111.6600, 9600, "mid-mountain"),
                         (40.5600, -111.6560, 11000, "summit")),
@@ -321,7 +321,10 @@ def get(slug):
     r.setdefault("tz", "America/Denver")
     r.setdefault("region", "Colorado")
     r.setdefault("pass", "Epic")
-    if "snow_report_path" in r and r["snow_report_path"] is None:
+    r.setdefault("dor_api", None)
+    if r["dor_api"]:  # POWDR's open JSON feed (sources/dor.py): snow report and groomed runs
+        r["snow_report"] = r["dor_api"] + "/api/v1/dor/drupal/snow-reports"
+    elif "snow_report_path" in r and r["snow_report_path"] is None:
         r["snow_report"] = None  # this resort's own snow report isn't read (yet)
     env = os.environ.get("OPENING_DAY_" + slug.upper().replace("-", "_")) or (
         os.environ.get("OPENING_DAY") if slug == DEFAULT else None)
@@ -346,7 +349,7 @@ def public_list():
         out.append({"slug": slug, "name": r["name"], "timezone": r["tz"], "cams": r["cams"], "patrol": r["patrol"],
                     "snotel": r["snotel_label"], "site": r["site"], "lat": r["lat"], "lon": r["lon"],
                     "region": r["region"], "pass": r["pass"], "snow_report": bool(r["snow_report"]),
-                    "grooming": bool(r["grooming_pdf"])})
+                    "grooming": bool(r["grooming_pdf"] or r["dor_api"])})
     return {"default": DEFAULT, "resorts": out}
 
 
@@ -354,4 +357,4 @@ def is_static(slug):
     """Nothing to watch for between refreshes: no grooming map and no snow report that's read.
     The scheduler only needs to run these every half hour (refresh + the 7:00 send)."""
     r = get(slug)
-    return not r["grooming_pdf"] and not r["snow_report"]
+    return not r["grooming_pdf"] and not r["snow_report"] and not r["dor_api"]
