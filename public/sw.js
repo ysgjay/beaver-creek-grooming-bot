@@ -1,6 +1,6 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v14-midnight-ice";
+const SHELL = "shell-v15-push-open";
 const DATA = "data-v1";
 const SHELL_FILES = [
   "/", "/index.html", "/appearance.js", "/report-ui.js", "/app.js", "/app.css", "/themes.css", "/frost.css", "/dark.css",
@@ -20,18 +20,31 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
   if (url.pathname.startsWith("/data/") || url.pathname.startsWith("/maps/") || url.pathname.startsWith("/cams/")) {
-    e.respondWith(fetch(e.request).then((res) => {
-      if (res.ok) { const copy = res.clone(); caches.open(DATA).then((c) => c.put(e.request, copy)); }
-      return res;
-    }).catch(() => caches.match(e.request, { ignoreSearch: true })));
+    e.respondWith(networkFirst(e.request, DATA, () => caches.match(e.request, { ignoreSearch: true })));
     return;
   }
   // App shell: network first so a new deploy shows on the next open; cache only when offline.
-  e.respondWith(fetch(e.request).then((res) => {
-    if (res.ok) { const copy = res.clone(); caches.open(SHELL).then((c) => c.put(e.request, copy)); }
-    return res;
-  }).catch(() => caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || caches.match("/index.html"))));
+  e.respondWith(networkFirst(e.request, SHELL, () => caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || caches.match("/index.html"))));
 });
+
+// Network first, but never wait forever. When iOS launches the Home Screen app from a
+// notification tap the first requests can stall with no error, which left Today stuck on its
+// loading cards. After a few seconds the saved copy answers, and the network copy still
+// refreshes the cache when it lands.
+const WAIT_MS = 3500;
+function networkFirst(req, cacheName, fallback) {
+  const net = fetch(req).then((res) => {
+    if (res.ok) { const copy = res.clone(); caches.open(cacheName).then((c) => c.put(req, copy)); }
+    return res;
+  });
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const finish = (res) => { if (!done && res) { done = true; resolve(res); } };
+    const useCache = () => fallback().then((hit) => { if (hit) finish(hit); else if (!done) net.then(finish, () => { if (!done) reject(new TypeError("offline")); }); });
+    const timer = setTimeout(useCache, WAIT_MS);
+    net.then((res) => { clearTimeout(timer); finish(res); }, () => { clearTimeout(timer); useCache(); });
+  });
+}
 
 // App notifications: the morning report (at most one a day; powder alerts ride along).
 self.addEventListener("push", (e) => {
@@ -45,8 +58,12 @@ self.addEventListener("push", (e) => {
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
   const url = (e.notification.data && e.notification.data.url) || "/";
+  // An open app window is told which report to show and brought forward; it reloads its data
+  // itself. (Navigating a suspended iOS window from here often does nothing, so the page that
+  // was frozen mid-load stayed blank.) With no window open, the app opens at the link.
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
-    for (const w of wins) if ("focus" in w) { w.navigate(url).catch(() => {}); return w.focus(); }
+    const w = wins.find((c) => "focus" in c);
+    if (w) { w.postMessage({ type: "open-report", url }); return w.focus().catch(() => self.clients.openWindow(url)); }
     return self.clients.openWindow(url);
   }));
 });
