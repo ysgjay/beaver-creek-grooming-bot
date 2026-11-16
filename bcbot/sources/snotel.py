@@ -37,7 +37,7 @@ def _fetch(triplet, duration, begin, end, elements="SNWD,WTEQ,PREC,TOBS"):
 
 def daily_observations(series):
     """{date: {'precip_in', 'depth_change_in', 'depth_in'}} for each complete day."""
-    prec, depth = series.get("PREC", {}), series.get("SNWD", {})
+    prec, depth, swe = series.get("PREC", {}), series.get("SNWD", {}), series.get("WTEQ", {})
     out = {}
     for d in sorted(set(prec) | set(depth)):
         nxt = (date.fromisoformat(d[:10]) + timedelta(days=1)).isoformat()
@@ -46,6 +46,8 @@ def daily_observations(series):
             row["precip_in"] = round(max(0.0, prec[nxt] - prec[d]), 2)
         if depth.get(d) is not None and depth.get(nxt) is not None:
             row["depth_change_in"] = depth[nxt] - depth[d]
+        if swe.get(d) is not None and swe.get(nxt) is not None:
+            row["swe_change_in"] = round(swe[nxt] - swe[d], 2)
         out[d[:10]] = row
     return out
 

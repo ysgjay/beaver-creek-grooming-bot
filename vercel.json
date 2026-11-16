@@ -16,9 +16,21 @@
     {
       "path": "/api/observe",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/audit",
+      "schedule": "*/10 * * * *"
     }
   ],
   "rewrites": [
+    {
+      "source": "/audit",
+      "destination": "/audit.html"
+    },
+    {
+      "source": "/audit/:slug",
+      "destination": "/audit.html"
+    },
     {
       "source": "/data/:path*",
       "destination": "https://kpkajfy5kovso7gy.public.blob.vercel-storage.com/data/:path*"
@@ -47,7 +59,7 @@
       ]
     },
     {
-      "source": "/(app.js|appearance.js|report-ui.js|app.css|themes.css|frost.css|dark.css|manifest.webmanifest|config.json|resorts.json)",
+      "source": "/(app.js|appearance.js|report-ui.js|app.css|themes.css|frost.css|dark.css|manifest.webmanifest|config.json|resorts.json|audit.js|audit.css)",
       "headers": [
         {
           "key": "Cache-Control",

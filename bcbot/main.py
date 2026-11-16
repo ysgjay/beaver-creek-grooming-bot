@@ -19,7 +19,7 @@ import re
 import sys
 from datetime import date, datetime, timedelta
 
-from . import alert, config, forecast, notify, report, resorts, verify
+from . import alert, audit, config, forecast, notify, report, resorts, verify
 from .sources import dor, grooming, nws, openmeteo, resort, snotel
 from .store import get_store, resort_store
 from .util import get, now_local
@@ -368,6 +368,9 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
     fc = forecast.build(models, nws_daily, ens, verification, today=now.date()) if (models or nws_daily) else None
     if fc:
         store.put_json(f"data/forecasts/{day_str}.json", fc)
+    # Snow Audit: freeze the morning call and log what fell (never fails the run).
+    audit.record(config.RESORT, fc, obs, resort_report, verification, now,
+                 fresh=bool(resort.is_fresh(resort_report, now.date())))
     hourly = forecast.hourly_outlook(models, now=now) if models else {"hours": []}
 
     prev = store.get_json(f"data/days/{day_str}.json", {}) or {}
