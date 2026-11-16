@@ -1,6 +1,6 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v8-frost";
+const SHELL = "shell-v9-alpine-nav";
 const DATA = "data-v1";
 const SHELL_FILES = [
   "/", "/index.html", "/app.js", "/app.css", "/themes.css", "/frost.css",

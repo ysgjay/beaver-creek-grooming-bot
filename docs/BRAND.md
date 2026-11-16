@@ -69,6 +69,19 @@ For a new page, email header, or sibling product, start from these defaults:
 
 Decided 11/16: burgundy `#7B1E2E` is the app's accent, replacing the earlier logo-only rule. Besides the logo and icons it appears on primary buttons (email sign-up submit), the patrol card border, keyboard focus outlines, status pills, featured run chips, the Help kicker, plain `<a>` links, and the resort menu's current resort and favorite star. Snow and weather graphics stay blue/ice, and selected tabs, segments, and quiet links stay ink or muted blue.
 
+## Navigation icons
+
+The custom alpine family lives inline in `public/index.html`, shared visually by mobile bottom tabs and desktop header tabs:
+
+- **Today:** sunrise over a snow-capped ridge.
+- **Calendar:** bound calendar with a single marked day.
+- **Forecast:** three snow stakes with drift tops, echoing the forecast chart.
+- **Help:** patrol shield with a cross.
+
+Use a 28 × 28 viewBox, 1.75-unit strokes, and rounded caps and joins. Render at 26 px on mobile and 20 px in the desktop header. Idle icons are slate outlines; the selected icon uses ink with ice `#C5DFF2` in its `nav-ice` shapes. The surrounding selected tab stays flat, without an underline or raised bottom edge. Avoid texture, shadows, or burgundy in these small navigation symbols.
+
+Keep the visible labels, the link's `aria-current="page"`, and the existing generous touch targets. The SVGs are decorative (`aria-hidden="true"`, `focusable="false"`); the link supplies the name and keyboard focus. Both navigation copies must use the same geometry. No image downloads or additional JavaScript are needed.
+
 ## Implementation
 
 `public/frost.css` loads after `themes.css` and `app.css`, scoped to `html[data-brand="frosted-snow"]`. The base files retain chart geometry and responsive page structure. `public/sw.js` caches the new stylesheet, utility icons, fonts, and material mark with the app shell. Update its shell version when those resources change. Reduced motion, reduced transparency, keyboard focus, and forced colors have explicit treatments.
