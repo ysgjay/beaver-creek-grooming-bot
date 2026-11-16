@@ -1035,7 +1035,7 @@
         </details>
         <details><summary>How the forecast is built</summary>
           <ol class="steps">
-            <li>Public weather models (NOAA's GFS, HRRR, NAM and National Blend, ECMWF, ICON, GEM, UKMO) for a point on the upper mountain, not the town below, with temperature corrected to that elevation. The NWS forecasters' snowfall joins as one more voice.</li>
+            <li>Public weather models (NOAA's GFS, HRRR and National Blend, ECMWF, ICON, GEM, UKMO) for a point on the upper mountain, not the town below, with temperature corrected to that elevation. The NWS forecasters' snowfall joins as one more voice.</li>
             <li>Liquid precipitation becomes snow with a temperature-based ratio tuned for dry Colorado snow, about 15 to 1 in the teens. Humidity decides rain or snow near freezing.</li>
             <li>Every model is scored daily against the ${esc(resortInfo().snotel || "nearest")} SNOTEL gauge, starting from how it did last winter. Models that run dry here are scaled up, and models that keep missing get less weight. The total is then checked against the resort's own snow report.</li>
             <li>High-resolution models lead for 48 hours, global models after that. Ensemble runs give the range and the powder odds.</li>

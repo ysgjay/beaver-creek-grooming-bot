@@ -62,7 +62,7 @@ Naming (11/15/2026): Chair 0 is the brand (maroon lift-terminal logo); Snow Desk
 - **Official snow report:** the beavercreek.com snow report page, embedded `FR.snowReportData` block. Fields read: overnight, 24h, 48h, 7-day, base and season totals, and `LastUpdatedText`, e.g. "Updated November 15, 2026 at 5:34 AM MST".
 - **Snow stake and cams:** Brown Rice cams. `https://player.brownrice.com/snapshot/<id>` gives a still image and `/embed/<id>` the live stream. IDs: `bcsnowstake2` (stake), `bcspruce`, `bctalons`, `bcmccoy`, `bcredbuffalo`, `bcvillage`. The stake snapshot is archived each day.
 - **Forecast:** Open-Meteo, with temperatures corrected to the 10,476 ft forecast point.
-  - Models: GFS, HRRR, NBM, ECMWF (9 km, with the 25 km run as fallback), NAM 3 km, ICON, GEM and UKMO, plus 82 ensemble runs (variations of the models used for ranges and odds). The NWS gridded forecast joins the blend.
+  - Models: GFS, HRRR, NBM, ECMWF (9 km, with the 25 km run as fallback), ICON, GEM and UKMO, plus 82 ensemble runs (variations of the models used for ranges and odds). The NWS gridded forecast joins the blend.
   - Ground truth: the Vail Mountain SNOTEL station (842:CO:SNTL).
   - Method, the open-data version of OpenSnow's PEAKS approach:
     1. A temperature-based snow-to-liquid ratio, about 15:1 in the teens, instead of a flat 7:1. Rain or snow is decided by wet-bulb temperature (temperature plus humidity).

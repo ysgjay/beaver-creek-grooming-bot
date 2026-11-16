@@ -33,7 +33,6 @@ MODELS = {
     # Higher-resolution runs that see more of the terrain. `extra` models are fetched in
     # their own request, so one being unavailable never costs the core models.
     "ecmwf_ifs": {"label": "ECMWF 9 km", "w": (2.5, 3.0), "extra": True},
-    "ncep_nam_conus": {"label": "NAM 3 km", "w": (2.0, 0.0), "extra": True},
 }
 # NWS forecaster-edited gridded snowfall (2.5 km, days 1-7) joins the blend as its own "model".
 NWS_MODEL = "nws"
