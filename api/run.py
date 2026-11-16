@@ -5,6 +5,7 @@ Called by the Cloudflare Worker cron and by Vercel's own daily cron as a backup.
 
   /api/run                 every enabled resort. In production each resort runs in its own
                            function call (so one slow resort can't eat another's time limit).
+                           Then the combined email for multi-resort subscribers (bcbot/digest.py).
   /api/run?resort=vail     one resort
   &force=1                 full refresh
   &test=1                  labeled test send (needs ?resort=, default Beaver Creek)
@@ -43,6 +44,19 @@ def due(slugs, force=False, user_agent="", now=None):
     return [s for s in slugs if minute % 30 < 2 or not resorts.is_static(s)]
 
 
+def _digest():
+    """After the resorts run: the combined email for people with several resorts, once all of
+    theirs are in (or at the cutoff). Never fails the tick."""
+    try:
+        from bcbot import digest
+        return digest.run()
+    except Exception as e:
+        logging.exception("digest failed")
+        from bcbot import alert
+        alert.admin("Snow Desk: combined email failed", str(e)[:500])
+        return {"status": "error", "error": str(e)}
+
+
 class handler(BaseHTTPRequestHandler):
     def _go(self):
         secret = os.environ.get("CRON_SECRET", "")
@@ -63,7 +77,7 @@ class handler(BaseHTTPRequestHandler):
                 return self._reply(200 if _ok(result) else 500, result)
             results = self._fan_out(auth, force)
             code = 200 if all(_ok(r) for r in results.values()) else 500
-            return self._reply(code, {"status": "ok", "resorts": results})
+            return self._reply(code, {"status": "ok", "resorts": results, "digest": _digest()})
         except Exception as e:  # report, don't hide
             logging.exception("run failed")
             return self._reply(500, {"status": "error", "error": str(e)})

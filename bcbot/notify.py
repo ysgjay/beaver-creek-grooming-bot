@@ -1,7 +1,8 @@
 """Delivery: email (Resend, opt-in list) and app notifications (Web Push from the Snow Desk app).
 
 Each channel is independent: a failure in one never blocks the other. Every send is for one
-resort and reaches only the people who picked that resort.
+resort and reaches only the people who picked that resort. Email goes to those who picked
+it alone; subscribers with several resorts get one combined email from digest.py.
 Optional: NTFY_TOPIC still works for anyone who prefers the ntfy app.
 """
 import logging
@@ -21,7 +22,8 @@ def email(day, map_url, slug):
     if not (os.environ.get("RESEND_API_KEY") and _db_url()):
         return "skipped (email not configured)"
     with db.connect() as conn:
-        recipients = db.active_subscribers(conn, slug)
+        # People with several resorts get one combined email (digest.py); tests reach everyone.
+        recipients = db.active_subscribers(conn, slug, single_only=not day.get("test"))
     if not recipients:
         return "no subscribers"
     sent = mailer.send_daily(recipients, report.subject(day), mailer.daily_html(day, map_url), report.compose(day))

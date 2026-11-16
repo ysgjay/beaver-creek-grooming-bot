@@ -1099,3 +1099,50 @@ def test_resubmitting_signup_as_active_subscriber_emails_a_resort_update_link(mo
     assert p["to"] == ["a@example.com"] and "Update" in p["subject"]
     assert "/api/resorts?t=tok&pick=beaver-creek%2Cvail" in p["html"] and "Beaver Creek and Vail" in p["html"]
     assert "Nothing changes until you tap Save" in p["text"]
+
+
+# ---------- combined email ----------
+
+def _digest_day(slug, name, snow, gotd, image=None):
+    return {"date": "2026-11-16", "resort_slug": slug, "resort_name": name,
+            "resort": {"last_24h_in": snow, "base_in": 20, "updated_time": "6:40 AM"},
+            "grooming": {"image": image, "runs": {"groomers_of_the_day": gotd, "groomed": gotd + ["Extra"]}},
+            "hourly": {"hours": [{"time": f"2026-11-16T{h:02d}:00", "temp": 20, "feels": 10, "dir": "W", "wind": 5,
+                                  "gust": 12, "snow": 0} for h in range(6, 18)]},
+            "forecast": {"next_1_5": 4, "days": []}}
+
+
+def test_digest_waits_for_every_resort_until_the_cutoff():
+    from datetime import datetime
+    from bcbot import digest
+    subs = [("a@x.com", "ta", ["vail", "copper"]), ("b@x.com", "tb", ["vail", "alta"])]
+    days = {"vail": _digest_day("vail", "Vail", 2, ["Born Free"]), "copper": _digest_day("copper", "Copper Mountain", 1, [])}
+    early = datetime(2026, 11, 16, 6, 10, tzinfo=digest.TZ)
+    late = datetime(2026, 11, 16, 6, 30, tzinfo=digest.TZ)
+    assert digest.plan(subs, {"vail", "copper"}, days, early) == [("a@x.com", "ta", ["vail", "copper"], [])]
+    assert digest.plan(subs, {"vail"}, days, early) == []                 # before 6:30: waits for every resort
+    assert digest.plan(subs, {"vail"}, days, late)[0] == ("a@x.com", "ta", ["vail", "copper"], [])  # 6:30: all info in
+    assert digest.plan(subs, {"vail"}, days, late)[1] == ("b@x.com", "tb", ["vail"], ["alta"])
+    assert digest.plan(subs, set(), {}, late) == []                       # nothing in: nothing sent
+
+
+def test_digest_email_summarizes_each_resort_with_links():
+    from datetime import datetime
+    from bcbot import digest, mailer
+    picked = [("vail", _digest_day("vail", "Vail", 2, ["Born Free", "Riva Ridge"], "maps/vail/2026-11-16.jpg")),
+              ("copper", _digest_day("copper", "Copper Mountain", 0, ["Main Vein"]))]
+    html = mailer.digest_html(picked, ["alta"], datetime(2026, 11, 16, 6, 30, tzinfo=digest.TZ))
+    assert "Your mountains" in html and "Mon 11/16" in html and "2 of 3 reports in" in html
+    assert "Born Free" in html and "Main Vein" in html and "Report pending" in html and "Alta" in html
+    assert "?resort=vail" in html and "maps/vail/2026-11-16.jpg" in html and "Open Snow Desk" not in html
+    assert mailer.digest_subject(picked, ["alta"]) == 'Vail 2" new, Copper Mountain 2 groomed, Alta pending'
+    assert "Full report:" in mailer.digest_text(picked, ["alta"])
+
+
+def test_resort_email_skips_multi_resort_subscribers(monkeypatch):
+    seen = {}
+    monkeypatch.setenv("RESEND_API_KEY", "re_test")
+    monkeypatch.setattr(notify, "_db_url", lambda: "postgres://x")
+    monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
+    monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn, resort=None, single_only=False: seen.setdefault("single", single_only) and [])
+    assert notify.email({"date": "2026-11-16"}, None, "vail") == "no subscribers" and seen["single"] is True

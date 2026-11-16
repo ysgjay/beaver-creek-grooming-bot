@@ -85,12 +85,15 @@ def unsubscribe(conn, token):
         return cur.fetchone() is not None
 
 
-def active_subscribers(conn, resort=None):
-    """[(email, token)] of active subscribers; only those who picked `resort` when given."""
+def active_subscribers(conn, resort=None, single_only=False):
+    """[(email, token)] of active subscribers; only those who picked `resort` when given.
+
+    single_only: just the ones who picked that resort alone. Everyone with two or more
+    resorts gets one combined email instead (bcbot/digest.py)."""
     with conn.cursor() as cur:
         if resort:
-            cur.execute("SELECT email, token FROM subscribers WHERE status = 'active' AND %s = ANY(resorts) ORDER BY id",
-                        (resort,))
+            cur.execute("SELECT email, token FROM subscribers WHERE status = 'active' AND %s = ANY(resorts) "
+                        + ("AND cardinality(resorts) = 1 " if single_only else "") + "ORDER BY id", (resort,))
         else:
             cur.execute("SELECT email, token FROM subscribers WHERE status = 'active' ORDER BY id")
         return cur.fetchall()
@@ -143,6 +146,48 @@ def record_push_result(conn, endpoint, status):
         else:
             cur.execute("UPDATE push_subscriptions SET failures = failures + 1 WHERE endpoint = %s", (endpoint,))
             cur.execute("DELETE FROM push_subscriptions WHERE endpoint = %s AND failures >= 5", (endpoint,))
+
+
+# Same as docs/migrations/003_digest_sends.sql (docs/ isn't deployed with the functions).
+DIGEST_SCHEMA = """CREATE TABLE IF NOT EXISTS digest_sends (   -- once-a-day claim, per multi-resort subscriber
+  day      date NOT NULL,
+  token    text NOT NULL,
+  resorts  text[] NOT NULL,          -- the resorts that were ready and in the email
+  pending  text[] NOT NULL DEFAULT '{}',
+  sent_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (day, token)
+);"""
+
+
+def multi_resort_subscribers(conn):
+    """[(email, token, [resorts])] of active subscribers with two or more resorts."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT email, token, resorts FROM subscribers WHERE status = 'active' AND cardinality(resorts) > 1 ORDER BY id")
+        return [(e, t, list(r)) for e, t, r in cur.fetchall()]
+
+
+def sent_resorts(conn, day):
+    """Resorts whose daily send has gone out (been claimed) for `day`."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT resort FROM daily_sends WHERE day = %s", (day,))
+        return {r[0] for r in cur.fetchall()}
+
+
+def claim_digest(conn, day, token, ready, pending):
+    """True exactly once per day per subscriber, even if two triggers race."""
+    with conn.cursor() as cur:
+        cur.execute(DIGEST_SCHEMA)
+        cur.execute("INSERT INTO digest_sends (day, token, resorts, pending) VALUES (%s, %s, %s, %s) "
+                    "ON CONFLICT (day, token) DO NOTHING RETURNING day", (day, token, list(ready), list(pending)))
+        return cur.fetchone() is not None
+
+
+def digest_sent(conn, day):
+    """Tokens that already got today's combined email."""
+    with conn.cursor() as cur:
+        cur.execute(DIGEST_SCHEMA)
+        cur.execute("SELECT token FROM digest_sends WHERE day = %s", (day,))
+        return {r[0] for r in cur.fetchall()}
 
 
 def claim_send(conn, day, reason, resort="beaver-creek"):
