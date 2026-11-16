@@ -1311,6 +1311,7 @@ ${tell}
           <div><p class="brand-kicker">Chair 0 · Snow Desk</p><h2>About the numbers</h2></div>
         </div>
         <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own. Chair 0 is independent and not affiliated with Vail Resorts or any resort.</p>
+        <p class="small" style="margin:0"><a class="link" href="/audit/${esc(R.slug || "")}">Snow Audit</a>: how every forecast model has scored against what actually fell here.</p>
       </section>`;
     wireEmailForm(v);
     wirePush(v);

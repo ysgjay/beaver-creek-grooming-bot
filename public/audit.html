@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en" data-brand="frosted-snow">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snow Audit · Chair 0: Snow Desk</title>
+<meta name="description" content="How every forecast model has scored against what actually fell, resort by resort.">
+<meta name="theme-color" content="#dcebfa">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<meta name="color-scheme" content="light dark">
+<script src="/appearance.js"></script>
+<link rel="preload" href="/brand/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/brand/fonts/plex-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/themes.css">
+<link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/frost.css">
+<link rel="stylesheet" href="/dark.css">
+<link rel="stylesheet" href="/audit.css">
+</head>
+<body class="audit">
+<header class="top">
+  <div class="wrap">
+    <a class="home-btn" href="/" aria-label="Snow Desk home">
+      <img src="/brand/frosted-logo.webp" alt="" width="48" height="48">
+    </a>
+    <div class="brand">
+      <h1>Snow Audit</h1>
+      <span class="sub">How every forecast has scored against what fell</span>
+    </div>
+    <label class="au-resort"><span class="visually-hidden">Resort</span><select id="au-resort"></select></label>
+    <a class="link au-back" id="au-back" href="/#forecast">Back to forecast</a>
+  </div>
+</header>
+
+<main class="wrap au-wrap" id="main" tabindex="-1">
+  <div class="au-controls" role="group" aria-label="What to show">
+    <div class="seg" role="group" aria-label="Measure">
+      <button type="button" data-metric="snow" aria-pressed="true">Snow vs resort</button>
+      <button type="button" data-metric="water" aria-pressed="false">Water vs SNOTEL</button>
+    </div>
+    <div class="seg" role="group" aria-label="Calls">
+      <button type="button" data-kind="live" aria-pressed="true">Live</button>
+      <button type="button" data-kind="both" aria-pressed="false">Live + Replay</button>
+    </div>
+    <button class="btn secondary au-log-btn" type="button" id="au-log-btn">Log &amp; CSV</button>
+  </div>
+  <p class="au-headline" id="au-headline" aria-live="polite"></p>
+  <div class="au-grid" id="au-grid">
+    <div class="skeleton"></div><div class="skeleton"></div>
+  </div>
+  <p class="small muted au-foot">
+    <strong>Live</strong> calls are frozen each morning at about 2 AM and never changed.
+    <strong>Replay</strong> (hatched) is rebuilt from archived model runs for past winters: it can't include the NWS forecasters or our blend as it actually ran, and it's graded on water only, since resort reports aren't archived. Letter grades come from live calls only.
+  </p>
+</main>
+
+<dialog class="au-log" id="au-log" aria-labelledby="au-log-title">
+  <div class="au-log-head">
+    <h2 id="au-log-title">Log</h2>
+    <button class="icon-btn" type="button" id="au-log-close" aria-label="Close">✕</button>
+  </div>
+  <div class="au-log-filters" role="group" aria-label="Filter">
+    <button type="button" class="chip" data-f="flagged" aria-pressed="false">Flagged</button>
+    <button type="button" class="chip" data-f="storm" aria-pressed="false">Snow days</button>
+    <label class="chip-select">Source <select id="au-f-source"><option value="">All</option></select></label>
+    <label class="chip-select">Lead <select id="au-f-lead"><option value="">All</option></select></label>
+    <label class="chip-select">Calls <select id="au-f-kind"><option value="">Live + Replay</option><option value="live">Live</option><option value="replay">Replay</option></select></label>
+  </div>
+  <div class="au-log-body" id="au-log-body"><p class="small muted">Loading…</p></div>
+  <div class="au-log-foot">
+    <a class="btn secondary" id="au-csv" href="#" download>Export CSV (this filter)</a>
+    <a class="link" id="au-csv-all" href="#" download>Full history CSV</a>
+    <span class="small muted">Flags: <span class="flag">disagree</span> resort and SNOTEL differ by 3"+ · <span class="flag">gauge-gap</span> no gauge reading · <span class="flag">melt</span> snow water fell</span>
+  </div>
+</dialog>
+<div id="tip" class="tip" hidden></div>
+<script src="/audit.js" defer></script>
+</body>
+</html>

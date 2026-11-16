@@ -74,6 +74,14 @@ Naming (11/15/2026): Chair 0 is the brand (maroon lift-terminal logo); Snow Desk
 
   Details are in `docs/SPEC.md`.
 
+## Snow Audit (forecast grading, `/audit/<resort>`)
+Spec: https://claude.ai/artifact/Sm6FFGCXht3qMBE7hbZbEg (Young's decisions, 11/16/2026). Linked only from Help → About the numbers, on purpose: it is historical data.
+- **Live calls:** every full run calls `audit.record` (`bcbot/audit.py`). The first full run of the resort's day (about 2 AM local) freezes each source's raw call (before corrections), the plain average and our blend with its range into Neon `fc_calls`, kind `live`. Later runs never overwrite it (a source missing at 2 AM may still join until 8 AM). It also upserts SNOTEL daily truth and the morning's fresh resort 24-hour report (stored on the day the snow fell, the day before the report) into `fc_truth`, and the blend's learned corrections into `fc_weights`. It never fails a run.
+- **Replay:** `/api/audit` runs every 10 minutes (Vercel cron, `CRON_SECRET`). Each tick rebuilds a few resort-months of past winters (Nov to Apr from 11/2024) from Open-Meteo Previous Runs (`precipitation_previous_day1..7`, HRRR skipped) plus SNOTEL, kind `replay`; progress is in `fc_backfill`. About 300 resort-months, so roughly two days for all 22 resorts. Then it rebuilds `data/audit/<slug>.json` (hourly) and `data/audit/all.json`.
+- **Grading:** snow against the resort report, water against the SNOTEL gauge, days 0 to 9, live and replay kept apart. Letter grades (A to D vs the plain average, 8+ days) come from live calls only; replay only gives a hint. Grades don't change the blend yet (shadow mode is the next step in the accuracy spec).
+- **Public reads:** `/api/audit?resort=<slug>&log=1` (the Log drawer) and `&format=csv` (filters: `kind`, `source`, `lead`, `from`, `to`).
+- **Tables:** `docs/migrations/004_audit.sql`, created automatically on first use. A local Postgres test runs when `AUDIT_TEST_DB` is set.
+
 ## When the report goes out (`bcbot/main.py`, `send_decision`)
 - **Each resort runs on its own** (own state, opening day and once-a-day send), in the resort's time zone. Resorts with no grooming map send as soon as today's snow report is posted (see `docs/RESORTS.md`).
 - **Before the resort's opening day:** daily at 7:00 MT, map or not. The subject reads "Opens 11/25".
