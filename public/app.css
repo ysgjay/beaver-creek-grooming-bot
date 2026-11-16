@@ -288,6 +288,7 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .radar-dot b.w { right: 11px; top: 50%; transform: translateY(-50%); }
 .radar-dot b.s2 { left: 50%; top: 27px; transform: translateX(-50%); }
 .radar-dot b.n2 { left: 50%; bottom: 27px; transform: translateX(-50%); }
+.radar-dot b.hide { display: none; }
 .radar-attr { position: absolute; right: 0; bottom: 0; padding: 1px 5px; border-top-left-radius: 5px; background: rgba(255,255,255,.8); color: #1b2733; font-size: 10px; line-height: 1.5; }
 .radar-none { position: absolute; inset: auto 0 22px 0; margin: 0; text-align: center; }
 .radar-none[hidden] { display: none; }

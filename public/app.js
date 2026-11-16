@@ -582,7 +582,7 @@
   // A vector map (MapLibre, vendored in /vendor, with OpenFreeMap's keyless style) repainted in the theme's colours.
   // If the library, WebGL or the style can't load, it falls back to a fixed grid of 256px image tiles.
   // Past frames are NEXRAD composites and future frames are HRRR simulated radar, both from Iowa State's Mesonet tile cache.
-  const RADAR = { z: 7, cols: 4, rows: 3, src: "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", base: "https://tile.openstreetmap.org", style: "https://tiles.openfreemap.org/styles/positron" };
+  const RADAR = { z: 8, zoom: 7.6, cols: 4, rows: 3, src: "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", base: "https://tile.openstreetmap.org", style: "https://tiles.openfreemap.org/styles/positron" };
   const worldPx = (lat, lon, z) => { const n = 256 * 2 ** z, sn = Math.sin(lat * Math.PI / 180); return [(lon + 180) / 360 * n, (0.5 - Math.log((1 + sn) / (1 - sn)) / (4 * Math.PI)) * n]; };
   function radarFrames(now) {
     const p2 = (n) => String(n).padStart(2, "0");
@@ -612,8 +612,9 @@
         e: [s.x + 11, s.y - 8, s.x + 11 + w, s.y + 8], w: [s.x - 11 - w, s.y - 8, s.x - 11, s.y + 8],
         s2: [s.x - h, s.y + 27, s.x + h, s.y + 42], n2: [s.x - h, s.y - 42, s.x + h, s.y - 27],
       };
-      const side = Object.keys(boxes).find((k) => !placed.some((p) => hit(boxes[k], p))) || "n";
-      placed.push(boxes[side]);
+      // With no free side, the selected resort still gets its name; any other shows as a dot until the map is zoomed in.
+      const side = Object.keys(boxes).find((k) => !placed.some((p) => hit(boxes[k], p))) || (s.me ? "n" : "hide");
+      if (side !== "hide") placed.push(boxes[side]);
       out.set(s, side);
     });
     return out;
@@ -804,7 +805,7 @@
     const holder = document.createElement("div"); holder.className = "radar-gl"; map.prepend(holder);
     let m;
     try {
-      m = new gl.Map({ container: holder, style, center: [r.lon, r.lat], zoom: 6.4, minZoom: 4, maxZoom: 10, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, attributionControl: { compact: true } });
+      m = new gl.Map({ container: holder, style, center: [r.lon, r.lat], zoom: RADAR.zoom, minZoom: 4, maxZoom: 10, cooperativeGestures: true, dragRotate: false, pitchWithRotate: false, attributionControl: { compact: true } });
       radarMap = m;
       m.touchZoomRotate.disableRotation();
       await new Promise((ok, fail) => { m.once("load", ok); m.on("error", (e) => { if (!m.loaded() && !e.sourceId) fail(e.error || new Error("map failed")); }); setTimeout(() => fail(new Error("map timed out")), 12000); });
@@ -813,9 +814,7 @@
       radarMap = null; holder.remove();
       throw e;
     }
-    // Show every resort at once.
-    const b = new gl.LngLatBounds(); list.forEach((o) => b.extend([o.lon, o.lat]));
-    if (list.length > 1) m.fitBounds(b, { padding: { top: 48, bottom: 36, left: 64, right: 64 }, maxZoom: 7.5, duration: 0 });
+    // The map opens centred on the selected resort, close enough to see it and its neighbours; the rest are a drag or pinch away.
     const pins = list.map((o) => {
       const el = document.createElement("div"); el.className = "radar-pin";
       el.innerHTML = `<span class="radar-dot${o.slug === r.slug ? " me" : ""}"><b>${esc(o.name)}</b></span>`;
