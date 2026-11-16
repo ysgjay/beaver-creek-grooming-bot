@@ -485,8 +485,6 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .v-today.is-offline { grid-template-areas: "off off" "status status" "groom groom" "cond cam" "fc cam" "cta cam"; grid-template-rows: auto auto auto auto auto 1fr; }
   .v-today.is-offline.no-groom { grid-template-areas: "off off" "status status" "cond cam" "fc cam" "cta cam"; grid-template-rows: auto auto auto auto 1fr; }
   .v-today > .offline { grid-area: off; }
-  .v-today.empty { grid-template-areas: none; grid-template-rows: none; grid-template-columns: minmax(0, 1fr); max-width: 900px; }
-  .v-today.empty > .offline { grid-area: auto; }
   .v-today > .status-line { grid-area: status; }
   .a-groom { grid-area: groom; } .a-cond { grid-area: cond; } .a-fc { grid-area: fc; } .a-cam { grid-area: cam; } .a-cta { grid-area: cta; }
 
@@ -584,3 +582,5 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
 
 .empty-note h2 { margin: 0 0 6px; }
 .empty-note p { margin: 0 0 6px; }
+.view.v-today.empty { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: none; grid-template-rows: none; max-width: 900px; }
+.view.v-today.empty > * { grid-area: auto; }
