@@ -22,6 +22,9 @@ body {
   background: var(--bg); background-image: var(--texture); background-attachment: fixed;
   color: var(--ink); font: 15px/1.5 var(--font-body);
   padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 16px);
+  /* Home Screen app: the page runs under the status bar. Start the header below it, so the
+     sticky header (top: inset) doesn't slide down over the first card. */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 img { max-width: 100%; }
 a { color: var(--accent); }
@@ -461,7 +464,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
 .signup input[type="email"] { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; border-radius: calc(var(--radius, 14px) * .8); border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 16px var(--font-body); }
 .signup input[type="email"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-.card { scroll-margin-top: 72px; }
+.card { scroll-margin-top: calc(72px + env(safe-area-inset-top, 0px)); }
 
 /* ---- Elevation temps, and pieces that only show on wide screens ---- */
 .bands { gap: 4px 6px; }
@@ -577,7 +580,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .v-cal .feed-item { grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 8px; }
   .v-cal .feed-item img, .v-cal .feed-item .noimg { width: 64px; height: 50px; }
 
-  .card { scroll-margin-top: calc(var(--top-h) + 8px); }
+  .card { scroll-margin-top: calc(var(--top-h) + 8px + env(safe-area-inset-top, 0px)); }
 }
 
 .empty-note h2 { margin: 0 0 6px; }
