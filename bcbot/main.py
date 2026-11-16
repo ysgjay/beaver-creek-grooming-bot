@@ -254,7 +254,7 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
     _watchdog(state, now, day_str, send, decision, errors)
     store.put_json("data/state.json", state)
     return {"status": "ok", "resort": slug, "full_run": full, "map_changed": map_changed, "decision": decision,
-            "sent": delivered, "errors": errors, "ok": bool(day.get("forecast")) and (groom is not None or not full)}
+            "sent": delivered, "errors": errors, "ok": bool(day.get("forecast")) and (groom is not None or not full or not has_map)}
 
 
 def _watchdog(state, now, day_str, send, decision, errors):
