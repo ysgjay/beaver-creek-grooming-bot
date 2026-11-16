@@ -100,16 +100,33 @@ def compose(day):
 
 
 def subject(day):
+    """The inbox line carries the morning's numbers: 'Beaver Creek: 2" new, 14 groomed, gusts to 31 mph'.
+
+    No date: the inbox shows it. At most three facts, in order of what matters most that morning.
+    """
+    from .mailer import groomed_runs, ski_hours
     fc = day.get("forecast") or {}
-    runs = (day.get("grooming") or {}).get("runs") or {}
-    n = len(runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []) + runs.get("groomed", []))
     g = day.get("grooming") or {}
-    parts = [f"{n} runs groomed" if n else ("Snow report" if g.get("none") else "No new grooming map" if not g.get("new_map") else "Grooming map")]
+    rs = day.get("resort") or {}
+    n = len(groomed_runs(g.get("runs") or {}))
+    r24 = rs.get("last_24h_in", (day.get("observed") or {}).get("snow_in"))
+    parts = []
     if day.get("preseason") and not n:
-        parts = [f"Opens {mmdd(config.OPENING_DAY)}"]
-    if fc.get("next_1_5") is not None:
+        parts.append(f"Opens {mmdd(config.OPENING_DAY)}")
+    if r24 is not None and r24 >= 0.5:
+        parts.append(f"{_in(r24)} new")
+    if n:
+        parts.append(f"{n} groomed")
+    elif not g.get("none") and not g.get("new_map", True) and not day.get("preseason"):
+        parts.append("no new grooming map yet")
+    gust = max([h.get("gust") or 0 for h in ski_hours(day)] or [0])
+    if gust >= 30:
+        parts.append(f"gusts to {gust} mph")
+    if fc.get("next_1_5") is not None and fc["next_1_5"] >= 1:
         parts.append(f"{_in(fc['next_1_5'])} next 5 days")
-    return ("Test · " if day.get("test") else "") + f"{resort_name(day)} {short_date(day['date'])}: " + ", ".join(parts)
+    if not parts:
+        parts.append("Snow report" if g.get("none") else "Grooming map")
+    return ("Test · " if day.get("test") else "") + f"{resort_name(day)}: " + ", ".join(parts[:3])
 
 
 def push_payload(day, map_url):
