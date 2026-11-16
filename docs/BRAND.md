@@ -52,6 +52,14 @@ The original snowfall charts are part of the identity. Preserve the Today heat s
 
 Preserve the compact layout: one column and bottom tabs below 900 px, two columns from 900 px, and map-led Today with header tabs from 1200 px. On wide screens the section tabs sit right after the resort name (top left), "Get the morning report" sits alone at the right, and favorite resorts get their own slim row under the header. Desktop spacing is tighter so Today, Forecast, and Calendar fit 1440 × 900. Large frosted artwork belongs in a supporting brand moment, not in place of the report content.
 
+## Reading the report
+
+Today separates the saved report time from resort snow and forecast valid times. Base depth, mph, and gust labels are explicit. Grooming shows the printed map date and its age; an unknown date stays unknown. List-based feeds label when they were checked. A compact blue snow outlook appears above grooming on phones.
+
+On phones, Forecast starts with snowfall. Keep the original stake geometry and give each day roughly 50 px of width, using horizontal scrolling and labeled 44 px arrow buttons. All ten days fit on desktop. A selected day leads with the expected snowfall and likely range; model votes expand underneath. Modal sheets and full-size maps use native dialogs with Escape, contained keyboard focus, and focus restoration.
+
+Source labels and summaries must use real report dates and numbers. Past hours must not be labeled Now, missing days must not count as zero, and five-day summaries require five dated daily values. Forecast source dates remain visible when the report is older.
+
 ## Reusing the style
 
 For a new page, email header, or sibling product, start from these defaults:
@@ -68,6 +76,19 @@ For a new page, email header, or sibling product, start from these defaults:
 ## Burgundy in the interface
 
 Decided 11/16: burgundy `#7B1E2E` is the app's accent, replacing the earlier logo-only rule. Besides the logo and icons it appears on primary buttons (email sign-up submit), the patrol card border, keyboard focus outlines, status pills, featured run chips, the Help kicker, plain `<a>` links, and the resort menu's current resort and favorite star. Snow and weather graphics stay blue/ice, and selected tabs, segments, and quiet links stay ink or muted blue.
+
+## Navigation icons
+
+The custom alpine family lives inline in `public/index.html`, shared visually by mobile bottom tabs and desktop header tabs:
+
+- **Today:** sunrise over a snow-capped ridge.
+- **Calendar:** bound calendar with a single marked day.
+- **Forecast:** a fine-lined snowflake in front of a pale ice ruler. The ruler has rounded ends and a transparent-to-ice fill that softens its left edge. It has no outer stroke or cutout around the snowflake; only the measuring ticks are drawn. Each navigation copy has its own gradient ID.
+- **Help:** patrol shield with a cross.
+
+Use a 28 × 28 viewBox and rounded caps and joins. Most strokes are 1.75 units; the Forecast snowflake uses 1.25 units and its ruler ticks 1.1 units at 65% opacity. Render at 26 px on mobile and 20 px in the desktop header. Idle icons are slate outlines; the selected icon uses ink with ice `#C5DFF2` in its `nav-ice` shapes. The Forecast ruler retains its subtle ice fill in either state. The surrounding selected tab stays flat, without an underline or raised bottom edge. Avoid texture, shadows, or burgundy in these small navigation symbols.
+
+Keep the visible labels, the link's `aria-current="page"`, and the existing generous touch targets. The SVGs are decorative (`aria-hidden="true"`, `focusable="false"`); the link supplies the name and keyboard focus. Both navigation copies must use the same geometry. No image downloads or additional JavaScript are needed.
 
 ## Implementation
 

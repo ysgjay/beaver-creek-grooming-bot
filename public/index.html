@@ -39,13 +39,39 @@
     </div>
     <nav class="top-tabs" aria-label="Sections">
       <a href="#today" data-tab="today">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 10 7l4 6 2-3 5 9Z"/></svg>Today</a>
+      <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <circle cx="21" cy="7" r="2.75" class="nav-ice"/>
+        <path class="nav-ice" d="M3 23 11 8l6 10 3-5 5 10Z"/>
+        <path d="m8 13.5 3 1.5 2.5-2.8"/>
+      </svg>Today</a>
       <a href="#calendar" data-tab="calendar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Calendar</a>
+      <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <rect x="4" y="6" width="20" height="18" rx="3"/>
+        <path class="nav-ice" d="M7 6h14a3 3 0 0 1 3 3v2H4V9a3 3 0 0 1 3-3Z"/>
+        <path d="M9 3.5v5M19 3.5v5"/>
+        <rect class="nav-ice" x="8" y="15" width="5" height="5" rx="1"/>
+        <path d="M17 16h3M17 20h3"/>
+      </svg>Calendar</a>
       <a href="#forecast" data-tab="forecast">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 20V12M10 20V8M15 20v-6M20 20V5"/></svg>Forecast</a>
+      <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="forecast-ice-header" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#a9cce6" stop-opacity="0"/>
+            <stop offset=".55" stop-color="#a9cce6" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#a9cce6" stop-opacity=".9"/>
+          </linearGradient>
+        </defs>
+        <g>
+          <rect x="16.5" y="2.5" width="8" height="23" rx="2.5" fill="url(#forecast-ice-header)" stroke="none"/>
+          <path d="M21 7h2.5M21.5 12h2M21 17h2.5M21.5 22h2" stroke-width="1.1" opacity=".65"/>
+        </g>
+        <path stroke-width="1.25" d="M11.5 16 11.50 7.60M13.10 9.10 11.50 10.70 9.90 9.10 M11.5 16 18.77 11.80M18.28 13.94 16.09 13.35 16.68 11.16 M11.5 16 18.77 20.20M16.68 20.84 16.09 18.65 18.28 18.06 M11.5 16 11.50 24.40M9.90 22.90 11.50 21.30 13.10 22.90 M11.5 16 4.23 20.20M4.72 18.06 6.91 18.65 6.32 20.84 M11.5 16 4.23 11.80M6.32 11.16 6.91 13.35 4.72 13.94"/>
+      </svg>Forecast</a>
       <a href="#help" data-tab="help" class="help-tab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 7.5v9M7.5 12h9"/></svg>Help</a>
+      <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path class="nav-ice" d="m14 3 9 3.5v6c0 5.4-3.8 9.4-9 12-5.2-2.6-9-6.6-9-12v-6Z"/>
+        <path d="M14 9v9M9.5 13.5h9"/>
+      </svg>Help</a>
     </nav>
     <nav class="favs" id="favs" aria-label="Favorite resorts" hidden></nav>
     <div class="top-status status-line" id="top-status"></div>
@@ -63,18 +89,45 @@
 <div class="tabbar">
   <nav aria-label="Sections">
     <a href="#today" data-tab="today">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 10 7l4 6 2-3 5 9Z"/></svg>Today</a>
+      <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <circle cx="21" cy="7" r="2.75" class="nav-ice"/>
+        <path class="nav-ice" d="M3 23 11 8l6 10 3-5 5 10Z"/>
+        <path d="m8 13.5 3 1.5 2.5-2.8"/>
+      </svg>Today</a>
     <a href="#calendar" data-tab="calendar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Calendar</a>
+      <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <rect x="4" y="6" width="20" height="18" rx="3"/>
+        <path class="nav-ice" d="M7 6h14a3 3 0 0 1 3 3v2H4V9a3 3 0 0 1 3-3Z"/>
+        <path d="M9 3.5v5M19 3.5v5"/>
+        <rect class="nav-ice" x="8" y="15" width="5" height="5" rx="1"/>
+        <path d="M17 16h3M17 20h3"/>
+      </svg>Calendar</a>
     <a href="#forecast" data-tab="forecast">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 20V12M10 20V8M15 20v-6M20 20V5"/></svg>Forecast</a>
+      <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="forecast-ice-mobile" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#a9cce6" stop-opacity="0"/>
+            <stop offset=".55" stop-color="#a9cce6" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#a9cce6" stop-opacity=".9"/>
+          </linearGradient>
+        </defs>
+        <g>
+          <rect x="16.5" y="2.5" width="8" height="23" rx="2.5" fill="url(#forecast-ice-mobile)" stroke="none"/>
+          <path d="M21 7h2.5M21.5 12h2M21 17h2.5M21.5 22h2" stroke-width="1.1" opacity=".65"/>
+        </g>
+        <path stroke-width="1.25" d="M11.5 16 11.50 7.60M13.10 9.10 11.50 10.70 9.90 9.10 M11.5 16 18.77 11.80M18.28 13.94 16.09 13.35 16.68 11.16 M11.5 16 18.77 20.20M16.68 20.84 16.09 18.65 18.28 18.06 M11.5 16 11.50 24.40M9.90 22.90 11.50 21.30 13.10 22.90 M11.5 16 4.23 20.20M4.72 18.06 6.91 18.65 6.32 20.84 M11.5 16 4.23 11.80M6.32 11.16 6.91 13.35 4.72 13.94"/>
+      </svg>Forecast</a>
     <a href="#help" data-tab="help" class="help-tab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 7.5v9M7.5 12h9"/></svg>Help</a>
+      <svg class="nav-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path class="nav-ice" d="m14 3 9 3.5v6c0 5.4-3.8 9.4-9 12-5.2-2.6-9-6.6-9-12v-6Z"/>
+        <path d="M14 9v9M9.5 13.5h9"/>
+      </svg>Help</a>
   </nav>
 </div>
 
 <div id="tip" class="tip" hidden></div>
 <div id="overlay"></div>
+<script src="/report-ui.js" defer></script>
 <script src="/app.js" defer></script>
 </body>
 </html>
