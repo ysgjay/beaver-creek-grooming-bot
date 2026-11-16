@@ -30,6 +30,10 @@
     {
       "source": "/cams/:path*",
       "destination": "https://kpkajfy5kovso7gy.public.blob.vercel-storage.com/cams/:path*"
+    },
+    {
+      "source": "/radar/:path*",
+      "destination": "https://kpkajfy5kovso7gy.public.blob.vercel-storage.com/radar/:path*"
     }
   ],
   "headers": [

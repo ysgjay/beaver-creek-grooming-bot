@@ -1146,3 +1146,31 @@ def test_resort_email_skips_multi_resort_subscribers(monkeypatch):
     monkeypatch.setattr("bcbot.db.connect", lambda: __import__("contextlib").nullcontext(None))
     monkeypatch.setattr("bcbot.db.active_subscribers", lambda conn, resort=None, single_only=False: seen.setdefault("single", single_only) and [])
     assert notify.email({"date": "2026-11-16"}, None, "vail") == "no subscribers" and seen["single"] is True
+
+
+def test_digest_radar_and_opt_in_grooming_maps():
+    from datetime import datetime
+    from bcbot import digest, mailer
+    picked = [("vail", _digest_day("vail", "Vail", 2, ["Born Free"], "maps/vail/2026-11-16.jpg"))]
+    now = datetime(2026, 11, 16, 6, 30, tzinfo=digest.TZ)
+    off = mailer.digest_html(picked, [], now, radar_url="https://snow.0xm.studio/radar/email/x.png", maps=False, token="tok")
+    assert "radar/email/x.png" in off and "Radar · Colorado and Utah · 6:30 AM MT" in off
+    assert '<img src="https://snow.0xm.studio/maps/vail' not in off and "Turn them on" in off and "api/resorts?t=tok" in off
+    on = mailer.digest_html(picked, [], now, maps=True, token="tok")
+    assert '<img src="https://snow.0xm.studio/maps/vail/2026-11-16.jpg"' in on and "Turn them on" not in on and "Radar" not in on
+
+
+def test_radar_snapshot_renders_frost_and_blue_only():
+    import io
+    from PIL import Image
+    from bcbot import radar
+
+    def fetch(url):
+        color = (0, 200, 0, 255) if "nexrad" in url else (242, 239, 233, 255)
+        b = io.BytesIO()
+        Image.new("RGBA", (256, 256), color).save(b, "PNG")
+        return b.getvalue()
+    img = Image.open(io.BytesIO(radar.render(fetch))).convert("RGB")
+    assert img.width == radar.OUT_W
+    r, g, b = img.getpixel((5, 5))
+    assert b > r and b >= g                                  # blue echo over frost, never burgundy

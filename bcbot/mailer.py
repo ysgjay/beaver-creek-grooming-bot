@@ -64,7 +64,7 @@ def send_confirmation(email, token, slugs=("beaver-creek",)):
     html = _shell(_card(f"""
       {_brand_row()}
       <h1 style="margin:14px 0 8px;font:600 22px/1.25 {DISPLAY};color:{INK}">Confirm your {names} report{"s" if many else ""}</h1>
-      <p style="margin:0 0 16px">Tap the button to get the grooming map, snow report and forecast by email every morning{", one email per resort" if many else ""}.</p>
+      <p style="margin:0 0 16px">Tap the button to get the grooming map, snow report and forecast by email every morning{", all your resorts in one email by 6:30 AM MT" if many else ""}.</p>
       <p style="margin:0 0 20px"><a href="{link}" style="{BUTTON}">Confirm my email</a></p>
       <p style="margin:0;color:{INK2};font-size:13px">If you didn't ask for this, ignore this email and nothing will be sent.</p>"""))
     return _post("/emails", {
@@ -404,7 +404,7 @@ def digest_text(picked, pending):
     return "\n".join(lines)
 
 
-def digest_html(picked, pending, now):
+def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
     """Departure-board summary: one row per resort (sorted by new snow), a short card per
     resort with its groomers of the day and links, then the 5-day outlook side by side."""
     from datetime import date as _date
@@ -464,11 +464,24 @@ def digest_html(picked, pending, now):
         links = [f'<a href="{report.app_url(d)}" style="{LINK}">Full report</a>']
         if g.get("image"):
             links.append(f'<a href="{_site(g["image"])}" style="{LINK}">Grooming map</a>')
+        img = ""
+        if maps and g.get("image"):
+            img = (f'<a href="{_site(g["image"])}"><img src="{_site(g["image"])}" alt="Grooming map for {escape(_resort_name(s, d))}" width="608" '
+                   f'style="display:block;width:100%;max-width:608px;height:auto;margin-top:10px;border:1px solid {LINE};border-radius:12px"></a>')
         out += _card(f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>'
                      f'<td style="font:600 16px/1.3 {DISPLAY};color:{INK}">{escape(_resort_name(s, d))}</td>'
                      f'<td align="right" style="font-size:13px">{" · ".join(links)}</td></tr></table>'
                      + (f'<div style="margin-top:8px">{chips}</div>' if chips else "")
-                     + (f'<p style="{sub}">{" · ".join(facts)}</p>' if facts else ""), pad="12px 16px")
+                     + (f'<p style="{sub}">{" · ".join(facts)}</p>' if facts else "") + img, pad="12px 16px")
+
+    if radar_url:
+        out += _card(f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 8px"><tr>'
+                     f'<td style="padding:4px 4px 0"><p style="{KICKER};margin:0">Radar · Colorado and Utah · {_clock_now(now)}</p></td>'
+                     f'<td align="right" style="padding:4px 4px 0;font-size:13px"><a href="{_site()}" style="{LINK}">Live radar</a></td></tr></table>'
+                     f'<a href="{_site()}"><img src="{radar_url}" alt="Weather radar over Colorado and Utah" width="616" '
+                     f'style="display:block;width:100%;max-width:616px;height:auto;border:1px solid {LINE};border-radius:12px"></a>'
+                     f'<p style="{sub};margin:6px 4px 0">Darker blue is heavier precipitation. Dots are the resorts. NOAA radar via Iowa State Mesonet.</p>',
+                     pad="10px")
 
     bars = ""
     vals = [(s, d, (d.get("forecast") or {}).get("next_1_5")) for s, d in picked]
@@ -481,7 +494,15 @@ def digest_html(picked, pending, now):
     out += _card(f'<p style="{KICKER}">Snow forecast · next 5 days</p>'
                  f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0">{bars}</table>'
                  f'<p style="margin:14px 0 0"><a href="{_site("#forecast")}" style="{BUTTON}">See every forecast</a></p>')
+    if token and not maps and any((d.get("grooming") or {}).get("image") for _, d in picked):
+        out += (f'<p style="margin:0 8px 6px;color:{INK2};font-size:13px">Want grooming maps in this email? '
+                f'<a href="{resorts_url(token)}" style="{LINK}">Turn them on</a></p>')
     return out
+
+
+def _clock_now(now):
+    h = now.hour
+    return f"{(h % 12) or 12}:{now.minute:02d} {'AM' if h < 12 else 'PM'} MT"
 
 
 SNOW_HEAT = "#88b2d5"

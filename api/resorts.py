@@ -2,7 +2,8 @@
 
 GET  /api/resorts?t=...                  -> a page with a checkbox per resort
 GET  /api/resorts?t=...&pick=a,b         -> the same page with a,b pre-checked (from the "update" email); Save applies
-POST /api/resorts?t=...  resort=a&resort=b -> saves the choice (none checked = keep as is)
+POST /api/resorts?t=...  resort=a&resort=b[&maps=1] -> saves the choice (none checked = keep as is) and
+                                            whether the combined email shows grooming maps
 """
 from html import escape
 from urllib.parse import parse_qs
@@ -18,15 +19,19 @@ BTN = "font:600 16px inherit;background:#7b1e2e;color:#fff;border:0;border-radiu
 
 
 class handler(Handler):
-    def _form(self, token, picked, note=""):
+    def _form(self, token, picked, note="", maps=False):
         boxes = "".join(
             f'<label style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #e3edf8">'
             f'<input type="checkbox" name="resort" value="{slug}"{" checked" if slug in picked else ""} style="width:20px;height:20px">'
             f'{escape(resorts.get(slug)["name"])}</label>' for slug in resorts.enabled())
         return PAGE.format(body=(
             f'<h1 style="margin:0 0 6px;font-size:22px">Your morning emails</h1>'
-            f'<p style="margin:0 0 12px;color:#4a6382">One email per resort, each once a day.</p>{note}'
+            f'<p style="margin:0 0 12px;color:#4a6382">Pick one resort for its full daily report, or several for one '
+            f'combined email by 6:30 AM MT.</p>{note}'
             f'<form method="post" action="/api/resorts?t={escape(token)}">{boxes}'
+            f'<label style="display:flex;gap:10px;align-items:center;padding:14px 0 4px;font-weight:600">'
+            f'<input type="checkbox" name="maps" value="1"{" checked" if maps else ""} style="width:20px;height:20px">'
+            f'Show grooming maps in my combined email</label>'
             f'<button style="{BTN};margin-top:16px">Save</button></form>'
             f'<p style="margin:16px 0 0;font-size:13px"><a href="/api/unsubscribe?t={escape(token)}" style="color:#7b1e2e">Unsubscribe from all</a></p>'))
 
@@ -38,24 +43,28 @@ class handler(Handler):
         token = self.query("t")
         with db.connect() as conn:
             found = db.subscriber_resorts(conn, token) if token else None
+            maps = db.email_maps(conn, token) if found else False
         if not found:
             return self._missing()
         pick = resorts.valid([p for p in (self.query("pick") or "").split(",") if p])
         note = ('<p style="margin:0 0 8px;color:#7b1e2e;font-weight:600">Your new picks are checked. Tap Save to apply them.</p>'
                 if pick and sorted(pick) != sorted(found[1]) else "")
-        self.reply(200, self._form(token, pick or found[1], note), "text/html")
+        self.reply(200, self._form(token, pick or found[1], note, maps), "text/html")
 
     def do_POST(self):
         token = self.query("t")
         n = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(n).decode(errors="ignore") if 0 < n <= 4096 else ""
-        picked = resorts.valid(parse_qs(raw).get("resort", []))
+        form = parse_qs(raw)
+        picked = resorts.valid(form.get("resort", []))
+        maps = form.get("maps", [""])[0] == "1"
         with db.connect() as conn:
             found = db.subscriber_resorts(conn, token) if token else None
             if not found:
                 return self._missing()
             if picked:
                 db.set_subscriber_resorts(conn, token, picked)
+            db.set_email_maps(conn, token, maps)
         note = ('<p style="margin:0 0 8px;color:#1b7a3e;font-weight:600">Saved.</p>' if picked else
                 '<p style="margin:0 0 8px;color:#c8102e">Pick at least one resort, or unsubscribe below.</p>')
-        self.reply(200, self._form(token, picked or found[1], note), "text/html")
+        self.reply(200, self._form(token, picked or found[1], note, maps), "text/html")
