@@ -93,11 +93,16 @@ def _recolor(radar):
             r, g, b, a = px[x, y]
             if not a:
                 continue
-            t = echo_strength(r, g, b) * (len(RAMP) - 1)
+            e = echo_strength(r, g, b)
+            mx = max(r, g, b)
+            if not mx or (mx - min(r, g, b)) / mx < 0.2:
+                px[x, y] = (0, 0, 0, 0)          # gray clear-air returns and clutter: speckle at email size
+                continue
+            t = e * (len(RAMP) - 1)
             k = min(len(RAMP) - 2, int(t))
             f = t - k
             c = [round(RAMP[k][i] + (RAMP[k + 1][i] - RAMP[k][i]) * f) for i in range(3)]
-            px[x, y] = (*c, 215)
+            px[x, y] = (*c, round(90 + 150 * min(1, e / 0.6)))   # light echoes stay sheer
     return radar.filter(ImageFilter.GaussianBlur(1.2))      # soft, cloud-like
 
 
