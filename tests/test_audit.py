@@ -146,3 +146,28 @@ def test_database_round_trip(monkeypatch, tmp_path):
     assert store.get_json("data/audit/all.json")["resorts"] == 1
     # Done months aren't fetched again.
     assert audit.job(store=store, now=datetime(2026, 11, 16, 9, tzinfo=config.TZ), slugs=["beaver-creek"])["replayed"] == []
+
+
+@pytest.mark.skipif(not os.environ.get("AUDIT_TEST_DB"), reason="needs AUDIT_TEST_DB")
+def test_replay_month_without_snotel_is_retried(monkeypatch, tmp_path):
+    import psycopg
+    from bcbot.store import LocalStore
+    url = os.environ["AUDIT_TEST_DB"]
+    monkeypatch.setenv("SNOWDB_DATABASE_URL", url)
+    with psycopg.connect(url, autocommit=True) as conn:
+        conn.execute("DROP TABLE IF EXISTS fc_calls, fc_truth, fc_weights, fc_backfill, fc_runs")
+    monkeypatch.setattr(audit, "fetch_replay", lambda s, e: {1: {"gfs_seamless": {"2025-01-05": 0.4}}})
+    monkeypatch.setattr(audit, "fetch_replay_truth", lambda s, e: (None, {}))  # SNOTEL down
+    monkeypatch.setattr(audit, "replay_months", lambda today: ["2025-01"])
+    now = datetime(2026, 11, 16, 9, tzinfo=config.TZ)
+    out = audit.job(store=LocalStore(tmp_path), now=now, slugs=["beaver-creek"])
+    assert out["replayed"][0]["error"] == "no SNOTEL data"
+    assert audit.job(store=LocalStore(tmp_path), now=now, slugs=["beaver-creek"])["replayed"] == []  # waits
+    with psycopg.connect(url, autocommit=True) as conn:
+        conn.execute("UPDATE fc_backfill SET tried_at = now() - interval '3 hours'")
+        # A month marked done before this fix, with no gauge readings, runs again too.
+        conn.execute("UPDATE fc_backfill SET covered_to = '2025-01-31', error = NULL")
+    monkeypatch.setattr(audit, "fetch_replay_truth", lambda s, e: ("842:CO:SNTL", {"2025-01-05": {"precip_in": 0.3}}))
+    out = audit.job(store=LocalStore(tmp_path), now=now, slugs=["beaver-creek"])
+    assert out["replayed"][0]["error"] is None
+    assert audit.job(store=LocalStore(tmp_path), now=now, slugs=["beaver-creek"])["replayed"] == []
