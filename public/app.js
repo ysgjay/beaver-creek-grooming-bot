@@ -929,7 +929,7 @@
       const mark = d.snow >= 1 ? Math.floor(d.snow) : 0, agree = votes.filter(([, x]) => (mark ? x >= mark : x >= 0.1)).length;
       return `<div class="day-hero"><span class="label">Expected snowfall</span><strong>${UI.number(d.snow) ? one(d.snow) : "–"}</strong><span>Likely range ${one(d.low ?? d.snow)}–${one(d.high ?? d.snow)}</span></div>
         <p class="day-note">The expected amount blends the available forecasts. The range shows the uncertainty.</p>
-        <details class="model-details"><summary>Compare models <span>${votes.length}</span></summary><div class="vp-rows">${rowsHtml}</div>
+        <details class="model-details" open><summary>Compare models <span>${votes.length}</span></summary><div class="vp-rows">${rowsHtml}</div>
         <p class="day-note">${votes.length ? `${votes.length} of ${modelCount || votes.length} models reach this day. ${agree} of ${votes.length} show ${mark ? `${mark} ${mark === 1 ? "inch" : "inches"} or more` : "some snow"}.` : "No model reaches this day yet."}</p></details>`;
     };
     const close = () => {
