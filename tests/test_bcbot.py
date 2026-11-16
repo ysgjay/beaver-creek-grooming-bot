@@ -407,7 +407,7 @@ def test_compose_subject_and_push_payload():
     text = report.compose(day)
     assert "Sun 11/15" in text and "Snowiest day: 11/21" in text and "6a: 18°" in text
     assert len(text) < 1500
-    assert report.subject(day) == 'Beaver Creek 11/15: Grooming map, 3" next 5 days'
+    assert report.subject(day) == 'Beaver Creek: 3" new, 3" next 5 days'
     payload = report.push_payload(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
     assert payload["title"] == "Beaver Creek · 11/15" and "New snow 3\"" in payload["body"]
     assert payload["image"].endswith(".jpg") and payload["url"].startswith("https://")
@@ -686,7 +686,8 @@ def test_daily_email_is_personal_with_one_click_unsubscribe(monkeypatch):
     day = {"date": "2026-11-15", "grooming": {"new_map": True, "runs": {"overnight": ["Flint"], "morning": []}},
            "forecast": {"days": [{"date": "2026-11-15", "snow": 3.0, "low": 1, "high": 6}], "next_1_5": 3, "next_6_10": 1}}
     html = mailer.daily_html(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
-    assert "Flint" in html and "maps/2026-11-15.jpg" in html and "Beaver Creek · Sun 11/15" in html
+    assert "1 groomed" in html and "maps/2026-11-15.jpg" in html and "Beaver Creek</h1>" in html and "11/15" in html
+    assert "Open Snow Desk" not in html and "See the full report" in html and "frosted-logo-email.png" in html
     assert mailer.send_daily(recipients, "Subject", html, "text") == 150
     assert [len(b) for _, b in calls] == [100, 50] and all(u.endswith("/emails/batch") for u, _ in calls)
     first = calls[0][1][0]
@@ -798,7 +799,7 @@ def test_preseason_sends_daily_at_seven_without_a_new_map(sandbox, monkeypatch):
     main.run(store=store, send=True, now=at(7, 0))
     main.run(store=store, send=True, now=at(7, 15))
     assert len(reports(sent)) == 2                               # Nov 15 at 7:00, once
-    assert report.subject({"date": "2026-11-15", "preseason": True, "grooming": {}}).startswith("Beaver Creek 11/15: Opens 11/25")
+    assert report.subject({"date": "2026-11-15", "preseason": True, "grooming": {}}).startswith("Beaver Creek: Opens 11/25")
 
 
 def test_sends_as_soon_as_map_and_todays_snow_report_are_confirmed(sandbox, monkeypatch):
@@ -873,7 +874,7 @@ def test_each_resort_has_its_own_archive_state_and_send(sandbox, monkeypatch):
     main.run(store=store, send=True, now=at(7), slug="vail")
     main.run(store=store, send=True, now=at(8), slug="vail")          # once a day per resort
     assert [s for s, _, _ in slugs] == ["beaver-creek", "vail"]
-    assert slugs[1][1].startswith("Vail 11/15") and "/maps/vail/2026-11-15.jpg" in slugs[1][2]
+    assert slugs[1][1].startswith("Vail: ") and "/maps/vail/2026-11-15.jpg" in slugs[1][2]
     vail_day = json.loads((root / "data/vail/latest.json").read_text())
     assert vail_day["resort_slug"] == "vail" and vail_day["grooming"]["image"] == "maps/vail/2026-11-15.jpg"
     assert (root / "maps/vail/2026-11-15.jpg").exists() and (root / "maps/2026-11-15.jpg").exists()
@@ -1070,3 +1071,20 @@ def test_no_send_in_the_evening():
     assert main.send_decision({}, evening, map_new=True, resort_fresh=True, has_map=False) is None
     morning = datetime(2026, 11, 16, 9, 5, tzinfo=tz)
     assert main.send_decision({}, morning, map_new=True, resort_fresh=None, has_map=False) is not None
+
+
+def test_day_ticket_email_without_map_lists_runs_and_subject_carries_numbers():
+    from bcbot import mailer
+    hours = [{"time": f"2026-11-16T{h:02d}:00", "temp": 20 + h - 6, "feels": 10 + h - 6, "dir": "NW", "wind": 9,
+              "gust": 14 + 2 * (h - 6), "snow": 0} for h in range(6, 18)]
+    day = {"date": "2026-11-16", "resort_name": "Keystone", "resort_slug": "keystone",
+           "resort": {"last_24h_in": 2, "base_in": 18, "updated_time": "6:42 AM"},
+           "grooming": {"new_map": True, "runs": {"groomers_of_the_day": ["Schoolmarm"], "groomed": ["Schoolmarm", "Flying Dutchman"]}},
+           "hourly": {"hours": hours},
+           "forecast": {"days": [{"date": "2026-11-16", "snow": 3.0, "low": 1, "high": 6}], "next_1_5": 3, "next_1_5_range": [1, 6]}}
+    html = mailer.daily_html(day, None)
+    assert "Flying Dutchman" in html and "Schoolmarm" in html and "<img src=\"https://snow" in html  # logo only
+    assert "8a" in html and "4p" in html and "6a" not in html          # first chair to last
+    assert "Mon<br>11/16" in html and "1–6" in html
+    assert "Groomers of the day: Schoolmarm" in mailer.preheader(day)
+    assert report.subject(day) == 'Keystone: 2" new, 2 groomed, gusts to 34 mph'
