@@ -165,7 +165,8 @@ def read(kind, resp):
     if kind == "js":
         urls = sorted(set(re.findall(r"""["'`](https?://[^"'`\s]{6,200}|/[a-z0-9_\-/]*(?:api|feed|json|resort)[a-z0-9_\-/.?=&{}$]*)["'`]""", resp.text, re.I)))
         urls = [u for u in urls if re.search(r"api|feed|json|powder|resort", u, re.I)]
-        return None, _sha(resp.content), {"urls": urls[:40]}
+        snippets = [resp.text[max(0, m.start() - 300):m.start() + 500] for m in re.finditer(r"mtnpowder\.com", resp.text)][:3]
+        return None, _sha(resp.content), {"urls": urls[:40], "snippets": snippets}
     return read_html(resp.text)
 
 
