@@ -1,8 +1,12 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v4";
+const SHELL = "shell-v7-frost";
 const DATA = "data-v1";
-const SHELL_FILES = ["/", "/index.html", "/app.js", "/app.css", "/themes.css", "/config.json", "/resorts.json", "/icon.svg", "/manifest.webmanifest"];
+const SHELL_FILES = [
+  "/", "/index.html", "/app.js", "/app.css", "/themes.css", "/frost.css",
+  "/config.json", "/resorts.json", "/icon.svg", "/icon-180.png", "/icon-192.png", "/icon-512.png", "/manifest.webmanifest",
+  "/brand/fonts/outfit.woff2", "/brand/fonts/plex-sans.woff2", "/brand/fonts/plex-mono.woff2", "/brand/frosted-logo.webp",
+];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));
