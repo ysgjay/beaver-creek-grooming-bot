@@ -1,130 +1,105 @@
-/* Fine grain supports a more visible crystalline ice rim. Both textures keep a
-   fixed scale. Only the decorative pseudo-element is masked: content and popovers
-   remain unclipped, and the decoration never intercepts input. */
+/* Ice-glass material: translucent panes, diffuse lighting, and fine etching
+   throughout the surface. No deposited frost or perimeter texture mask.
+   The opaque default remains usable when backdrop filtering is unavailable. */
 html[data-brand="frosted-snow"] {
-  --frost-grain: url("brand/frost-grain-v2.svg");
-  --frost-crystals: url("brand/frost-crystals-v3.webp");
-  --frost-crystal-opacity: .68;
-  --frost-body-veil: #f5f9fcf0;
-  --frost-chrome-clear: #edf4fb66;
-  --frost-chrome: #edf4fbfa;
-  --frost-nav-clear: #f5f9fc4d;
-  --frost-nav: #f5f9fcfa;
-  --frost-bloom: #ffffffd9;
-  --frost-edge: #ffffffb3;
-  --frost-rim: #ffffffb3;
-  --frost-surface-shadow: 0 2px 4px #17365003, 0 12px 28px #1736500a;
-  --frost-chrome-line: #b8cedd66;
+  --ice-etch: url("brand/ice-etch-v4.webp");
+  --ice-etch-opacity: .10;
+  --ice-etch-filter: grayscale(1) invert(1);
+  --ice-secondary: #465c70;
+  --ice-pane: #f6fbffbd;
+  --ice-chrome: #f3f9fff0;
+  --ice-sheen: #ffffff80;
+  --ice-reflection: #b8daef14;
+  --ice-edge: #ffffff8c;
+  --ice-highlight: #ffffffb3;
+  --ice-bottom: #7699ad1a;
+  --ice-shadow: 0 12px 32px #153b5512, 0 2px 6px #153b5505;
+  --ice-chrome-line: #b5ccdc40;
 }
 
 html[data-brand="frosted-snow"][data-appearance="dark"] {
-  --frost-crystal-opacity: .34;
-  --frost-body-veil: #102a40f0;
-  --frost-chrome-clear: #0b21354d;
-  --frost-chrome: #0b2135fa;
-  --frost-nav-clear: #0b21354d;
-  --frost-nav: #0b2135fa;
-  --frost-bloom: #b8e3ff26;
-  --frost-edge: #8db7d326;
-  --frost-rim: #c5e8ff24;
-  --frost-surface-shadow: 0 2px 4px #020c1612, 0 12px 28px #020c1626;
-  --frost-chrome-line: #8db7d326;
+  --ice-etch-opacity: .20;
+  --ice-etch-filter: none;
+  --ice-secondary: #bdcedc;
+  --ice-pane: #112e45c2;
+  --ice-chrome: #0b2135f0;
+  --ice-sheen: #c7eaff0f;
+  --ice-reflection: #5e9fc90a;
+  --ice-edge: #a6d6f22e;
+  --ice-highlight: #d7f1ff52;
+  --ice-bottom: #020e1a38;
+  --ice-shadow: 0 14px 36px #020c162b, 0 2px 6px #020c1612;
+  --ice-chrome-line: #a6d6f21f;
 }
 
-html[data-brand="frosted-snow"] .top {
-  background-color: var(--frost-chrome);
+html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) {
+  --ink-2: var(--ice-secondary);
+  background-color: var(--frost-paper);
   background-image:
-    linear-gradient(to bottom, var(--frost-chrome-clear), var(--frost-chrome) 22px),
-    radial-gradient(ellipse at 15% 0, var(--frost-bloom), transparent 70%),
-    var(--frost-grain);
-  background-size: 100% 100%, 100% 44px, 180px 180px;
-  background-position: top left;
-  background-repeat: no-repeat, no-repeat, repeat-x;
-  border-bottom-color: var(--frost-chrome-line);
-  box-shadow: inset 0 1px 0 var(--frost-rim);
-}
-
-html[data-brand="frosted-snow"] .tabbar {
-  background-color: var(--frost-nav);
-  background-image:
-    linear-gradient(to bottom, var(--frost-nav-clear), var(--frost-nav) 18px),
-    radial-gradient(ellipse at 50% 0, var(--frost-bloom), transparent 70%),
-    var(--frost-grain);
-  background-size: 100% 100%, 100% 40px, 180px 180px;
-  background-position: top left;
-  background-repeat: no-repeat, no-repeat, repeat-x;
-  border-top-color: var(--frost-chrome-line);
-  box-shadow: inset 0 1px 0 var(--frost-rim), 0 -6px 24px #071b2e0a;
-  /* Selected tabs retain their existing flat fill and touch targets. */
+    radial-gradient(ellipse at 0 0, var(--ice-sheen), transparent 58%),
+    linear-gradient(125deg, transparent 30%, var(--ice-reflection));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-clip: padding-box;
+  box-shadow: inset 0 1px 1px var(--ice-highlight),
+    inset 0 6px 12px -10px var(--ice-highlight),
+    inset 0 -1px 1px var(--ice-bottom), var(--ice-shadow);
 }
 
 html[data-brand="frosted-snow"] .card {
   position: relative;
-  background-color: var(--frost-paper);
-  background-image:
-    linear-gradient(var(--frost-body-veil), var(--frost-body-veil)),
-    var(--frost-crystals);
-  background-size: 100% 100%, 480px 480px;
-  background-position: top left;
-  background-repeat: no-repeat, repeat;
-  background-clip: padding-box;
-  box-shadow: inset 0 1px 0 var(--frost-rim), var(--frost-surface-shadow);
+  isolation: isolate;
 }
 html[data-brand="frosted-snow"] .card:where(:not(.patrol)) {
-  border-color: var(--frost-edge);
+  border-color: var(--ice-edge);
+}
+html[data-brand="frosted-snow"] .top {
+  border-bottom-color: var(--ice-chrome-line);
+  box-shadow: inset 0 1px 0 var(--ice-highlight), 0 4px 20px #071b2e08;
+}
+html[data-brand="frosted-snow"] .tabbar {
+  border-top-color: var(--ice-chrome-line);
+  box-shadow: inset 0 1px 0 var(--ice-highlight), 0 -8px 28px #071b2e10;
 }
 
-/* Progressive enhancement: unsupported masks keep the quiet grain finish.
-   A 14 px top fade and 8 px sides fit inside the existing content padding.
-   The same small crystals continue around the bottom instead of forming a
-   large repeating illustration above every title. */
-@supports (mask-image: linear-gradient(#000, transparent)) or (-webkit-mask-image: linear-gradient(#000, transparent)) {
-  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card)::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background: var(--frost-crystals) 0 0 / 480px 480px repeat;
-    opacity: var(--frost-crystal-opacity);
-    -webkit-mask-image:
-      linear-gradient(to bottom, #000, #0009 4px, transparent 14px),
-      linear-gradient(to top, #0009, transparent 12px),
-      linear-gradient(to right, #000a, transparent 8px),
-      linear-gradient(to left, #000a, transparent 8px);
-    mask-image:
-      linear-gradient(to bottom, #000, #0009 4px, transparent 14px),
-      linear-gradient(to top, #0009, transparent 12px),
-      linear-gradient(to right, #000a, transparent 8px),
-      linear-gradient(to left, #000a, transparent 8px);
-  }
-  html[data-brand="frosted-snow"] :is(.top, .tabbar)::before {
-    -webkit-mask-image:
-      linear-gradient(to bottom, #000, transparent 16px),
-      linear-gradient(to top, #0006, transparent 8px);
-    mask-image:
-      linear-gradient(to bottom, #000, transparent 16px),
-      linear-gradient(to top, #0006, transparent 8px);
-  }
+/* This empty decorative layer sits behind the content, including photos/charts.
+   A fixed tile scale preserves the fine etching on wide and narrow panes. */
+html[data-brand="frosted-snow"] :is(.top, .tabbar, .card)::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--ice-etch) 0 0 / 480px 480px repeat;
+  opacity: var(--ice-etch-opacity);
+  filter: var(--ice-etch-filter);
 }
 
-@media (prefers-reduced-transparency: reduce) {
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) {
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    backdrop-filter: blur(24px) saturate(120%);
+  }
+  html[data-brand="frosted-snow"] .card { background-color: var(--ice-pane); }
+  /* Higher opacity keeps chrome legible while maps and cameras scroll behind. */
+  html[data-brand="frosted-snow"] :is(.top, .tabbar) { background-color: var(--ice-chrome); }
+}
+
+/* Backdrop filtering groups each pane. Lift an open forecast popover's card
+   above its siblings, without clipping its contents or changing its position. */
+html[data-brand="frosted-snow"] .card:has(.votes-pop) { z-index: 2; }
+
+@media (prefers-reduced-transparency: reduce), (forced-colors: active), print {
   html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) {
     background-image: none;
     background-color: var(--frost-paper);
-  }
-  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card)::before { content: none; }
-}
-
-@media (forced-colors: active), print {
-  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) {
-    background-image: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     box-shadow: none;
   }
   html[data-brand="frosted-snow"] :is(.top, .tabbar, .card)::before { content: none; }
 }
 @media (forced-colors: active) {
-  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) {
-    border-color: CanvasText;
-  }
+  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) { border-color: CanvasText; }
 }

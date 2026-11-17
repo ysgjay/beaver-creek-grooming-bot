@@ -1,13 +1,13 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v19-crystalline-frost";
+const SHELL = "shell-v20-etched-ice-glass";
 const DATA = "data-v1";
 const SHELL_FILES = [
   "/", "/index.html", "/appearance.js", "/report-ui.js", "/app.js", "/app.css", "/themes.css", "/frost.css", "/dark.css", "/frost-surfaces.css",
   "/config.json", "/resorts.json", "/icon.svg", "/icon-180.png", "/icon-192.png", "/icon-512.png", "/manifest.webmanifest",
   "/brand/fonts/outfit.woff2", "/brand/fonts/plex-sans.woff2", "/brand/fonts/plex-mono.woff2", "/brand/frosted-logo.webp",
   "/brand/app-icon-dark-180.png", "/brand/app-icon-dark-192.png", "/brand/app-icon-dark-512.png",
-  "/brand/frost-grain-v2.svg", "/brand/frost-crystals-v3.webp",
+  "/brand/ice-etch-v4.webp",
 ];
 
 self.addEventListener("install", (e) => {

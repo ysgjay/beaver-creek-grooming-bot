@@ -1,5 +1,7 @@
 # Crystalline frost · material asset
 
+Historical treatment, superseded by `ice-etch-v4.md` (whole-pane ice glass).
+
 Created November 17, 2026 after the owner requested a stronger ice/frost feel than the fine grain treatment.
 
 - File: `public/brand/frost-crystals-v3.webp`.
