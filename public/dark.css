@@ -1,4 +1,4 @@
-/* Midnight Ice: the dark companion to Frosted Snow. Keep reports opaque and snow blue. */
+/* Midnight Ice: the dark companion to Frosted Snow. Opaque base palette; ice-glass surfaces load last. Keep snow blue. */
 .appearance-options{border:0;padding:0;margin:0;min-width:0}
 .appearance-options legend{font:600 22px/1.1 var(--font-display);letter-spacing:-.035em;margin-bottom:12px}
 .appearance-options p{margin:0 0 12px;color:var(--ink-2);font-size:13px}
