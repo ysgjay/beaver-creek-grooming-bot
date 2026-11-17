@@ -20,7 +20,7 @@ import sys
 from datetime import date, datetime, timedelta
 
 from . import alert, audit, config, forecast, notify, report, resorts, verify
-from .sources import dor, grooming, nws, openmeteo, resort, snotel
+from .sources import dor, grooming, mountain, nws, openmeteo, resort, snotel
 from .store import get_store, resort_store
 from .util import get, now_local
 
@@ -414,6 +414,8 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
         "observed": (obs or {}).get("last_24h", {}) | ({"station": obs["station"]} if obs else {}),
         "resort": resort_report,
         "cam": prev.get("cam") or _snapshot_stake(store, day_str),
+        "mountain": {"avalanche": mountain.fetch_avalanche(), "discussion": mountain.fetch_discussion(),
+                     "stations": mountain.fetch_stations()},
         "delivery": prev.get("delivery"),
         "errors": errors,
     }

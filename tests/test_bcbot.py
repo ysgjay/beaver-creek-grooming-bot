@@ -474,6 +474,11 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(openmeteo, "fetch_ensemble", lambda: {})
     monkeypatch.setattr(nws, "fetch_snowfall", lambda: {"2026-11-15": 1.0})
     monkeypatch.setattr(openmeteo, "fetch_history", lambda start, end: {})
+    monkeypatch.setattr(openmeteo, "fetch_history_by_lead", lambda start, end: {})
+    from bcbot.sources import mountain
+    monkeypatch.setattr(mountain, "fetch_avalanche", lambda: None)
+    monkeypatch.setattr(mountain, "fetch_discussion", lambda: None)
+    monkeypatch.setattr(mountain, "fetch_stations", lambda: None)
     monkeypatch.setattr(snotel, "fetch_daily_precip", lambda begin, end: {})
     monkeypatch.setattr(openmeteo, "fetch_bands",
                         lambda: openmeteo.split_bands(bands_payload(), config.ELEVATION_BANDS))
@@ -1248,3 +1253,35 @@ def test_ceiling_is_never_below_a_models_own_call():
     assert d0["high"] == fc["days"][0]["models"]["gfs_seamless"] > d0["snow"]
     gfs5 = sum(x["models"]["gfs_seamless"] for x in fc["days"][:5])
     assert fc["next_1_5_range"][1] == round(gfs5, 1)
+
+
+def test_avalanche_zone_and_station_parsing():
+    from bcbot.sources import mountain
+    square = [[-107, 39], [-106, 39], [-106, 40], [-107, 40], [-107, 39]]
+    payload = {"features": [
+        {"geometry": {"type": "Polygon", "coordinates": [[[-112, 40], [-111, 40], [-111, 41], [-112, 41], [-112, 40]]]},
+         "properties": {"name": "Salt Lake", "center_id": "UAC", "danger_level": "-1"}},
+        {"geometry": {"type": "MultiPolygon", "coordinates": [[square]]},
+         "properties": {"name": "Vail", "center": "CAIC", "center_id": "CAIC", "danger_level": "2",
+                        "link": "https://avalanche.state.co.us/"}}]}
+    z = mountain.avalanche_zone(payload, 39.59, -106.52)
+    assert z["zone"] == "Vail" and z["danger"] == "Moderate" and z["level"] == 2
+    assert mountain.avalanche_zone(payload, 40.58, -111.64)["danger"] is None
+    assert mountain.avalanche_zone(payload, 35.0, -100.0) is None
+    stations = {"STATION": [
+        {"NAME": "Town", "STID": "T", "ELEVATION": "7400", "DISTANCE": 1,
+         "OBSERVATIONS": {"air_temp_value_1": {"value": 40}}},
+        {"NAME": "Summit", "STID": "S", "ELEVATION": "11200", "DISTANCE": 3,
+         "OBSERVATIONS": {"air_temp_value_1": {"value": 18.4, "date_time": "t"}, "snow_depth_value_1": {"value": 12.2}}},
+        {"NAME": "Dead", "STID": "D", "ELEVATION": "10000", "DISTANCE": 2, "OBSERVATIONS": {}}]}
+    out = mountain.parse_stations(stations, 7800)
+    assert [s["id"] for s in out] == ["S"] and out[0]["temp_f"] == 18 and out[0]["depth_in"] == 12
+
+
+def test_new_ensembles_inherit_their_parents_correction():
+    assert forecast._ensemble_parent("member03_ecmwf_aifs025_ensemble") is None
+    assert forecast._ensemble_parent("member03_ecmwf_ifs025_ensemble") == "ecmwf_ifs025"
+    assert forecast._ensemble_parent("member03_ncep_gefs025") == "gfs_global"
+    assert forecast._ensemble_parent("member03_icon_seamless_eps") == "icon_seamless"
+    assert forecast._ensemble_parent("member03_gem_global_ensemble") == "gem_seamless"
+    assert forecast._ensemble_parent("member03_ukmo_global_ensemble_20km") == "ukmo_seamless"

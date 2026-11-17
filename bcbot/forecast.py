@@ -114,8 +114,8 @@ ANCHOR_MIN_IN = 1.0
 
 def _ensemble_parent(member):
     """'member03_gfs025' -> the scored model whose bias correction it inherits."""
-    for suffix, parent in config.ENSEMBLE_PARENT.items():
-        if member.endswith(suffix):
+    for piece, parent in config.ENSEMBLE_PARENT:
+        if piece in member:
             return parent
     return None
 
