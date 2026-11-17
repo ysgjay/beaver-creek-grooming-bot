@@ -1,6 +1,6 @@
 # Frost grain · surface finish
 
-Revision date: November 17, 2026. Replaces the repeated fern artwork after review of the production desktop screen.
+Revision date: November 17, 2026. Replaced the repeated fern artwork after review of the production desktop screen. Now retained as supporting header/navigation grain beneath the stronger crystalline finish documented in `frost-crystals-v3.md`.
 
 - File: `public/brand/frost-grain-v2.svg`, a hand-authored 256 × 256 SVG noise tile.
 - Construction: deterministic, stitched `feTurbulence` with three octaves, frequency `.78`, and seed `17`. A color matrix gives the grain a pale ice hue and low alpha. No generated bitmap or external source is used.
