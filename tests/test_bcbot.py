@@ -479,6 +479,7 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(mountain, "fetch_avalanche", lambda: None)
     monkeypatch.setattr(mountain, "fetch_discussion", lambda: None)
     monkeypatch.setattr(mountain, "fetch_stations", lambda: None)
+    monkeypatch.setattr(mountain, "fetch_nohrsc", lambda: None)
     monkeypatch.setattr(snotel, "fetch_daily_precip", lambda begin, end: {})
     monkeypatch.setattr(openmeteo, "fetch_bands",
                         lambda: openmeteo.split_bands(bands_payload(), config.ELEVATION_BANDS))
@@ -1285,3 +1286,24 @@ def test_new_ensembles_inherit_their_parents_correction():
     assert forecast._ensemble_parent("member03_icon_seamless_eps") == "icon_seamless"
     assert forecast._ensemble_parent("member03_gem_global_ensemble") == "gem_seamless"
     assert forecast._ensemble_parent("member03_ukmo_global_ensemble_20km") == "ukmo_seamless"
+
+
+NOHRSC_PAGE = """
+<table class="gray_data_table" cellspacing="2" summary="x"><caption><strong>Raw Snowfall Observations</strong></caption>
+<tbody><tr><td class="desc"><a href="#">ATAU1</a></td><td class="desc">ALTA</td><td>8684</td><td>2.50</td><td>24</td><td>2026-11-17 01</td><td>0.7 mi NNE</td></tr></tbody></table>
+<table class="gray_data_table" cellspacing="2" summary="x"><caption><strong>Snow Depth Observations</strong></caption>
+<thead><tr><th scope="col">Station ID</th></tr></thead><tbody>
+<tr><td class="desc"><a href="#">CLN</a></td><td class="desc">ALTA - COLLINS</td><td>9629</td><td>19.00</td><td>2026-11-16 23</td><td>0.3 mi SSE</td></tr>
+<tr><td class="desc"><a href="#">X</a></td><td class="desc">TOWN</td><td>5100</td><td>0.00</td><td>2026-11-16 23</td><td>9 mi W</td></tr>
+<tr><td class="desc"><a href="#">AGD</a></td><td class="desc">ALTA - GUARD HOUSE</td><td>8714</td><td>3.00</td><td>2026-11-17 00</td><td>0.7 mi N</td></tr>
+</tbody></table>"""
+
+
+def test_nohrsc_nearest_observations_give_on_mountain_depth():
+    from bcbot.sources import mountain
+    out = mountain.parse_nohrsc(NOHRSC_PAGE)
+    assert out["snowfall"][0] == {"id": "ATAU1", "name": "Alta", "elevation_ft": 8684.0, "value_in": 2.5,
+                                  "hours": 24.0, "time_utc": "2026-11-17 01", "distance_mi": 0.7}
+    rows = mountain.mountain_depth(out, 8500)
+    assert [r["id"] for r in rows] == ["CLN", "AGD"]
+    assert rows[0]["name"] == "Alta - Collins" and rows[0]["depth_in"] == 19 and rows[0]["temp_f"] is None

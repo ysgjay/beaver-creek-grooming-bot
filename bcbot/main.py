@@ -351,6 +351,15 @@ def _resort_daily(store, today):
     return out
 
 
+def _mountain():
+    """Avalanche danger, the NWS discussion link, and on-mountain readings (Synoptic when a token
+    is set, else snow depth at nearby ski-area and SNOTEL stations from NOAA's snow center)."""
+    nohrsc = mountain.fetch_nohrsc()
+    stations = mountain.fetch_stations() or mountain.mountain_depth(nohrsc, mountain.base_elevation())
+    return {"avalanche": mountain.fetch_avalanche(), "discussion": mountain.fetch_discussion(),
+            "stations": stations, "nohrsc": nohrsc}
+
+
 def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_report=None):
     models = _try("open-meteo", openmeteo.fetch_models, errors, {})
     ens = _try("open-meteo ensemble", openmeteo.fetch_ensemble, errors, {})
@@ -414,8 +423,7 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
         "observed": (obs or {}).get("last_24h", {}) | ({"station": obs["station"]} if obs else {}),
         "resort": resort_report,
         "cam": prev.get("cam") or _snapshot_stake(store, day_str),
-        "mountain": {"avalanche": mountain.fetch_avalanche(), "discussion": mountain.fetch_discussion(),
-                     "stations": mountain.fetch_stations()},
+        "mountain": _mountain(),
         "delivery": prev.get("delivery"),
         "errors": errors,
     }

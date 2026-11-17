@@ -2,11 +2,16 @@
 
 - Avalanche danger for the backcountry zone around the resort (avalanche.org, every US center).
 - A link to the local NWS office's forecast discussion (the forecasters' written reasoning).
+- Observations near the resort from NOAA's snow center (NOHRSC): snow depth at ski-area and
+  SNOTEL stations, and 24-hour snowfall reports. Free and keyless.
 - Live readings from weather stations on or near the ski area (Synoptic / MesoWest), only when
-  `SYNOPTIC_TOKEN` is set. Each one returns None on any failure; none of them can fail a run.
+  `SYNOPTIC_TOKEN` is set (a paid service, so normally off).
+Each one returns None on any failure; none of them can fail a run.
 """
+import html
 import logging
 import os
+import re
 
 from .. import config
 from ..util import get
@@ -16,6 +21,7 @@ log = logging.getLogger(__name__)
 AVALANCHE_URL = "https://api.avalanche.org/v2/public/products/map-layer"
 NWS_HEADERS = {"Accept": "application/geo+json", "User-Agent": "Chair 0 Snow Desk (snow.0xm.studio)"}
 SYNOPTIC_URL = "https://api.synopticdata.com/v2/stations/latest"
+NOHRSC_URL = "https://www.nohrsc.noaa.gov/nearest/index.html"
 DANGER = {1: "Low", 2: "Moderate", 3: "Considerable", 4: "High", 5: "Extreme"}
 
 
@@ -121,8 +127,69 @@ def fetch_stations():
             "vars": "air_temp,snow_depth,wind_speed", "units": "english",
             "status": "active"}, timeout=10, retries=0)
         r.raise_for_status()
-        base = min((b["elevation_ft"] for b in config.ELEVATION_BANDS), default=0) - 300
-        return parse_stations(r.json(), base)
+        return parse_stations(r.json(), base_elevation())
     except Exception as e:
         log.warning("Synoptic failed: %s", e)
         return None
+
+
+_SECTIONS = {"Raw Snowfall Observations": "snowfall", "Snow Depth Observations": "depth",
+             "Snow Water Equivalent Observations": "swe"}
+
+
+def _num(x):
+    try:
+        return float(x)
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_nohrsc(page):
+    """{snowfall|depth|swe: [{id, name, elevation_ft, value_in, hours?, time_utc, distance_mi}]}
+    from NOHRSC's "nearest observations" page (one table per kind, nearest first)."""
+    out = {}
+    for table in re.findall(r"<table class=\"gray_data_table\".*?</table>", page, flags=re.S):
+        cap = re.search(r"<caption><strong>(.*?)</strong>", table)
+        key = _SECTIONS.get(cap.group(1).strip()) if cap else None
+        if not key:
+            continue
+        rows = []
+        for tr in re.findall(r"<tr>(.*?)</tr>", table, flags=re.S):
+            cells = [html.unescape(re.sub(r"<[^>]+>", "", c)).strip() for c in re.findall(r"<td[^>]*>(.*?)</td>", tr, flags=re.S)]
+            if len(cells) < 6:
+                continue
+            row = {"id": cells[0], "name": cells[1].title(), "elevation_ft": _num(cells[2]), "value_in": _num(cells[3])}
+            if len(cells) >= 7:  # snowfall has a duration column
+                row["hours"], row["time_utc"], dist = _num(cells[4]), cells[5], cells[6]
+            else:
+                row["time_utc"], dist = cells[4], cells[5]
+            m = re.match(r"([\d.]+)\s*mi", dist)
+            row["distance_mi"] = float(m.group(1)) if m else None
+            if row["value_in"] is not None:
+                rows.append(row)
+        out[key] = rows
+    return out
+
+
+def fetch_nohrsc():
+    try:
+        r = get(NOHRSC_URL, params={"city": f"{config.LAT:.4f},{config.LON:.4f}", "county": "", "l": 10,
+                                    "u": "e", "b": 1}, headers={"User-Agent": NWS_HEADERS["User-Agent"]},
+                timeout=10, retries=0)
+        r.raise_for_status()
+        return parse_nohrsc(r.text) or None
+    except Exception as e:
+        log.warning("NOHRSC failed: %s", e)
+        return None
+
+
+def mountain_depth(nohrsc, min_elev_ft):
+    """Nearest snow-depth readings on the mountain (at or above the base) as station rows."""
+    rows = [r for r in (nohrsc or {}).get("depth", []) if (r.get("elevation_ft") or 0) >= min_elev_ft]
+    return [{"name": r["name"], "id": r["id"], "elevation_ft": round(r["elevation_ft"]),
+             "distance_mi": r["distance_mi"], "temp_f": None, "depth_in": round(r["value_in"]),
+             "wind_mph": None, "time": r["time_utc"], "source": "NOHRSC"} for r in rows[:3]]
+
+
+def base_elevation():
+    return min((b["elevation_ft"] for b in config.ELEVATION_BANDS), default=0) - 300
