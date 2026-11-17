@@ -22,7 +22,7 @@ Chair 0 is the brand; Snow Desk is the product. The lift-terminal symbol has no 
 | Divider | `#C3D3E0` |
 | Control border | `#7A90A4` |
 
-Outfit is for headings and prominent measurements, IBM Plex Sans for interface text, and IBM Plex Mono for data. The licensed WOFF2 files are self-hosted in `public/brand/fonts/`; each family includes its OFL license. Cards use a white edge and a restrained shadow over a pale ice background. Keep texture in the large logo artwork rather than behind report text.
+Outfit is for headings and prominent measurements, IBM Plex Sans for interface text, and IBM Plex Mono for data. The licensed WOFF2 files are self-hosted in `public/brand/fonts/`; each family includes its OFL license. Cards use a white edge and a restrained shadow over a pale ice background. Fine crystalline frost appears at the header, bottom navigation, and card rims, fading into smooth surfaces for report text and charts.
 
 ## Logo files
 
@@ -95,12 +95,20 @@ Keep the visible labels, the link's `aria-current="page"`, and the existing gene
 
 The dark appearance is derived from the navy glass-and-ice logo artwork. Use `#071B2E` for the background, `#102A40` for report cards, `#18384F` for secondary surfaces, `#E7F2FC` for primary text, and `#A9BFD2` for secondary text. Actions and focus use ice blue `#B8DCF6`; selected tabs use `#24475E`. Snow strokes use `#8DC4EB`, expected fills `#376B92`, and uncertainty fills `#173B55`. Heat-strip and calendar fills stay dark enough for light labels. Burgundy `#8B2941` is reserved for primary actions and small brand accents, with white button text.
 
-Keep cards opaque and texture in the artwork. Do not invert grooming maps or cameras. Native controls, sheets, tooltips, menus, model tables, and radar must all respect the resolved appearance. Primary and secondary text exceed 4.5:1 contrast on their corresponding surfaces. `appearance.js` runs before styles to avoid a light flash; it respects saved choices, live device changes, and blocked storage. Preferences use `chair0.appearance` and sync between open tabs. `dark.css` loads last.
+Keep cards opaque, with a subdued ice highlight and fine frost only at their rims. Do not invert grooming maps or cameras. Native controls, sheets, tooltips, menus, model tables, and radar must all respect the resolved appearance. Primary and secondary text exceed 4.5:1 contrast on their corresponding surfaces. `appearance.js` runs before styles to avoid a light flash; it respects saved choices, live device changes, and blocked storage. Preferences use `chair0.appearance` and sync between open tabs. `dark.css` supplies the dark palette; `frost-surfaces.css` loads after it.
 
 Home-screen icon setup follows [Apple touch-icon guidance](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html) and the [maskable icon safe zone](https://web.dev/articles/maskable-icon). The launch artwork stays navy in either appearance. Existing installed shortcuts may retain cached artwork; removing and adding the shortcut again is the fallback.
 
 ## Implementation
 
-`public/frost.css` loads after `themes.css` and `app.css`, scoped to `html[data-brand="frosted-snow"]`. The base files retain chart geometry and responsive page structure. `public/sw.js` caches the new stylesheet, utility icons, fonts, and material mark with the app shell. Update its shell version when those resources change. Reduced motion, reduced transparency, keyboard focus, and forced colors have explicit treatments.
+`public/frost.css` loads after `themes.css` and `app.css`, scoped to `html[data-brand="frosted-snow"]`. `dark.css` follows, then `public/frost-surfaces.css` adds the shared material treatment on both the main app and Snow Audit. The base files retain chart geometry and responsive page structure. `public/sw.js` caches the stylesheets, utility icons, fonts, material mark, and frost texture with the app shell. Update its shell version when those resources change. Reduced motion, reduced transparency, keyboard focus, and forced colors have explicit treatments.
+
+### Frosted surfaces · November 17, 2026
+
+- Apply the static `public/brand/frost-rim-v1.webp` texture to the shared header, mobile bottom navigation, and report card backgrounds. Light mode uses pale frost; dark mode uses the same art beneath a navy veil. Keep the bright rim thin and the shadow restrained.
+- Fade texture within the upper 40–48 px of each surface. Card centers remain opaque, with the original colors, typography, and spacing. Keep the snowfall stakes, heat strips, model details, and other charts blue/ice.
+- Put the material on the shared navigation bar, not individual buttons. Selected tabs stay flat with no underline, raised lip, or bottom shadow. Custom icons and touch targets are unchanged.
+- Use background layers rather than interactive overlays. No added JavaScript, animation, scrolling effects, or additional blur is needed. One optimized, versioned texture is shared and cached for the installed app.
+- Remove the texture for reduced transparency, forced colors, and print. Preserve the ordinary surface colors and existing keyboard focus treatment when decoration is unavailable.
 
 The backend, forecast calculations, delivery schedule, opt-in behavior, and resort data are unchanged by this styling update.
