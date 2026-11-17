@@ -8,22 +8,16 @@
   const MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const MONTH_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  // One compact line under Today's conditions: backcountry avalanche danger and the nearest
-  // on-mountain weather station. Either part is left out when its source had nothing.
+  // One compact line under Today's conditions: the on-mountain weather station, if there is one.
+  // Only a station within 1.5 mi counts; past that the nearest is usually another ski area
+  // (Beaver Creek's was Vail Mid-Mtn), so nothing shows. No avalanche line here (Young, 11/17).
+  const ON_MOUNTAIN_MI = 1.5;
   const mountainLine = (m) => {
-    if (!m) return "";
-    const parts = [], a = m.avalanche, st = (m.stations || [])[0];
-    if (a) {
-      const who = a.center_id || a.center || "";
-      const rating = a.danger ? `<strong>${esc(a.danger)}</strong>` : "not rated yet";
-      parts.push(`<a href="${esc(a.link || "#")}" target="_blank" rel="noopener">Backcountry avalanche danger ${rating} · ${esc(who)}</a>`);
-    }
-    if (st) {
-      const bits = [st.temp_f != null ? `${st.temp_f}°` : "", st.depth_in != null ? `${st.depth_in}″ depth` : "",
-        st.wind_mph != null ? `wind ${st.wind_mph} mph` : ""].filter(Boolean).join(" · ");
-      parts.push(`<span>${esc(st.name || st.id)} (${Number(st.elevation_ft).toLocaleString()} ft): ${bits}</span>`);
-    }
-    return parts.length ? `<div class="mtn-line">${parts.join("")}</div>` : "";
+    const st = ((m && m.stations) || []).find((s) => s.distance_mi != null && Number(s.distance_mi) <= ON_MOUNTAIN_MI);
+    if (!st) return "";
+    const bits = [st.temp_f != null ? `${st.temp_f}°` : "", st.depth_in != null ? `${st.depth_in}″ depth` : "",
+      st.wind_mph != null ? `wind ${st.wind_mph} mph` : ""].filter(Boolean).join(" · ");
+    return `<div class="mtn-line"><span>${esc(st.name || st.id)} (${Number(st.elevation_ft).toLocaleString()} ft): ${bits}</span></div>`;
   };
   const pd = (s) => { const [y, m, d] = s.slice(0, 10).split("-").map(Number); return new Date(y, m - 1, d); };
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

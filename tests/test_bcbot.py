@@ -1307,3 +1307,7 @@ def test_nohrsc_nearest_observations_give_on_mountain_depth():
     rows = mountain.mountain_depth(out, 8500)
     assert [r["id"] for r in rows] == ["CLN", "AGD"]
     assert rows[0]["name"] == "Alta - Collins" and rows[0]["depth_in"] == 19 and rows[0]["temp_f"] is None
+    # Another ski area 7.7 mi away is not "on this mountain" (Beaver Creek showed Vail Mid-Mtn).
+    far = {"depth": [{"id": "CAVMM_MADIS", "name": "Vail Ski Area Mid-Mtn", "elevation_ft": 10328.0,
+                      "value_in": 4.0, "time_utc": "x", "distance_mi": 7.7}]}
+    assert mountain.mountain_depth(far, 7800) == []
