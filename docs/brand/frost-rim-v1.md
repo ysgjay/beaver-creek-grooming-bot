@@ -1,6 +1,8 @@
-# Frost rim · asset record
+# Frost rim · retired asset record
 
-Approved direction: the November 17, 2026 light/dark frost mockups for the header, bottom navigation, and card edges. This is decorative surface art, not an information-bearing image or a replacement logo.
+Retired from the interface on November 17, 2026 after desktop review: the pattern became too large and repetitive when scaled across cards. Retained only as an asset history reference; no longer loaded or cached by the app. Current finish: `frost-grain-v2.md`.
+
+Original direction: the November 17, 2026 light/dark frost mockups for the header, bottom navigation, and card edges. This is decorative surface art, not an information-bearing image or a replacement logo.
 
 - File: `public/brand/frost-rim-v1.webp`
 - Created: November 17, 2026 with the built-in image-generation tool (transparent background), using the approved dark comparison board as a visual reference.
