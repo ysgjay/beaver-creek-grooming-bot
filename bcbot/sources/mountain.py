@@ -22,6 +22,10 @@ AVALANCHE_URL = "https://api.avalanche.org/v2/public/products/map-layer"
 NWS_HEADERS = {"Accept": "application/geo+json", "User-Agent": "Chair 0 Snow Desk (snow.0xm.studio)"}
 SYNOPTIC_URL = "https://api.synopticdata.com/v2/stations/latest"
 NOHRSC_URL = "https://www.nohrsc.noaa.gov/nearest/index.html"
+# A depth station counts as "on this mountain" only this close to the resort's point. Farther
+# out the nearest one is often another ski area (Beaver Creek's was Vail Mid-Mtn, 7.7 mi away)
+# or a pass, which reads as the wrong resort; better to show nothing.
+ON_MOUNTAIN_MI = 1.5
 DANGER = {1: "Low", 2: "Moderate", 3: "Considerable", 4: "High", 5: "Extreme"}
 
 
@@ -185,7 +189,8 @@ def fetch_nohrsc():
 
 def mountain_depth(nohrsc, min_elev_ft):
     """Nearest snow-depth readings on the mountain (at or above the base) as station rows."""
-    rows = [r for r in (nohrsc or {}).get("depth", []) if (r.get("elevation_ft") or 0) >= min_elev_ft]
+    rows = [r for r in (nohrsc or {}).get("depth", []) if (r.get("elevation_ft") or 0) >= min_elev_ft
+            and r.get("distance_mi") is not None and r["distance_mi"] <= ON_MOUNTAIN_MI]
     return [{"name": r["name"], "id": r["id"], "elevation_ft": round(r["elevation_ft"]),
              "distance_mi": r["distance_mi"], "temp_f": None, "depth_in": round(r["value_in"]),
              "wind_mph": None, "time": r["time_utc"], "source": "NOHRSC"} for r in rows[:3]]
