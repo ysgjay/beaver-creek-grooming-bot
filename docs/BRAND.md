@@ -22,7 +22,7 @@ Chair 0 is the brand; Snow Desk is the product. The lift-terminal symbol has no 
 | Divider | `#C3D3E0` |
 | Control border | `#7A90A4` |
 
-Outfit is for headings and prominent measurements, IBM Plex Sans for interface text, and IBM Plex Mono for data. The licensed WOFF2 files are self-hosted in `public/brand/fonts/`; each family includes its OFL license. Cards use a white edge and a restrained shadow over a pale ice background. Fine frost grain and soft edge lighting finish the header, bottom navigation, and card rims. Texture stays the same size across screen widths and fades before the titles and charts.
+Outfit is for headings and prominent measurements, IBM Plex Sans for interface text, and IBM Plex Mono for data. The licensed WOFF2 files are self-hosted in `public/brand/fonts/`; each family includes its OFL license. Cards use a white edge and a restrained shadow over a pale ice background. Crystalline ice, small trapped bubbles, and milky frost finish the header, bottom navigation, and card rims. Crystal detail stays the same size across screen widths. Card centers retain a faint ice texture beneath a 94% opaque surface-color veil; the stronger frost stays around the perimeter.
 
 ## Logo files
 
@@ -95,7 +95,7 @@ Keep the visible labels, the link's `aria-current="page"`, and the existing gene
 
 The dark appearance is derived from the navy glass-and-ice logo artwork. Use `#071B2E` for the background, `#102A40` for report cards, `#18384F` for secondary surfaces, `#E7F2FC` for primary text, and `#A9BFD2` for secondary text. Actions and focus use ice blue `#B8DCF6`; selected tabs use `#24475E`. Snow strokes use `#8DC4EB`, expected fills `#376B92`, and uncertainty fills `#173B55`. Heat-strip and calendar fills stay dark enough for light labels. Burgundy `#8B2941` is reserved for primary actions and small brand accents, with white button text.
 
-Keep cards opaque, with a subdued ice highlight and fine frost grain only at their rims. Do not invert grooming maps or cameras. Native controls, sheets, tooltips, menus, model tables, and radar must all respect the resolved appearance. Primary and secondary text exceed 4.5:1 contrast on their corresponding surfaces. `appearance.js` runs before styles to avoid a light flash; it respects saved choices, live device changes, and blocked storage. Preferences use `chair0.appearance` and sync between open tabs. `dark.css` supplies the dark palette; `frost-surfaces.css` loads after it.
+Keep cards opaque, with a visible crystalline rim and faint ice texture across the surface. Strong frost stays within the existing content padding. Do not invert grooming maps or cameras. Native controls, sheets, tooltips, menus, model tables, and radar must all respect the resolved appearance. Primary and secondary text exceed 4.5:1 contrast on their corresponding surfaces. `appearance.js` runs before styles to avoid a light flash; it respects saved choices, live device changes, and blocked storage. Preferences use `chair0.appearance` and sync between open tabs. `dark.css` supplies the dark palette; `frost-surfaces.css` loads after it.
 
 Home-screen icon setup follows [Apple touch-icon guidance](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html) and the [maskable icon safe zone](https://web.dev/articles/maskable-icon). The launch artwork stays navy in either appearance. Existing installed shortcuts may retain cached artwork; removing and adding the shortcut again is the fallback.
 
@@ -105,11 +105,12 @@ Home-screen icon setup follows [Apple touch-icon guidance](https://developer.app
 
 ### Frosted surfaces · November 17, 2026
 
-- Use `public/brand/frost-grain-v2.svg` as a fine surface finish, at a fixed 180 px tile size. It must not scale with the container. The first implementation's repeated branch artwork (`frost-rim-v1.webp`) is retired from the interface: it enlarged on wide cards, competed with headings, and made the material look decorative.
-- Fade card grain to the solid surface within 20 px, header grain within 22 px, and navigation grain within 18 px. Add small, soft corner highlights; keep the favorites row, title area, card centers, and all charts clear.
-- Use a low-contrast single-pixel edge and one restrained inset highlight. Avoid stacking bright outlines and bevels. Dark mode uses a navy surface with a pale ice reflection; light mode uses a near-white frost surface.
-- Put the finish on the shared navigation bar, not individual buttons. Selected tabs stay flat with no underline, raised lip, or bottom shadow. Custom icons and touch targets are unchanged.
-- Use CSS background layers and a small deterministic SVG grain tile. No added JavaScript, animation, clipping, stacking contexts, or additional blur is needed. The texture is shared and cached for the installed app. Asset details: `docs/brand/frost-grain-v2.md`.
-- Remove the finish for reduced transparency, forced colors, and print. Preserve the ordinary surface colors, the patrol card's burgundy border, and keyboard focus treatment. Forced colors keeps a visible system-color border.
+- The current material is `public/brand/frost-crystals-v3.webp`: a detailed ice texture with small facets, trapped bubbles, and milky frost. Render it at a fixed 480 × 480 CSS px, using the 960 px export for sharpness. Never stretch the art to match a card's width. The earlier large branch artwork is retired; the fine grain alone was too subtle to communicate ice.
+- Card backgrounds use the ice tile beneath a 94% opaque surface-color veil. The container remains opaque; the texture stays behind all content. The original snow chart geometry, blue/ice colors, and interactions remain unchanged.
+- A decorative, pointer-transparent pseudo-element adds stronger frost around the card perimeter: 14 px top fade, 12 px bottom fade, and 8 px side fades. Header and bottom-nav frost fades within 16 px at the top and 8 px at the bottom, keeping the favorites row and controls clear. Rim opacity is 68% in light mode and 34% in dark mode.
+- Mask only the decorative layer, never the card or its contents. Do not add overflow clipping, isolation, or a new stacking order to the card. Popovers, focus rings, charts, and links must remain usable. Cards are positioned only to anchor their own decorative layer; the existing forecast popover was already anchored to its card.
+- Selected tabs stay flat with no underline, raised lip, or bottom shadow. Custom icons, touch targets, and the patrol card's burgundy border are unchanged. Preserve the softer structural rims from the prior refinement.
+- The existing grain texture still supports the header and nav. The new ice asset is shared and pre-cached with shell v19. No animation or additional blur is needed. Without CSS masks, the stronger rim is omitted and the background finish remains.
+- Reduced transparency, forced colors, and print remove both textures and decorative layers. Forced colors keeps a visible system-color border. Asset details and generation prompt: `docs/brand/frost-crystals-v3.md`.
 
 The backend, forecast calculations, delivery schedule, opt-in behavior, and resort data are unchanged by this styling update.

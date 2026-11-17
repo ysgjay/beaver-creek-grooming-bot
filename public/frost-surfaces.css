@@ -1,9 +1,11 @@
-/* Frost is a surface finish, kept at the rim so titles and data stay clear.
-   Fixed-size grain never stretches with the card. These background layers do not
-   add overlays, stacking contexts, clipping, animation, or interactive elements. */
+/* Fine grain supports a more visible crystalline ice rim. Both textures keep a
+   fixed scale. Only the decorative pseudo-element is masked: content and popovers
+   remain unclipped, and the decoration never intercepts input. */
 html[data-brand="frosted-snow"] {
   --frost-grain: url("brand/frost-grain-v2.svg");
-  --frost-card-clear: #f5f9fc33;
+  --frost-crystals: url("brand/frost-crystals-v3.webp");
+  --frost-crystal-opacity: .68;
+  --frost-body-veil: #f5f9fcf0;
   --frost-chrome-clear: #edf4fb66;
   --frost-chrome: #edf4fbfa;
   --frost-nav-clear: #f5f9fc4d;
@@ -16,7 +18,8 @@ html[data-brand="frosted-snow"] {
 }
 
 html[data-brand="frosted-snow"][data-appearance="dark"] {
-  --frost-card-clear: #102a4033;
+  --frost-crystal-opacity: .34;
+  --frost-body-veil: #102a40f0;
   --frost-chrome-clear: #0b21354d;
   --frost-chrome: #0b2135fa;
   --frost-nav-clear: #0b21354d;
@@ -56,15 +59,14 @@ html[data-brand="frosted-snow"] .tabbar {
 }
 
 html[data-brand="frosted-snow"] .card {
+  position: relative;
   background-color: var(--frost-paper);
   background-image:
-    linear-gradient(to bottom, var(--frost-card-clear), var(--frost-paper) 20px),
-    radial-gradient(ellipse at 0 0, var(--frost-bloom), transparent 70%),
-    radial-gradient(ellipse at 100% 0, var(--frost-bloom), transparent 70%),
-    var(--frost-grain);
-  background-size: 100% 100%, 220px 40px, 140px 30px, 180px 180px;
-  background-position: top left, top left, top right, top left;
-  background-repeat: no-repeat, no-repeat, no-repeat, repeat-x;
+    linear-gradient(var(--frost-body-veil), var(--frost-body-veil)),
+    var(--frost-crystals);
+  background-size: 100% 100%, 480px 480px;
+  background-position: top left;
+  background-repeat: no-repeat, repeat;
   background-clip: padding-box;
   box-shadow: inset 0 1px 0 var(--frost-rim), var(--frost-surface-shadow);
 }
@@ -72,11 +74,46 @@ html[data-brand="frosted-snow"] .card:where(:not(.patrol)) {
   border-color: var(--frost-edge);
 }
 
+/* Progressive enhancement: unsupported masks keep the quiet grain finish.
+   A 14 px top fade and 8 px sides fit inside the existing content padding.
+   The same small crystals continue around the bottom instead of forming a
+   large repeating illustration above every title. */
+@supports (mask-image: linear-gradient(#000, transparent)) or (-webkit-mask-image: linear-gradient(#000, transparent)) {
+  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: var(--frost-crystals) 0 0 / 480px 480px repeat;
+    opacity: var(--frost-crystal-opacity);
+    -webkit-mask-image:
+      linear-gradient(to bottom, #000, #0009 4px, transparent 14px),
+      linear-gradient(to top, #0009, transparent 12px),
+      linear-gradient(to right, #000a, transparent 8px),
+      linear-gradient(to left, #000a, transparent 8px);
+    mask-image:
+      linear-gradient(to bottom, #000, #0009 4px, transparent 14px),
+      linear-gradient(to top, #0009, transparent 12px),
+      linear-gradient(to right, #000a, transparent 8px),
+      linear-gradient(to left, #000a, transparent 8px);
+  }
+  html[data-brand="frosted-snow"] :is(.top, .tabbar)::before {
+    -webkit-mask-image:
+      linear-gradient(to bottom, #000, transparent 16px),
+      linear-gradient(to top, #0006, transparent 8px);
+    mask-image:
+      linear-gradient(to bottom, #000, transparent 16px),
+      linear-gradient(to top, #0006, transparent 8px);
+  }
+}
+
 @media (prefers-reduced-transparency: reduce) {
   html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) {
     background-image: none;
     background-color: var(--frost-paper);
   }
+  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card)::before { content: none; }
 }
 
 @media (forced-colors: active), print {
@@ -84,6 +121,7 @@ html[data-brand="frosted-snow"] .card:where(:not(.patrol)) {
     background-image: none;
     box-shadow: none;
   }
+  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card)::before { content: none; }
 }
 @media (forced-colors: active) {
   html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) {
