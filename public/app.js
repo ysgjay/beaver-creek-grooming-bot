@@ -8,6 +8,23 @@
   const MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const MONTH_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  // One compact line under Today's conditions: backcountry avalanche danger and the nearest
+  // on-mountain weather station. Either part is left out when its source had nothing.
+  const mountainLine = (m) => {
+    if (!m) return "";
+    const parts = [], a = m.avalanche, st = (m.stations || [])[0];
+    if (a) {
+      const who = a.center_id || a.center || "";
+      const rating = a.danger ? `<strong>${esc(a.danger)}</strong>` : "not rated yet";
+      parts.push(`<a href="${esc(a.link || "#")}" target="_blank" rel="noopener">Backcountry avalanche danger ${rating} · ${esc(who)}</a>`);
+    }
+    if (st) {
+      const bits = [st.temp_f != null ? `${st.temp_f}°` : "", st.depth_in != null ? `${st.depth_in}″ depth` : "",
+        st.wind_mph != null ? `wind ${st.wind_mph} mph` : ""].filter(Boolean).join(" · ");
+      parts.push(`<span>${esc(st.name || st.id)} (${Number(st.elevation_ft).toLocaleString()} ft): ${bits}</span>`);
+    }
+    return parts.length ? `<div class="mtn-line">${parts.join("")}</div>` : "";
+  };
   const pd = (s) => { const [y, m, d] = s.slice(0, 10).split("-").map(Number); return new Date(y, m - 1, d); };
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const addDays = (s, n) => { const d = pd(s); d.setDate(d.getDate() + n); return iso(d); };
@@ -408,6 +425,7 @@
         </div>
         <div class="source-grid"><span>${esc(snow.source)} · ${esc(snow.stamp)}</span><span>${validAt ? `${weather.status === "past" ? "Saved forecast" : "Forecast"} · ${esc(validAt)}` : "Weather forecast unavailable"}<br>${esc(elevation)}temperatures °F</span></div>
         ${weather.status === "past" ? '<p class="weather-note">Current hour unavailable; showing the last saved forecast hour.</p>' : ""}
+        ${mountainLine(L.mountain)}
         ${weather.later.length ? `<div class="hours" aria-label="Upcoming hourly temperature in Fahrenheit and wind in miles per hour">${weather.later.map((h) => `<div class="hour"><span class="t">${hourLabel(h.time)}</span><span class="temp">${UI.number(h.temp) ? h.temp + "°" : "–"}</span><span class="small">${esc(h.dir || "")} ${UI.number(h.wind) ? h.wind : "–"}</span>${h.snow ? `<span class="num small">${h.snow}"</span>` : ""}</div>`).join("")}</div>` : ""}
       </section>
       ${outlook.available ? `<a href="#forecast" class="snow-outlook" aria-label="Expected snow; open full forecast">
@@ -1051,7 +1069,8 @@
             <li>Public weather models (NOAA's GFS, HRRR and National Blend, ECMWF, ICON, GEM, UKMO) for a point on the upper mountain, not the town below, with temperature corrected to that elevation. The NWS forecasters' snowfall joins as one more voice.</li>
             <li>Liquid precipitation becomes snow with a temperature-based ratio tuned for dry Colorado snow, about 15 to 1 in the teens. Humidity decides rain or snow near freezing.</li>
             <li>Every model is scored daily against the ${esc(resortInfo().snotel || "nearest")} SNOTEL gauge, starting from how it did last winter. Models that run dry here are scaled up, and models that keep missing get less weight. The total is then checked against the resort's own snow report.</li>
-            <li>High-resolution models lead for 48 hours, global models after that. Ensemble runs give the range and the powder odds.</li>
+            <li>High-resolution models lead for 48 hours, global models after that. ${fc.ensemble_members ? `${fc.ensemble_members} ensemble runs` : "Ensemble runs"} from six forecast centers, including ECMWF's AI model, give the range and the powder odds. The top of the range is never below any model's own call.</li>
+            ${S.latest?.mountain?.discussion ? `<li>For the reasoning behind a storm, read the <a href="${esc(S.latest.mountain.discussion.url)}" target="_blank" rel="noopener">NWS ${esc(S.latest.mountain.discussion.office)} forecasters' discussion</a>.</li>` : ""}
           </ol>
         </details>
         <details><summary>Forecast vs. what fell</summary>
@@ -1311,7 +1330,7 @@ ${tell}
           <div><p class="brand-kicker">Chair 0 · Snow Desk</p><h2>About the numbers</h2></div>
         </div>
         <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own. Chair 0 is independent and not affiliated with Vail Resorts or any resort.</p>
-        <p class="small muted" style="margin:6px 0 0">Data: weather models by <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0), National Weather Service, NRCS SNOTEL, NOAA radar via Iowa State Mesonet. Maps © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.</p>
+        <p class="small muted" style="margin:6px 0 0">Data: weather models by <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0), National Weather Service, NRCS SNOTEL, NOAA radar via Iowa State Mesonet, avalanche danger via <a href="https://avalanche.org/">avalanche.org</a>, mountain stations via <a href="https://synopticdata.com/">Synoptic</a>. Maps © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.</p>
         <p class="small" style="margin:0"><a class="link" href="/audit/${esc(R.slug || "")}">Snow Audit</a>: how every forecast model has scored against what actually fell here.</p>
       </section>`;
     wireEmailForm(v);

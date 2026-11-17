@@ -100,10 +100,14 @@ def fetch_ensemble():
         "hourly": "precipitation,temperature_2m,relative_humidity_2m",
         "models": ",".join(config.ENSEMBLE_MODELS),
     }
-    r = get(ENSEMBLE_URL, params=params, timeout=60)
+    r = get(ENSEMBLE_URL, params=params, timeout=30, retries=0)
+    if not r.ok:  # one extra ensemble being down must not cost the core two
+        log.warning("Open-Meteo full ensemble failed (%s); retrying with the core models", r.status_code)
+        r = get(ENSEMBLE_URL, params=params | {"models": ",".join(config.ENSEMBLE_CORE)}, timeout=30)
     if not r.ok:  # humidity only sharpens the rain/snow line; the range works without it
         log.warning("Open-Meteo ensemble with humidity failed (%s); retrying without", r.status_code)
-        r = get(ENSEMBLE_URL, params=params | {"hourly": "precipitation,temperature_2m"}, timeout=60)
+        r = get(ENSEMBLE_URL, params=params | {"models": ",".join(config.ENSEMBLE_CORE),
+                                               "hourly": "precipitation,temperature_2m"}, timeout=30)
     r.raise_for_status()
     return split_ensemble(r.json())
 

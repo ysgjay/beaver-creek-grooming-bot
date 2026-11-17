@@ -40,9 +40,15 @@ MODELS = {
 NWS_MODEL = "nws"
 NWS_WEIGHT = (2.5, 2.0)
 
-ENSEMBLE_MODELS = ["ecmwf_ifs025", "gfs025"]
-# Which scored model's bias correction each ensemble's members inherit.
-ENSEMBLE_PARENT = {"ecmwf_ifs025": "ecmwf_ifs025", "gfs025": "gfs_global"}
+ENSEMBLE_MODELS = ["ecmwf_ifs025", "gfs025", "ecmwf_aifs025", "icon_seamless", "gem_global",
+                   "ukmo_global_ensemble_20km"]
+# If the full request fails, the range still comes from these.
+ENSEMBLE_CORE = ["ecmwf_ifs025", "gfs025"]
+# Which scored model's bias correction each ensemble's members inherit, matched by a piece of
+# the member's column name, first match wins (AIFS, ECMWF's AI model, has no scored twin).
+ENSEMBLE_PARENT = [("aifs", None), ("ecmwf_ifs025", "ecmwf_ifs025"), ("gfs025", "gfs_global"),
+                   ("gefs", "gfs_global"), ("icon", "icon_seamless"), ("gem", "gem_seamless"),
+                   ("ukmo", "ukmo_seamless")]
 
 FORECAST_DAYS = 10
 
