@@ -1,60 +1,75 @@
-/* Crystalline surfaces, shared by the website and installed app.
-   Load after dark.css. Decorative backgrounds cannot intercept input or cover text,
-   and the opaque gradient hides the texture below each rim. */
+/* Frost is a surface finish, kept at the rim so titles and data stay clear.
+   Fixed-size grain never stretches with the card. These background layers do not
+   add overlays, stacking contexts, clipping, animation, or interactive elements. */
 html[data-brand="frosted-snow"] {
-  --frost-rim-art: url("brand/frost-rim-v1.webp");
-  --frost-card-veil: #f5f9fc52;
-  --frost-chrome-veil: #edf4fb52;
-  --frost-chrome: #edf4fbf5;
-  --frost-nav-veil: #f5f9fc52;
-  --frost-nav: #f5f9fcf5;
-  --frost-rim-light: #ffffffd9;
-  --frost-rim-side: #ffffff66;
+  --frost-grain: url("brand/frost-grain-v2.svg");
+  --frost-card-clear: #f5f9fc33;
+  --frost-chrome-clear: #edf4fb66;
+  --frost-chrome: #edf4fbfa;
+  --frost-nav-clear: #f5f9fc4d;
+  --frost-nav: #f5f9fcfa;
+  --frost-bloom: #ffffffd9;
+  --frost-edge: #ffffffb3;
+  --frost-rim: #ffffffb3;
+  --frost-surface-shadow: 0 2px 4px #17365003, 0 12px 28px #1736500a;
+  --frost-chrome-line: #b8cedd66;
 }
 
 html[data-brand="frosted-snow"][data-appearance="dark"] {
-  --frost-card-veil: #102a4099;
-  --frost-chrome-veil: #0b2135a3;
-  --frost-chrome: #0b2135f5;
-  --frost-nav-veil: #0b2135a3;
-  --frost-nav: #0b2135f5;
-  --frost-rim-light: #c5e8ff7a;
-  --frost-rim-side: #c5e8ff1f;
+  --frost-card-clear: #102a4033;
+  --frost-chrome-clear: #0b21354d;
+  --frost-chrome: #0b2135fa;
+  --frost-nav-clear: #0b21354d;
+  --frost-nav: #0b2135fa;
+  --frost-bloom: #b8e3ff26;
+  --frost-edge: #8db7d326;
+  --frost-rim: #c5e8ff24;
+  --frost-surface-shadow: 0 2px 4px #020c1612, 0 12px 28px #020c1626;
+  --frost-chrome-line: #8db7d326;
 }
 
 html[data-brand="frosted-snow"] .top {
   background-color: var(--frost-chrome);
   background-image:
-    linear-gradient(to bottom, var(--frost-chrome-veil), var(--frost-chrome) 46px),
-    var(--frost-rim-art);
-  background-size: 100% 100%, 100% auto;
-  background-position: top center;
-  background-repeat: no-repeat;
-  box-shadow: inset 0 1px 0 var(--frost-rim-light);
+    linear-gradient(to bottom, var(--frost-chrome-clear), var(--frost-chrome) 22px),
+    radial-gradient(ellipse at 15% 0, var(--frost-bloom), transparent 70%),
+    var(--frost-grain);
+  background-size: 100% 100%, 100% 44px, 180px 180px;
+  background-position: top left;
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  border-bottom-color: var(--frost-chrome-line);
+  box-shadow: inset 0 1px 0 var(--frost-rim);
 }
 
 html[data-brand="frosted-snow"] .tabbar {
   background-color: var(--frost-nav);
   background-image:
-    linear-gradient(to bottom, var(--frost-nav-veil), var(--frost-nav) 40px),
-    var(--frost-rim-art);
-  background-size: 100% 100%, 100% auto;
-  background-position: top center;
-  background-repeat: no-repeat;
-  /* The material belongs to the shared bar; the selected tab stays flat. */
+    linear-gradient(to bottom, var(--frost-nav-clear), var(--frost-nav) 18px),
+    radial-gradient(ellipse at 50% 0, var(--frost-bloom), transparent 70%),
+    var(--frost-grain);
+  background-size: 100% 100%, 100% 40px, 180px 180px;
+  background-position: top left;
+  background-repeat: no-repeat, no-repeat, repeat-x;
+  border-top-color: var(--frost-chrome-line);
+  box-shadow: inset 0 1px 0 var(--frost-rim), 0 -6px 24px #071b2e0a;
+  /* Selected tabs retain their existing flat fill and touch targets. */
 }
 
 html[data-brand="frosted-snow"] .card {
   background-color: var(--frost-paper);
   background-image:
-    linear-gradient(to bottom, var(--frost-card-veil), var(--frost-paper) 48px),
-    var(--frost-rim-art);
-  background-size: 100% 100%, 100% auto;
-  background-position: top center;
-  background-repeat: no-repeat;
+    linear-gradient(to bottom, var(--frost-card-clear), var(--frost-paper) 20px),
+    radial-gradient(ellipse at 0 0, var(--frost-bloom), transparent 70%),
+    radial-gradient(ellipse at 100% 0, var(--frost-bloom), transparent 70%),
+    var(--frost-grain);
+  background-size: 100% 100%, 220px 40px, 140px 30px, 180px 180px;
+  background-position: top left, top left, top right, top left;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat-x;
   background-clip: padding-box;
-  box-shadow: inset 0 1px 0 var(--frost-rim-light),
-    inset 1px 0 0 var(--frost-rim-side), var(--frost-shadow);
+  box-shadow: inset 0 1px 0 var(--frost-rim), var(--frost-surface-shadow);
+}
+html[data-brand="frosted-snow"] .card:where(:not(.patrol)) {
+  border-color: var(--frost-edge);
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -68,5 +83,10 @@ html[data-brand="frosted-snow"] .card {
   html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) {
     background-image: none;
     box-shadow: none;
+  }
+}
+@media (forced-colors: active) {
+  html[data-brand="frosted-snow"] :is(.top, .tabbar, .card) {
+    border-color: CanvasText;
   }
 }
