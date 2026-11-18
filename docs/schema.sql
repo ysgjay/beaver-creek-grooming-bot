@@ -41,3 +41,15 @@ CREATE TABLE digest_sends (         -- once-a-day claim, per multi-resort subscr
   sent_at  timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (day, token)
 );
+CREATE TABLE page_views (           -- first-party visit counter (bcbot/stats.py, created on first use)
+  day        date    NOT NULL,      -- America/Denver
+  vid        text    NOT NULL,      -- random id per browser, no personal data
+  resort     text    NOT NULL DEFAULT '',
+  view       text    NOT NULL,
+  n          integer NOT NULL DEFAULT 1,
+  standalone boolean NOT NULL DEFAULT false,
+  mobile     boolean NOT NULL DEFAULT false,
+  first_at   timestamptz NOT NULL DEFAULT now(),
+  last_at    timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (day, vid, resort, view)
+);

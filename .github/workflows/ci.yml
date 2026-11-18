@@ -16,4 +16,4 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -q tests
       - run: node --test tests/*.test.cjs
-      - run: node --check public/appearance.js && node --check public/report-ui.js && node --check public/app.js && node --check public/audit.js && node --check public/sw.js && node --check cloudflare/worker.js
+      - run: node --check public/appearance.js && node --check public/report-ui.js && node --check public/app.js && node --check public/audit.js && node --check public/admin.js && node --check public/sw.js && node --check cloudflare/worker.js

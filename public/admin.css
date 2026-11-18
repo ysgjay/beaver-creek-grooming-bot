@@ -1,0 +1,44 @@
+/* Owner stats page (admin.html). Brand tokens only, so Frosted Snow and Midnight Ice both work. Charts stay blue/ice. */
+.admin .top .wrap { flex-wrap: nowrap; }
+.admin .brand { flex: 1; min-width: 0; }
+.ad-top-btn { min-height: 36px; padding: 4px 12px; font-size: 13px; }
+.ad-wrap { max-width: 1100px; padding-bottom: 32px; display: flex; flex-direction: column; gap: 10px; }
+.ad-login { max-width: 360px; margin: 24px auto; }
+.ad-login h2 { margin: 0; font-size: 18px; }
+.ad-login input { font: inherit; font-size: 16px; min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--frost-control); background: var(--frost-paper); color: var(--ink); }
+#ad-body { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.ad-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ad-kpi { padding: 10px 12px; gap: 2px; }
+.ad-kpi b { font: 600 26px/1.1 var(--font-display); letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ad-kpi span { font-size: 12px; color: var(--ink-2); }
+.ad-grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+.ad-grid .card { padding: 12px; gap: 6px; }
+.ad-grid h2 { font-size: 16px; margin: 0; }
+.ad-grid .sub { margin: 0; font-size: 12px; color: var(--ink-2); }
+.ad-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.ad-svg text { font-size: 10px; fill: var(--ink-2); font-family: var(--font-body); }
+.ad-svg .grid { stroke: var(--line); stroke-width: 1; }
+.ad-svg .b1 { fill: var(--snow); }
+.ad-svg .b2 { fill: var(--frost-metric-heat); }
+.ad-svg .hit { fill: transparent; cursor: default; }
+.ad-svg .hit:hover + .hl, .ad-svg .hl.on { fill: color-mix(in oklab, var(--ink) 8%, transparent); }
+.ad-legend { display: flex; gap: 12px; font-size: 12px; color: var(--ink-2); }
+.ad-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.ad-t { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.ad-t th, .ad-t td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+.ad-t th:first-child, .ad-t td:first-child { text-align: left; }
+.ad-t thead th { font-size: 11px; color: var(--ink-2); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.ad-t tr:last-child td { border-bottom: 0; }
+.ad-t .bar { display: inline-block; height: 6px; border-radius: 3px; background: var(--snow); vertical-align: middle; margin-left: 6px; }
+.ad-pill { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 6px; background: var(--frost-selected); color: var(--ink); }
+.ad-pill.pending { background: transparent; border: 1px dashed var(--line); color: var(--ink-2); }
+.ad-pill.unsubscribed { background: transparent; color: var(--ink-2); text-decoration: line-through; }
+.ad-foot { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; font-size: 12px; color: var(--ink-2); }
+.ad-foot label { display: inline-flex; gap: 6px; align-items: center; }
+.ad-foot input { width: 18px; height: 18px; accent-color: var(--frost-action); }
+@media (min-width: 700px) { .ad-kpis { grid-template-columns: repeat(6, 1fr); } }
+@media (min-width: 900px) { .ad-grid { grid-template-columns: 1fr 1fr; } .ad-grid .wide { grid-column: span 2; } }
+@media (max-width: 699px) { .admin .brand .sub { display: none; } }
+.ad-t th, .ad-t td { background: transparent; position: static; box-shadow: none; }
+.ad-svg text { font-size: 14px; }
+#ad-refresh { margin-left: auto; }

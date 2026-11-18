@@ -1367,6 +1367,24 @@ ${tell}
     const ts = $("#top-status"), sl = view.querySelector(":scope > .status-line");
     if (ts) ts.innerHTML = sl ? sl.innerHTML : "";
     if (S.goto) { const t = document.getElementById(S.goto); S.goto = null; if (t) t.closest(".card").scrollIntoView({ block: "start" }); }
+    countView(name);
+  }
+
+  // First-party visit counter for the owner's /admin page: a random id per browser, the tab
+  // and the resort. No cookies, IPs or third parties. The owner can turn it off per device
+  // (localStorage.noCount, set from /admin). One count per tab and resort per page load.
+  const counted = new Set();
+  function countView(view) {
+    const key = view + "|" + R.slug;
+    if (counted.has(key) || location.hostname !== "snow.0xm.studio") return;
+    counted.add(key);
+    try {
+      if (localStorage.getItem("noCount")) return;
+      let v = localStorage.getItem("vid");
+      if (!v) { v = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/[^A-Za-z0-9]/g, "").slice(0, 24); localStorage.setItem("vid", v); }
+      const body = JSON.stringify({ v, t: view, r: R.slug, s: matchMedia("(display-mode: standalone)").matches || navigator.standalone === true, m: matchMedia("(max-width: 899px)").matches });
+      if (!(navigator.sendBeacon && navigator.sendBeacon("/api/hit", new Blob([body], { type: "application/json" })))) fetch("/api/hit", { method: "POST", body, headers: { "Content-Type": "application/json" }, keepalive: true }).catch(() => {});
+    } catch (e) {}
   }
 
   async function loadResortData() {

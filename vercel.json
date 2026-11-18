@@ -24,6 +24,14 @@
   ],
   "rewrites": [
     {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/stats",
+      "destination": "/admin.html"
+    },
+    {
       "source": "/audit",
       "destination": "/audit.html"
     },
@@ -50,6 +58,19 @@
   ],
   "headers": [
     {
+      "source": "/(admin|stats|admin.html)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         {
@@ -59,7 +80,7 @@
       ]
     },
     {
-      "source": "/(app.js|appearance.js|report-ui.js|app.css|themes.css|frost.css|dark.css|frost-surfaces.css|manifest.webmanifest|config.json|resorts.json|audit.js|audit.css)",
+      "source": "/(app.js|appearance.js|report-ui.js|app.css|themes.css|frost.css|dark.css|frost-surfaces.css|manifest.webmanifest|config.json|resorts.json|audit.js|audit.css|admin.js|admin.css)",
       "headers": [
         {
           "key": "Cache-Control",
