@@ -54,20 +54,20 @@ html[data-appearance="dark"] :is(input,select,textarea){accent-color:var(--snow)
  .appearance-options input:checked+span{outline:2px solid Highlight;outline-offset:-3px}
 }
 
-/* Signup glow: a soft frost halo on the top-bar sign-up (desktop button, phone email icon) until this browser signs up. */
-#signup-btn.top-cta,#email-top-btn:not(.on){
+/* Signup glow: a soft frost halo on the top-bar sign-up (desktop button, phone email icon) until this browser taps it once or signs up. */
+#signup-btn.top-cta:not(.seen),#email-top-btn:not(.on,.seen){
  --glow-ring:#7b1e2e4d;--glow-halo:#4f93cf73;
  border-color:#7b1e2e8c;
  box-shadow:0 0 0 1px var(--glow-ring),0 0 14px 2px var(--glow-halo);
 }
-html[data-appearance="dark"] :is(#signup-btn.top-cta,#email-top-btn:not(.on)){
+html[data-appearance="dark"] :is(#signup-btn.top-cta:not(.seen),#email-top-btn:not(.on,.seen)){
  --glow-ring:#e08a9f45;--glow-halo:#8dc4eb59;
  border-color:#c8738a;
  box-shadow:0 0 0 1px var(--glow-ring),0 0 16px 3px var(--glow-halo);
 }
 @media (prefers-reduced-motion:no-preference){
- #signup-btn.top-cta,#email-top-btn:not(.on){animation:signup-glow 3.2s ease-in-out infinite}
- #signup-btn.top-cta:hover,#email-top-btn:not(.on):hover{animation-play-state:paused}
+ #signup-btn.top-cta:not(.seen),#email-top-btn:not(.on,.seen){animation:signup-glow 3.2s ease-in-out infinite}
+ #signup-btn.top-cta:not(.seen):hover,#email-top-btn:not(.on,.seen):hover{animation-play-state:paused}
 }
 @keyframes signup-glow{
  0%,100%{box-shadow:0 0 0 1px var(--glow-ring),0 0 10px 1px var(--glow-halo)}
