@@ -75,6 +75,13 @@ Naming (11/18/2026): the app is **0xSnow** everywhere (title, Home Screen label,
 
   Details are in `docs/SPEC.md`.
 
+## Public report pages and SEO (`/resorts`, `bcbot/pages.py`, `api/page.py`)
+
+- `/resorts` lists every resort; `/resorts/<slug>` is today's report and `/resorts/<slug>/<YYYY-MM-DD>` is an archive post. Each is plain HTML: a short summary from the day's numbers, then the single-resort Day Ticket email body (`mailer.daily_html`).
+- Pages read the stored day JSON in Blob. The archive index is `data/<slug>/posts.json`, appended on each daily send; if missing it is rebuilt from the Blob listing of `data/<slug>/days/`.
+- `/sitemap.xml` (dynamic) and `public/robots.txt`. Google Search Console and Bing Webmaster Tools are verified with a DNS TXT record on 0xm.studio.
+- The service worker skips `/resorts`, `/sitemap.xml` and `/robots.txt`.
+
 ## Snow Audit (forecast grading, `/audit/<resort>`)
 Spec: https://claude.ai/artifact/Sm6FFGCXht3qMBE7hbZbEg (Young's decisions, 11/16/2026). Linked only from Help → About the numbers, on purpose: it is historical data.
 - **Live calls:** every full run calls `audit.record` (`bcbot/audit.py`). The first full run of the resort's day (about 2 AM local) freezes each source's raw call (before corrections), the plain average and our blend with its range into Neon `fc_calls`, kind `live`. Later runs never overwrite it (a source missing at 2 AM may still join until 8 AM). It also upserts SNOTEL daily truth and the morning's fresh resort 24-hour report (stored on the day the snow fell, the day before the report) into `fc_truth`, and the blend's learned corrections into `fc_weights`. It never fails a run.

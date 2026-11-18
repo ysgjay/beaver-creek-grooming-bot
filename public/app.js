@@ -1324,6 +1324,7 @@ ${tell}
           <div><p class="brand-kicker">0xSnow</p><h2>About the numbers</h2></div>
         </div>
         <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own. 0xSnow is independent and not affiliated with Vail Resorts or any resort.</p>
+        <p class="small" style="margin:8px 0 0"><a class="link" href="/resorts">Daily reports for every resort</a></p>
         <p class="small muted" style="margin:6px 0 0">Data: weather models by <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0), National Weather Service, NRCS SNOTEL, NOAA radar via Iowa State Mesonet, avalanche danger via <a href="https://avalanche.org/">avalanche.org</a>, mountain snow depth via NOAA <a href="https://www.nohrsc.noaa.gov/">NOHRSC</a>. Maps © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.</p>
         <p class="small" style="margin:0"><a class="link" href="/audit/${esc(R.slug || "")}">Snow Audit</a>: how every forecast model has scored against what actually fell here.</p>
       </section>`;

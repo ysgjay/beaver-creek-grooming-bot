@@ -50,6 +50,12 @@ class LocalStore:
     def exists(self, path):
         return (self.root / path).exists()
 
+    def list(self, prefix, limit=2000):
+        base = self.root / prefix
+        if not base.is_dir():
+            return []
+        return sorted(f"{prefix}{p.name}" for p in base.iterdir() if p.is_file())[:limit]
+
     def get_bytes(self, path):
         try:
             return (self.root / path).read_bytes()
@@ -85,6 +91,21 @@ class BlobStore:
     def get_bytes(self, path):
         r = http().get(self._url(path), timeout=30)
         return r.content if r.ok else None
+
+    def list(self, prefix, limit=2000):
+        """Pathnames under a prefix (Blob list API, paged)."""
+        out, cursor = [], None
+        while len(out) < limit:
+            params = {"prefix": prefix, "limit": 1000, **({"cursor": cursor} if cursor else {})}
+            r = http().get(self.API, params=params, timeout=20,
+                           headers={"authorization": f"Bearer {self.token}", "x-api-version": self.API_VERSION})
+            r.raise_for_status()
+            body = r.json()
+            out += [b["pathname"] for b in body.get("blobs", [])]
+            cursor = body.get("cursor")
+            if not body.get("hasMore") or not cursor:
+                break
+        return out
 
     def put_json(self, path, obj):
         self.put_bytes(path, json.dumps(obj, separators=(",", ":")).encode(), "application/json", JSON_MAX_AGE)

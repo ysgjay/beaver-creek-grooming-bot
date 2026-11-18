@@ -210,7 +210,7 @@ def preheader(day):
     return " ".join(bits)
 
 
-def daily_html(day, map_url):
+def daily_html(day, map_url, hidden_preheader=True):
     """The morning report as an email: the Day Ticket layout (inline styles only; email clients strip CSS)."""
     from datetime import date as _date
     fc = day.get("forecast") or {}
@@ -225,7 +225,7 @@ def daily_html(day, map_url):
 
     # Hidden inbox preview text, padded so mail apps don't pull body text into it.
     pre = escape(preheader(day))
-    out = (f'<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:{ICE}">'
+    out = "" if not hidden_preheader else (f'<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:{ICE}">'
            f'{pre}{"&#847;&zwnj;&nbsp;" * 60}</div>')
 
     # 1. Day ticket: resort and report facts, with a dashed stub for the day and new snow.
