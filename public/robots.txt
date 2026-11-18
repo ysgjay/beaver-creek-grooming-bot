@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /stats
+Disallow: /api/
+
+Sitemap: https://snow.0xm.studio/sitemap.xml

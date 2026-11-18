@@ -24,6 +24,22 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/page?sitemap=1"
+    },
+    {
+      "source": "/resorts",
+      "destination": "/api/page"
+    },
+    {
+      "source": "/resorts/:slug",
+      "destination": "/api/page?resort=:slug"
+    },
+    {
+      "source": "/resorts/:slug/:date",
+      "destination": "/api/page?resort=:slug&date=:date"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
     },
