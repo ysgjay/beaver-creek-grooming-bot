@@ -476,6 +476,7 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
         links = [f'<a href="{report.app_url(d)}" style="{LINK}">Full report</a>']
         if g.get("image"):
             links.append(f'<a href="{_site(g["image"])}" style="{LINK}">Grooming map</a>')
+        tiles = _day_tiles(fc, 7)
         img = ""
         if maps and g.get("image"):
             img = (f'<a href="{_site(g["image"])}"><img src="{_site(g["image"])}" alt="Grooming map for {escape(_resort_name(s, d))}" width="608" '
@@ -484,7 +485,7 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
                      f'<td style="font:600 16px/1.3 {DISPLAY};color:{INK}">{escape(_resort_name(s, d))}</td>'
                      f'<td align="right" style="font-size:13px">{" · ".join(links)}</td></tr></table>'
                      + (f'<div style="margin-top:8px">{chips}</div>' if chips else "")
-                     + (f'<p style="{sub}">{" · ".join(facts)}</p>' if facts else "") + img, pad="12px 16px")
+                     + (f'<p style="{sub}">{" · ".join(facts)}</p>' if facts else "") + tiles + img, pad="12px 16px")
 
     if radar_url:
         out += _card(f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 8px"><tr>'
@@ -513,6 +514,22 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
         out += (f'<p style="margin:0 8px 6px;color:{INK2};font-size:13px">Want grooming maps in this email? '
                 f'<a href="{resorts_url(token)}" style="{LINK}">Turn them on</a></p>')
     return out
+
+
+def _day_tiles(fc, n):
+    """One small snow tile per forecast day: amount, then weekday over MM/DD."""
+    cells = ""
+    for f in (fc.get("days") or [])[:n]:
+        dd = _d.fromisoformat(f["date"])
+        sn = f.get("snow") or 0
+        val = "–" if sn < 0.1 else (round(sn) if sn >= 1 else round(sn, 1))
+        cells += (f'<td style="padding:1px;text-align:center"><div style="background:{_ramp(sn)};border:1px solid #dce8f2;border-radius:7px;'
+                  f'padding:6px 0;font:600 13px {MONO};color:{INK}">{val}</div>'
+                  f'<div style="font-size:10px;line-height:1.25;color:{INK2};margin-top:3px">{dd.strftime("%a")}<br>{dd.month}/{dd.day}</div></td>')
+    if not cells:
+        return ""
+    return (f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed;margin-top:8px">'
+            f'<tr>{cells}</tr></table>')
 
 
 def next_7(fc):

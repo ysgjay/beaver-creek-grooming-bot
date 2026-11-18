@@ -1326,3 +1326,12 @@ def test_emails_show_next_7_day_snow_total():
     assert mailer.next_7(alta["forecast"]) == 14
     assert "next 7 days" in mailer.digest_text([("vail", vail)], [])
     assert mailer.next_7({"days": days7[:3]}) is None
+
+
+def test_combined_email_has_7_daily_snow_tiles_per_resort():
+    from datetime import datetime
+    from bcbot import digest, mailer
+    vail = _digest_day("vail", "Vail", 2, [])
+    vail["forecast"] = {"next_1_5": 5, "days": [{"date": f"2026-11-{16 + i}", "snow": float(i)} for i in range(10)]}
+    html = mailer.digest_html([("vail", vail)], [], datetime(2026, 11, 16, 6, 30, tzinfo=digest.TZ))
+    assert "Sun<br>11/22" in html and "Mon<br>11/23" not in html     # 7 days: 11/16 to 11/22
