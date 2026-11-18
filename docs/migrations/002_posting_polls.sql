@@ -1,4 +1,4 @@
--- Snow Desk: one-week posting-time observer (bcbot/observer.py). Safe to re-run.
+-- 0xSnow: one-week posting-time observer (bcbot/observer.py). Safe to re-run.
 -- Drop when the study is done: DROP TABLE posting_polls;
 CREATE TABLE IF NOT EXISTS posting_polls (
   id        bigserial PRIMARY KEY,

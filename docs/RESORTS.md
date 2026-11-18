@@ -1,6 +1,6 @@
 # Resorts
 
-Snow Desk covers the Colorado and Utah resorts on the Epic and Ikon passes (22). Everything per resort lives in
+0xSnow covers the Colorado and Utah resorts on the Epic and Ikon passes (22). Everything per resort lives in
 `bcbot/resorts.py`; after editing it, run `python -m bcbot resorts-json` to refresh the
 app's list (`public/resorts.json`, checked by a test).
 

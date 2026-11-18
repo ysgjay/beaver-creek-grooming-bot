@@ -1,7 +1,7 @@
 # Posting-time study (11/16 to 11/23/2026)
 
 One week of watching when each resort posts the day's grooming report and official snow totals,
-to tune when Snow Desk sends.
+to tune when 0xSnow sends.
 
 - **Code:** `bcbot/observer.py`, called by `/api/observe` (Vercel cron, every 5 minutes, team 0xM Studio).
 - **Cadence:** every 5 minutes from 3 to 10 a.m. resort time, every 15 minutes the rest of the day

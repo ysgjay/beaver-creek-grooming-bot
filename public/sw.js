@@ -1,6 +1,6 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v20-etched-ice-glass";
+const SHELL = "shell-v21-0xsnow";
 const DATA = "data-v1";
 const SHELL_FILES = [
   "/", "/index.html", "/appearance.js", "/report-ui.js", "/app.js", "/app.css", "/themes.css", "/frost.css", "/dark.css", "/frost-surfaces.css",
@@ -50,8 +50,8 @@ function networkFirst(req, cacheName, fallback) {
 // App notifications: the morning report (at most one a day; powder alerts ride along).
 self.addEventListener("push", (e) => {
   let d = {};
-  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: "Snow Desk", body: e.data ? e.data.text() : "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "Snow Desk", {
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: "0xSnow", body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "0xSnow", {
     body: d.body || "", tag: d.tag || "chair-0", icon: "/icon-512.png", badge: "/icon-180.png",
     image: d.image, data: { url: d.url || "/" },
   }));

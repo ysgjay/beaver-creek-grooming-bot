@@ -1,4 +1,4 @@
--- Snow Desk private database (Neon project snow-desk, spring-heart-11973566, in 0xM's Vercel-managed Neon org), after migrations/001_resorts.sql.
+-- 0xSnow private database (Neon project snow-desk, spring-heart-11973566, in 0xM's Vercel-managed Neon org), after migrations/001_resorts.sql.
 CREATE TABLE subscribers (
   id              bigserial PRIMARY KEY,
   email           text NOT NULL,

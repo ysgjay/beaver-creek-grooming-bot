@@ -1,4 +1,4 @@
-# Beaver Creek Snow Desk: build spec
+# 0xSnow: build spec
 
 ## Goal
 Each morning, send one report with three things in it: the Beaver Creek grooming map, today's weather, and a snow forecast we build ourselves from public data. Send it through channels that don't depend on carrier SMS gateways or Instagram, and keep a public dashboard with the full history.

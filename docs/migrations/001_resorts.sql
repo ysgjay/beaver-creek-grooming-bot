@@ -1,4 +1,4 @@
--- Snow Desk: per-resort subscriptions and sends (resort switching).
+-- 0xSnow: per-resort subscriptions and sends (resort switching).
 -- Run once in Neon (snow-desk) BEFORE deploying the resort-switching code.
 -- Safe to re-run. Existing subscribers and app subscriptions keep Beaver Creek only.
 BEGIN;

@@ -97,7 +97,7 @@ def _footer(token):
     return (f'<p style="margin:4px 8px 0;color:{INK2};font-size:12px;line-height:1.5">You get this because you signed up at '
             f'<a href="{config.DASHBOARD_URL}" style="{a}">snow.0xm.studio</a>. '
             f'<a href="{resorts_url(token)}" style="{a}">Choose resorts</a> or '
-            f'<a href="{unsub}" style="{a}">unsubscribe</a> with one tap. Chair 0 is not affiliated with Vail Resorts or any resort. '
+            f'<a href="{unsub}" style="{a}">unsubscribe</a> with one tap. 0xSnow is not affiliated with Vail Resorts or any resort. '
             f'Forecast data by Open-Meteo.com (CC BY 4.0), NWS and NRCS SNOTEL.</p>')
 
 
@@ -147,8 +147,7 @@ def _card(inner, pad="16px", extra=""):
 def _brand_row():
     return (f'<table role="presentation" cellspacing="0" cellpadding="0"><tr>'
             f'<td style="vertical-align:middle"><img src="{_site("brand/frosted-logo-email.png")}" width="44" height="44" alt="" style="display:block;border:0"></td>'
-            f'<td style="vertical-align:middle;padding-left:8px;font:600 14px/1.2 {DISPLAY};color:{INK}">Chair 0<br>'
-            f'<span style="font:400 12px/1.3 {SANS};color:{INK2}">Snow Desk</span></td></tr></table>')
+            f'<td style="vertical-align:middle;padding-left:8px;font:600 14px/1.2 {DISPLAY};color:{INK}">0xSnow</td></tr></table>')
 
 
 def _inch(x):

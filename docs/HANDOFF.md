@@ -1,4 +1,4 @@
-# Chair 0: Snow Desk (Colorado Vail resorts): handoff
+# 0xSnow (Colorado and Utah resorts): handoff
 
 *Updated Nov 15, 2026. Deployment follows `main`; changes on a pull-request branch are previews until merged.*
 
@@ -6,7 +6,7 @@
 **Resorts:** 22 in Colorado and Utah on the Epic and Ikon passes (Beaver Creek, Vail, Breckenridge, Keystone, Crested Butte, Park City, Telluride, the four Aspen mountains, Steamboat, Winter Park, Copper, A-Basin, Eldora, Deer Valley, Solitude, Brighton, Alta, Snowbird, Snowbasin), picked from the title in the app and grouped by state. Sources, layouts and what differs per resort: `docs/RESORTS.md`. Database schema: `docs/schema.sql`.
 
 A morning report for Beaver Creek skiers: the grooming map with the named runs, conditions, a multi-model snow forecast, and the snow stake cam.
-- **Who gets it:** people who opt in. Delivery is by email and by notifications from the Snow Desk app itself.
+- **Who gets it:** people who opt in. Delivery is by email and by notifications from the 0xSnow app itself.
 - **The app:** a phone-first web app with Today, Calendar, Forecast and Help tabs, at **https://snow.0xm.studio**.
 - **History:** every day is archived, and the Calendar shows the season's history.
 
@@ -16,7 +16,7 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
   - **900 to 1199px:** two columns of cards.
   - **1200px and wider:** full-width, map-led. The grooming map takes the left 62% of Today, tabs move into the top bar, and Today, Calendar and Forecast fit 1440 x 900 without scrolling. The rules are the two `@media` blocks at the end of `public/app.css`; each page's sections carry region classes (`a-groom`, `a-cond`, ...) set in `public/app.js`.
 - **Day labels:** every day axis shows the weekday over the MM/DD date (`dayTick` and `dayLabels` in `public/app.js`), in the resort's time zone. At 1200px and wider the sign-up link at the bottom of Today is hidden, because the top bar carries the button.
-- **Top bar, left side:** the home button (`#home-btn`, the Chair 0 icon) goes to Today. The resort name (`#resort-btn`) opens a themed menu (`openResortMenu` in `public/app.js`) where a resort can be picked or starred. Starred resorts are kept on the device (`localStorage.favResorts`) and shown as tiles (`#favs`, `renderFavs`) with each one's new snow in the last 24 hours, read from that resort's `latest.json`. Favorites have their own slim row below the header, including at 1200px and wider.
+- **Top bar, left side:** the home button (`#home-btn`, the 0xSnow lift-terminal icon) goes to Today. The resort name (`#resort-btn`) opens a themed menu (`openResortMenu` in `public/app.js`) where a resort can be picked or starred. Starred resorts are kept on the device (`localStorage.favResorts`) and shown as tiles (`#favs`, `renderFavs`) with each one's new snow in the last 24 hours, read from that resort's `latest.json`. Favorites have their own slim row below the header, including at 1200px and wider.
 - **Sign-up button (top bar):** `#signup-btn` in `public/index.html` opens the email and notification sign-up in a pop-up (`openSignup` in `public/app.js`, sharing `signupBlocks()` with the Help page). It shows until this browser has submitted the email form (`localStorage.emailSignup`), arrived from a confirmation link, or has a push subscription; `setSignedUp` controls it.
 - **Forecast page order:** On desktop, upcoming hourly conditions run as a strip across the top (`.hs-wrap`: row labels beside the scrolling `.hstrip`, one column per hour with snow, peak/mid/base temperature and wind), then 10-day snowfall beside Radar, then a row of detail sections (model votes for all 10 days, every model day by day, how the forecast is built, forecast vs. what fell). At 900px and wider each opens as a pop-up so the page never grows; on phones they expand in place. Selecting a day on the 10-day chart shows each model's call for that day (`dayVotes` in `public/app.js`): a pop-up beside the bar at 900px and wider, a bottom sheet on phones. Expected snowfall and the likely range come first; model comparisons expand below. Native dialogs contain keyboard focus, close with Escape, and restore focus to the initiating control.
 - **Radar (Forecast tab):** past hour of NEXRAD and the next 12 hours of HRRR simulated radar, as image tiles from Iowa State's Mesonet (`mesonet.agron.iastate.edu/cache/tile.py`). The map is MapLibre GL (vendored in `public/vendor/`, loaded only when the Forecast tab opens) with OpenFreeMap's keyless Positron style, repainted in the theme's colours. Radar tiles are repainted on a canvas into a one-colour Light to Heavy ramp (`echoStrength`, `recolorRadar` in `public/app.js`). If the style can't load it uses OpenStreetMap image tiles in the same map; if the library or WebGL can't load it falls back to a fixed image-tile grid with the standard radar colours. No API keys. CARTO basemaps were tried and need a key, so don't switch to them.
@@ -35,7 +35,7 @@ A morning report for Beaver Creek skiers: the grooming map with the named runs, 
 - **Design process:** the 0xM "ideas scout" skill is run before mockups. For this app the owner chose the standard card layout over the scout's alternatives.
 
 ## Where everything runs (all free tiers)
-Naming (11/15/2026): Chair 0 is the brand (maroon lift-terminal logo); Snow Desk is the product, shown as "Chair 0: Snow Desk" in full and "Snow Desk" where space is short. The email sender stays "Snow Desk". the Vercel project, Blob store, Neon project and Cloudflare Worker all keep their `snow-desk` names, so nothing below moved. Brand sheet and style guide: see the project's Chair 0 brand artifact.
+Naming (11/18/2026): the app is **0xSnow** everywhere (title, Home Screen label, manifest, emails, push, alerts). It was "Chair 0: Snow Desk" from 11/15 to 11/18. The email FROM name (`EMAIL_FROM`, default in `bcbot/mailer.py`) still says "Snow Desk" until the owner says to change it. The saved appearance key stays `chair0.appearance` so people keep their light/dark choice. The Vercel project, Blob store, Neon project and Cloudflare Worker all keep their `snow-desk` names, so nothing below moved. Brand sheet and style guide: see the project's brand artifact (made under the old Chair 0 name).
 
 | Piece | Service / ID | Notes |
 |---|---|---|

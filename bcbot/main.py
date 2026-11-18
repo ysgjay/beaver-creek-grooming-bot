@@ -240,7 +240,7 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
             failed = {k: v for k, v in (delivered or {}).items() if str(v).startswith("FAILED")}
             if failed:
                 errors.append(f"delivery: {failed}")
-                alert.admin(f"Snow Desk {config.RESORT_NAME}: send failed",
+                alert.admin(f"0xSnow {config.RESORT_NAME}: send failed",
                             f"{day_str} {', '.join(f'{k} {v}' for k, v in failed.items())}")
             day["delivery"] = {"sent_at": now_local().isoformat(timespec="seconds"), "reason": decision,
                                "new_map": map_new, "snow_report_fresh": resort_fresh, "results": delivered}
@@ -262,7 +262,7 @@ def _watchdog(state, now, day_str, send, decision, errors):
     if (send and state.get("last_sent_date") != day_str and state.get("missed_alert") != day_str
             and now >= _at(now, config.SEND_LATEST) + timedelta(minutes=30)):
         state["missed_alert"] = day_str
-        alert.admin(f"Snow Desk {config.RESORT_NAME}: no report yet",
+        alert.admin(f"0xSnow {config.RESORT_NAME}: no report yet",
                     f"{day_str}: nothing sent by {now.strftime('%H:%M')} (decision {decision!r}, errors {errors})")
         return True
     return False

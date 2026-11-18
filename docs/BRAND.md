@@ -1,6 +1,6 @@
-# Chair 0 · Frosted Snow
+# 0xSnow · Frosted Snow
 
-Chair 0 is the brand; Snow Desk is the product. The lift-terminal symbol has no wordmark attached. Use the resort name in navigation and keep the report, forecast, and cameras as the focus of the product.
+0xSnow is the brand and the product name (renamed from "Chair 0: Snow Desk" on 11/18/2026; the "0x" is a nod to 0xM Studio). The lift-terminal symbol has no wordmark attached. Use the resort name in navigation and keep the report, forecast, and cameras as the focus of the product.
 
 ## Visual system
 
@@ -37,7 +37,7 @@ Outfit is for headings and prominent measurements, IBM Plex Sans for interface t
 The mark is a lift terminal seen head-on, with no wordmark and no resort marks.
 
 - **Hood:** a wide trapezoid with rounded corners and a band of three windows (rounded outer corners on the end windows).
-- **Bullwheel ring:** the flat ellipse under the hood. It is the "0" in Chair 0, so never fill it or drop it.
+- **Bullwheel ring:** the flat ellipse under the hood. It is the "0" in 0xSnow, so never fill it or drop it.
 - **Column:** one vertical post from the ring's center.
 - **Chairs:** two chairs hang from short posts at the hood's outer edges, each with a rounded hanger and a flat seat.
 - **Utility geometry:** 320 × 248 viewBox, solid hood with knocked-out windows, 14 px round-capped strokes for ring, posts, and chairs. The app icon scales it 2.5× inside a 1024 square on ice `#DCEBFA`, centered in the maskable safe area.
@@ -72,7 +72,7 @@ For a new page, email header, or sibling product, start from these defaults:
 5. **Data:** every snow and weather graphic uses the blue/ice ramp (`#376F9B`, `#C5DFF2`, `#E5F1FA`, `#88B2D5`), never burgundy.
 6. **Burgundy `#7B1E2E`:** the logo plus the accent for primary actions, focus, pills, and links (see below). Never in data graphics.
 7. **Two appearances.** Frosted Snow is light; Midnight Ice is dark. Follow the device by default, with System, Light, and Dark choices under Help → Appearance. Keep the same layout and blue/ice data language in both.
-8. Write the brand as "Chair 0" with the numeral, and keep "Not affiliated with Vail Resorts" wherever the brand appears with resort content.
+8. Write the brand as "0xSnow": numeral zero, lowercase x, capital S, one word, and keep "Not affiliated with Vail Resorts" wherever the brand appears with resort content.
 
 ## Burgundy in the interface
 
