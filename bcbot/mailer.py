@@ -335,6 +335,7 @@ def daily_html(day, map_url):
         lo, hi = (fc.get("next_1_5_range") or [None, None])[:2]
         head = (f'Next 5 days <b>{_inch(lo).rstrip(chr(34))} to {_inch(hi)}</b>, most likely {_inch(fc.get("next_1_5"))}'
                 if lo is not None and hi is not None and hi > lo else f'Next 5 days <b>{_inch(fc.get("next_1_5"))}</b>')
+        head += f' · next 7 days <b>{_inch(next_7(fc))}</b>' if next_7(fc) is not None else ""
         head += f' · days 6–10 {_inch(fc.get("next_6_10"))}' if fc.get("next_6_10") is not None else ""
         out += _card(f'<p style="{KICKER}">Snow forecast · likely range under each day</p>'
                      f'<p style="margin:0 0 8px;font-size:14px">{head}</p>'
@@ -403,7 +404,8 @@ def digest_text(picked, pending):
         runs = (d.get("grooming") or {}).get("runs") or {}
         fc = d.get("forecast") or {}
         lines.append(f"{_resort_name(s, d)}: new {_inch(new_snow(d))}, base {_inch(rs.get('base_in'))}, "
-                     f"{len(groomed_runs(runs))} groomed, next 5 days {_inch(fc.get('next_1_5'))}")
+                     f"{len(groomed_runs(runs))} groomed, next 5 days {_inch(fc.get('next_1_5'))}, "
+                     f"next 7 days {_inch(next_7(fc))}")
         if runs.get("groomers_of_the_day"):
             lines.append("  Groomers of the day: " + ", ".join(runs["groomers_of_the_day"]))
         lines.append("  Full report: " + report.app_url(d))
@@ -469,6 +471,8 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
             facts.append("no new grooming map yet")
         if fc.get("next_1_5") is not None:
             facts.append(f'next 5 days {_inch(fc["next_1_5"])}')
+        if next_7(fc) is not None:
+            facts.append(f'next 7 days {_inch(next_7(fc))}')
         links = [f'<a href="{report.app_url(d)}" style="{LINK}">Full report</a>']
         if g.get("image"):
             links.append(f'<a href="{_site(g["image"])}" style="{LINK}">Grooming map</a>')
@@ -492,20 +496,33 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
                      pad="10px")
 
     bars = ""
-    vals = [(s, d, (d.get("forecast") or {}).get("next_1_5")) for s, d in picked]
-    top = max([v or 0 for _, _, v in vals] + [1])
-    for s, d, v in vals:
-        w = 4 if not v else max(4, round(100 * v / top))
-        bars += (f'<tr><td style="padding:3px 8px 3px 0;width:40%;font-size:13px">{escape(_resort_name(s, d))}</td>'
+    vals = [(s, d, (d.get("forecast") or {}).get("next_1_5"), next_7(d.get("forecast") or {})) for s, d in picked]
+    top = max([max(v5 or 0, v7 or 0) for _, _, v5, v7 in vals] + [1])
+    for s, d, v5, v7 in vals:
+        w = 4 if not v7 else max(4, round(100 * v7 / top))
+        bars += (f'<tr><td style="padding:3px 8px 3px 0;width:36%;font-size:13px">{escape(_resort_name(s, d))}</td>'
                  f'<td style="padding:3px 0"><div style="height:14px;width:{w}%;background:{SNOW_HEAT};border-radius:4px"></div></td>'
-                 f'<td style="padding:3px 0 3px 8px;width:44px;text-align:right;font:400 13px {MONO}">{_inch(v)}</td></tr>')
-    out += _card(f'<p style="{KICKER}">Snow forecast · next 5 days</p>'
-                 f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0">{bars}</table>'
+                 f'<td style="padding:3px 0 3px 8px;width:44px;text-align:right;font:400 13px {MONO}">{_inch(v5)}</td>'
+                 f'<td style="padding:3px 0 3px 8px;width:44px;text-align:right;font:600 13px {MONO}">{_inch(v7)}</td></tr>')
+    th = f'padding:0 0 4px 8px;text-align:right;font:600 11px {MONO};color:{INK2};letter-spacing:.06em'
+    out += _card(f'<p style="{KICKER}">Snow forecast · next 5 and 7 days</p>'
+                 f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
+                 f'<tr><td></td><td></td><td style="{th}">5 DAY</td><td style="{th}">7 DAY</td></tr>{bars}</table>'
                  f'<p style="margin:14px 0 0"><a href="{_site("#forecast")}" style="{BUTTON}">See every forecast</a></p>')
     if token and not maps and any((d.get("grooming") or {}).get("image") for _, d in picked):
         out += (f'<p style="margin:0 8px 6px;color:{INK2};font-size:13px">Want grooming maps in this email? '
                 f'<a href="{resorts_url(token)}" style="{LINK}">Turn them on</a></p>')
     return out
+
+
+def next_7(fc):
+    """Forecast snow over the next 7 days. Older saved forecasts lack next_1_7, so sum the days."""
+    if fc.get("next_1_7") is not None:
+        return fc["next_1_7"]
+    days = fc.get("days") or []
+    if len(days) < 7:
+        return None
+    return round(sum(x.get("snow") or 0 for x in days[:7]), 1)
 
 
 def _clock_now(now):

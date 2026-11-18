@@ -1311,3 +1311,18 @@ def test_nohrsc_nearest_observations_give_on_mountain_depth():
     far = {"depth": [{"id": "CAVMM_MADIS", "name": "Vail Ski Area Mid-Mtn", "elevation_ft": 10328.0,
                       "value_in": 4.0, "time_utc": "x", "distance_mi": 7.7}]}
     assert mountain.mountain_depth(far, 7800) == []
+
+
+def test_emails_show_next_7_day_snow_total():
+    from datetime import datetime
+    from bcbot import digest, mailer
+    days7 = [{"date": f"2026-11-{16 + i}", "snow": 2.0} for i in range(10)]
+    vail = _digest_day("vail", "Vail", 2, ["Born Free"])
+    vail["forecast"] = {"next_1_5": 10, "next_1_7": 14, "days": days7}
+    alta = _digest_day("alta", "Alta", 15, [])
+    alta["forecast"] = {"next_1_5": 10, "days": days7}           # older forecast without next_1_7: summed from days
+    html = mailer.digest_html([("vail", vail), ("alta", alta)], [], datetime(2026, 11, 16, 6, 30, tzinfo=digest.TZ))
+    assert 'next 7 days 14"' in html and "7 DAY" in html
+    assert mailer.next_7(alta["forecast"]) == 14
+    assert "next 7 days" in mailer.digest_text([("vail", vail)], [])
+    assert mailer.next_7({"days": days7[:3]}) is None
