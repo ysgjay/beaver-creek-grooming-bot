@@ -1336,6 +1336,10 @@ ${tell}
     return v;
   }
 
+  /* One tap on either sign-up button counts as signed up, so the glow stays off from then on. */
+  const glowOff = () => { ["#signup-btn", "#email-top-btn"].forEach((id) => { const b = $(id); if (b) b.classList.add("seen"); }); };
+  try { if (localStorage.getItem("signupClicked") === "1") glowOff(); } catch (e) {}
+  ["#signup-btn", "#email-top-btn"].forEach((id) => $(id).addEventListener("click", () => { glowOff(); try { localStorage.setItem("signupClicked", "1"); } catch (e) {} }));
   $("#signup-btn").addEventListener("click", openSignup);
   $("#email-top-btn").addEventListener("click", () => openSheet("Email report", `<p class="small muted" style="margin:0">Grooming, new snow and the forecast for your resort, every morning.</p>${signupBlocks("email")}`, (ov) => wireEmailForm(ov)));
   $("#push-top-btn").addEventListener("click", () => openSheet("Notifications", `<p class="small muted" style="margin:0">The morning report on this device, with any powder alert in it.</p>${signupBlocks("push")}`, (ov) => wirePush(ov)));
