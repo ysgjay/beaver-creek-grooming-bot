@@ -55,6 +55,7 @@ Naming (11/15/2026): Chair 0 is the brand (maroon lift-terminal logo); Snow Desk
 - **Sending:** `SEND_ENABLED=1`
 - **App notifications:** `VAPID_PRIVATE_KEY` (sensitive; the Web Push signing key, kept only in Vercel). Generate one with `npx web-push generate-vapid-keys` and paste only the private key. The public key is derived from it and served by `GET /api/push`, so the two can't drift. If you rotate it, the app moves existing subscribers to the new key the next time they open it.
 - **Owner alerts:** `ADMIN_NTFY_TOPIC` (optional). When set, `bcbot/alert.py` sends a phone notification through ntfy if a channel fails during the daily send, or if a resort still has no report 30 minutes after `SEND_LATEST`. Without it, the same alerts are logged at error level and appear in Vercel's runtime errors. Set the same topic on the Cloudflare Worker to also hear about failed triggers.
+- **Owner stats:** `ADMIN_KEY` (sensitive), the password for the private `/admin` page. Unset or under 12 characters keeps the page locked.
 - **Optional, with defaults:** `RESORTS` (which resorts run; default all five), `OPENING_DAY` (Beaver Creek, 2026-11-25) and `OPENING_DAY_<SLUG>` for the others, `SEND_TIME` (07:00), `SEND_EARLIEST` (05:00), `SEND_LATEST` (09:00), `REFRESH_HOURS`, `NTFY_TOPIC`, `VAPID_SUBJECT`, `CAM_IDS`, `STAKE_SNAPSHOT_URL`
 
 ## Data sources
@@ -82,6 +83,11 @@ Spec: https://claude.ai/artifact/Sm6FFGCXht3qMBE7hbZbEg (Young's decisions, 11/1
 - **Public reads:** `/api/audit?resort=<slug>&log=1` (the Log drawer) and `&format=csv` (filters: `kind`, `source`, `lead`, `from`, `to`).
 - **Tables:** `docs/migrations/004_audit.sql`, created automatically on first use. A local Postgres test runs when `AUDIT_TEST_DB` is set.
 
+## Owner stats (`/admin`, also `/stats`)
+Private page for the owner: email and app sign-ups by day, per-resort subscribers, visitors per day, tabs used, phone and Home Screen share, latest sign-ups (addresses shortened). It asks for `ADMIN_KEY` once and keeps it on that device; Lock forgets it. Not linked anywhere, `noindex`.
+- **Visits:** Vercel Web Analytics is off (it can bill on the Pro team), so the app counts its own views: `countView` in `public/app.js` posts `{random browser id, tab, resort}` to `/api/hit` once per tab and resort per page load, only on snow.0xm.studio. No cookies, IPs or user agents are stored. Table `page_views` in Neon (created on first use, `bcbot/stats.py`), one row per Mountain Time day, visitor, resort and tab. Opening `/admin` turns counting off on that device ("Don't count my visits").
+- **API:** `GET /api/stats` with `Authorization: Bearer <ADMIN_KEY>`.
+
 ## When the report goes out (`bcbot/main.py`, `send_decision`)
 - **Each resort runs on its own** (own state, opening day and once-a-day send), in the resort's time zone. Resorts with no grooming map send as soon as today's snow report is posted (see `docs/RESORTS.md`).
 - **Before the resort's opening day:** daily at 7:00 MT, map or not. The subject reads "Opens 11/25".
@@ -105,6 +111,7 @@ Spec: https://claude.ai/artifact/Sm6FFGCXht3qMBE7hbZbEg (Young's decisions, 11/1
 - `api/run.py`: cron entry, plus `?force=1` and `?test=1`
 - `api/subscribe.py`, `api/confirm.py`, `api/unsubscribe.py`: email sign-up, with a confirmation page and RFC 8058 one-click unsubscribe
 - `api/push.py`: app notification sign-up; GET returns the public key
+- `api/hit.py`, `api/stats.py`, `bcbot/stats.py`, `public/admin.*`: visit counter and the owner stats page
 - `public/`: `index.html`, `app.js` (views and charts), `app.css`, `themes.css`, `frost.css` (brand layer), `dark.css` (Midnight Ice palette), `frost-surfaces.css` (shared ice-glass material for header, bottom nav, and cards; loads last on the app and Snow Audit), `brand/` (logos, cached frost texture, and licensed local fonts), `sw.js` (loads fresh when online, cached copy offline; handles push), `config.json` (cams)
 - `cloudflare/worker.js`: scheduler
 - `tests/test_bcbot.py`: run with `pip install -r requirements-dev.txt && python -m pytest tests`

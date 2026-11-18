@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-brand="frosted-snow">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Stats · Chair 0: Snow Desk</title>
+<meta name="theme-color" content="#dcebfa">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<meta name="color-scheme" content="light dark">
+<script src="/appearance.js"></script>
+<link rel="preload" href="/brand/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/brand/fonts/plex-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/themes.css">
+<link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/frost.css">
+<link rel="stylesheet" href="/dark.css">
+<link rel="stylesheet" href="/admin.css">
+<link rel="stylesheet" href="/frost-surfaces.css">
+</head>
+<body class="admin">
+<header class="top">
+  <div class="wrap">
+    <a class="home-btn" href="/" aria-label="Snow Desk home">
+      <img src="/brand/frosted-logo.webp" alt="" width="48" height="48">
+    </a>
+    <div class="brand">
+      <h1>Stats</h1>
+      <span class="sub" id="ad-sub">Private · Mountain Time</span>
+    </div>
+    <button class="btn secondary ad-top-btn" type="button" id="ad-refresh" hidden>Refresh</button>
+    <button class="btn secondary ad-top-btn" type="button" id="ad-lock" hidden>Lock</button>
+  </div>
+</header>
+<main class="wrap ad-wrap" id="main" tabindex="-1">
+  <form class="card ad-login" id="ad-login" hidden>
+    <h2>Owner sign-in</h2>
+    <label class="small" for="ad-key">Admin password</label>
+    <input id="ad-key" type="password" autocomplete="current-password" required>
+    <button class="btn" type="submit">Open stats</button>
+    <p class="small muted" id="ad-msg" aria-live="polite"></p>
+  </form>
+  <div id="ad-body"></div>
+</main>
+<div id="tip" class="tip" hidden></div>
+<script src="/admin.js" defer></script>
+</body>
+</html>
