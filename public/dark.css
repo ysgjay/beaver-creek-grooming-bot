@@ -53,3 +53,23 @@ html[data-appearance="dark"] :is(input,select,textarea){accent-color:var(--snow)
  html[data-appearance="dark"] :is(.card,.btn,.tabbar a[aria-current="page"]){border-color:CanvasText;box-shadow:none}
  .appearance-options input:checked+span{outline:2px solid Highlight;outline-offset:-3px}
 }
+
+/* Signup glow: a soft frost halo on the top-bar sign-up (desktop button, phone email icon) until this browser signs up. */
+#signup-btn.top-cta,#email-top-btn:not(.on){
+ --glow-ring:#7b1e2e4d;--glow-halo:#4f93cf73;
+ border-color:#7b1e2e8c;
+ box-shadow:0 0 0 1px var(--glow-ring),0 0 14px 2px var(--glow-halo);
+}
+html[data-appearance="dark"] :is(#signup-btn.top-cta,#email-top-btn:not(.on)){
+ --glow-ring:#e08a9f45;--glow-halo:#8dc4eb59;
+ border-color:#c8738a;
+ box-shadow:0 0 0 1px var(--glow-ring),0 0 16px 3px var(--glow-halo);
+}
+@media (prefers-reduced-motion:no-preference){
+ #signup-btn.top-cta,#email-top-btn:not(.on){animation:signup-glow 3.2s ease-in-out infinite}
+ #signup-btn.top-cta:hover,#email-top-btn:not(.on):hover{animation-play-state:paused}
+}
+@keyframes signup-glow{
+ 0%,100%{box-shadow:0 0 0 1px var(--glow-ring),0 0 10px 1px var(--glow-halo)}
+ 50%{box-shadow:0 0 0 2px var(--glow-ring),0 0 20px 5px var(--glow-halo)}
+}
