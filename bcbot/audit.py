@@ -107,7 +107,7 @@ RETRY_HOURS = 2
 
 def label(source):
     if source == BLEND:
-        return "Snow Desk blend"
+        return "0xSnow blend"
     if source == MEAN:
         return "Plain average"
     if source == config.NWS_MODEL:

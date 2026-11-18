@@ -593,7 +593,7 @@ def test_failed_send_and_missed_report_alert_the_owner(sandbox, monkeypatch):
     monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None: {"email": "FAILED: Resend 429", "push": "1 delivered"})
     main.run(store=store, send=True, now=at(5, 45))
     r = main.run(store=store, send=True, now=at(7, 0))
-    assert alerts == ["Snow Desk Beaver Creek: send failed"] and any("delivery" in e for e in r["errors"])
+    assert alerts == ["0xSnow Beaver Creek: send failed"] and any("delivery" in e for e in r["errors"])
     for t in [at(9, 30), at(10, 0)]:      # it did go out (push), so no "missed" alert
         main.run(store=store, send=True, now=t)
     assert len(alerts) == 1
@@ -611,7 +611,7 @@ def test_missed_report_alerts_once(sandbox, monkeypatch):
     assert alerts == []
     for t in [at(9, 30), at(9, 45), at(10, 30)]:
         main.run(store=store, send=True, now=t)
-    assert alerts == ["Snow Desk Beaver Creek: no report yet"]
+    assert alerts == ["0xSnow Beaver Creek: no report yet"]
 
 
 def test_sending_disabled_never_sends(sandbox):
@@ -740,7 +740,7 @@ def test_daily_email_is_personal_with_one_click_unsubscribe(monkeypatch):
            "forecast": {"days": [{"date": "2026-11-15", "snow": 3.0, "low": 1, "high": 6}], "next_1_5": 3, "next_6_10": 1}}
     html = mailer.daily_html(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
     assert "1 groomed" in html and "maps/2026-11-15.jpg" in html and "Beaver Creek</h1>" in html and "11/15" in html
-    assert "Open Snow Desk" not in html and "See the full report" in html and "frosted-logo-email.png" in html
+    assert "Open Snow Desk" not in html and "Open 0xSnow" not in html and "See the full report" in html and "frosted-logo-email.png" in html
     assert mailer.send_daily(recipients, "Subject", html, "text") == 150
     assert [len(b) for _, b in calls] == [100, 50] and all(u.endswith("/emails/batch") for u, _ in calls)
     first = calls[0][1][0]

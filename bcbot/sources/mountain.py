@@ -19,7 +19,7 @@ from ..util import get
 log = logging.getLogger(__name__)
 
 AVALANCHE_URL = "https://api.avalanche.org/v2/public/products/map-layer"
-NWS_HEADERS = {"Accept": "application/geo+json", "User-Agent": "Chair 0 Snow Desk (snow.0xm.studio)"}
+NWS_HEADERS = {"Accept": "application/geo+json", "User-Agent": "0xSnow (snow.0xm.studio)"}
 SYNOPTIC_URL = "https://api.synopticdata.com/v2/stations/latest"
 NOHRSC_URL = "https://www.nohrsc.noaa.gov/nearest/index.html"
 # A depth station counts as "on this mountain" only this close to the resort's point. Farther

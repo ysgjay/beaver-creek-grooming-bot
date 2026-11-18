@@ -1,4 +1,4 @@
-/* Chair 0 · Frosted Snow v1.0
+/* 0xSnow · Frosted Snow v1.0
    Load AFTER themes.css and app.css. Enable with data-brand="frosted-snow"
    on <html>. Snow-stake geometry, chart behavior, and the compact layout live in app.css/app.js. */
 @font-face{font-family:Outfit;src:url('brand/fonts/outfit.woff2') format('woff2');font-weight:100 900;font-display:swap}

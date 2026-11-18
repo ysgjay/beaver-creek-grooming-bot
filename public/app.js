@@ -46,7 +46,7 @@
   function pickResort(slug, remember = true) {
     R.slug = R.list.some((r) => r.slug === slug) ? slug : DEFAULT_RESORT;
     if (remember) { try { localStorage.setItem("resort", R.slug); } catch (e) {} }
-    document.title = `Snow Desk · ${resortInfo().name}`;
+    document.title = `0xSnow · ${resortInfo().name}`;
     const nm = $("#resort-name");
     if (nm) nm.textContent = resortInfo().name;
     renderFavs();
@@ -380,7 +380,7 @@
     }
     v.innerHTML = navigator.onLine === false
       ? `<p class="offline">You're offline and there's no saved report for ${esc(r.name || "this resort")}. Try again once you're connected.</p>`
-      : `<section class="card empty-note"><h2>${esc(r.name || "This resort")} is new on Snow Desk</h2>
+      : `<section class="card empty-note"><h2>${esc(r.name || "This resort")} is new on 0xSnow</h2>
           <p>Its first morning report is on the way. Snow totals, the forecast and the nearby snow station show here after the next update.</p>
           <p class="muted small">Until then, the radar below is live, and the latest conditions are on ${site}.</p></section>
          <section class="card a-radar" id="radar-card"></section>`;
@@ -457,7 +457,7 @@
     if (L?.cam) items.splice(1, 0, { label: `Stake at ${(L.generated || "").slice(11, 16) || "report"}`, src: "/" + L.cam, live: null });
     if (!items.length) {
       const r = resortInfo();
-      el.innerHTML = `<p class="muted" style="margin:0">Snow Desk doesn't show ${esc(r.name)}'s cams yet. ${r.site ? `<a class="link" href="${esc(r.site)}" target="_blank" rel="noopener">See them on the resort's site</a>.` : ""}</p>`;
+      el.innerHTML = `<p class="muted" style="margin:0">0xSnow doesn't show ${esc(r.name)}'s cams yet. ${r.site ? `<a class="link" href="${esc(r.site)}" target="_blank" rel="noopener">See them on the resort's site</a>.` : ""}</p>`;
       return;
     }
     let sel = 0;
@@ -1127,8 +1127,8 @@
     const state = $("#push-state", v), btn = $("#push-btn", v), hint = $("#push-hint", v);
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      state.textContent = ios && !standalone ? "Add Snow Desk to your Home Screen to get notifications." : "This browser can't show notifications.";
-      if (ios && !standalone) hint.textContent = "In Safari, tap Share, then Add to Home Screen, then open Snow Desk from your Home Screen and come back here.";
+      state.textContent = ios && !standalone ? "Add 0xSnow to your Home Screen to get notifications." : "This browser can't show notifications.";
+      if (ios && !standalone) hint.textContent = "In Safari, tap Share, then Add to Home Screen, then open 0xSnow from your Home Screen and come back here.";
       return;
     }
     const reg = await navigator.serviceWorker.register("/sw.js").catch(() => null);
@@ -1213,7 +1213,7 @@
         <p style="margin:0">For a life-threatening emergency, call 911. Tell any lift operator or employee, and they will radio patrol.</p>
         <div class="call-grid"><a class="btn block" href="tel:911">Call 911</a>
           <a class="btn secondary block" href="${esc(r.site)}" target="_blank" rel="noopener">Resort safety info</a></div>
-        <p class="small muted" style="margin:0">Snow Desk doesn't list ${esc(r.name)}'s patrol numbers yet.</p>
+        <p class="small muted" style="margin:0">0xSnow doesn't list ${esc(r.name)}'s patrol numbers yet.</p>
       </section>${tell}`;
     return `
       <section class="card patrol" aria-labelledby="h-patrol">
@@ -1321,9 +1321,9 @@ ${tell}
       <section class="card">
         <div class="brand-signature">
           <img src="/brand/frosted-logo.webp" alt="" width="160" height="160" loading="lazy" decoding="async">
-          <div><p class="brand-kicker">Chair 0 · Snow Desk</p><h2>About the numbers</h2></div>
+          <div><p class="brand-kicker">0xSnow</p><h2>About the numbers</h2></div>
         </div>
-        <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own. Chair 0 is independent and not affiliated with Vail Resorts or any resort.</p>
+        <p class="small" style="margin:0">Grooming comes from the resort's nightly grooming map. Snow totals come from the resort's report, or the ${esc(resortInfo().snotel || "nearest")} SNOTEL station when the resort hasn't reported. The forecast blends public weather models and the National Weather Service, checked every day against what actually fell. Cams are the resort's own. 0xSnow is independent and not affiliated with Vail Resorts or any resort.</p>
         <p class="small muted" style="margin:6px 0 0">Data: weather models by <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0), National Weather Service, NRCS SNOTEL, NOAA radar via Iowa State Mesonet, avalanche danger via <a href="https://avalanche.org/">avalanche.org</a>, mountain snow depth via NOAA <a href="https://www.nohrsc.noaa.gov/">NOHRSC</a>. Maps © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.</p>
         <p class="small" style="margin:0"><a class="link" href="/audit/${esc(R.slug || "")}">Snow Audit</a>: how every forecast model has scored against what actually fell here.</p>
       </section>`;
@@ -1358,7 +1358,7 @@ ${tell}
     const tab = (location.hash.slice(1) || "today");
     const name = VIEWS[tab] ? tab : "today";
     document.querySelectorAll(".tabbar a, .top-tabs a").forEach((a) => { if (a.dataset.tab === name) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
-    $("#subtitle").textContent = { today: S.latest ? fmtDay(S.latest.date) + " · Snow Desk" : "Chair 0: Snow Desk", calendar: "History", forecast: "Full forecast", help: "Help & ski patrol" }[name];
+    $("#subtitle").textContent = { today: S.latest ? fmtDay(S.latest.date) + " · 0xSnow" : "0xSnow", calendar: "History", forecast: "Full forecast", help: "Help & ski patrol" }[name];
     const my = ++routing;
     const view = await VIEWS[name]();
     if (my !== routing) return;

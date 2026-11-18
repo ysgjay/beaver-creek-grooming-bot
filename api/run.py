@@ -53,7 +53,7 @@ def _digest():
     except Exception as e:
         logging.exception("digest failed")
         from bcbot import alert
-        alert.admin("Snow Desk: combined email failed", str(e)[:500])
+        alert.admin("0xSnow: combined email failed", str(e)[:500])
         return {"status": "error", "error": str(e)}
 
 

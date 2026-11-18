@@ -1,4 +1,4 @@
-# Chair 0: Snow Desk (Colorado Vail resorts)
+# 0xSnow (Colorado and Utah resorts)
 
 Every morning it sends the grooming report, weather, a multi-model snow forecast and the snow stake cam for Beaver Creek, Vail, Breckenridge, Keystone and Crested Butte to people who opted in (each picks their resorts), by email and app notification, and keeps the history. Resort details: [docs/RESORTS.md](docs/RESORTS.md).
 
@@ -35,7 +35,7 @@ To send a labeled test now: `https://snow-desk-cron.jay-52b.workers.dev/?key=<CR
 
 ## Who gets it
 - **Email:** people sign up on the app's Help page and must confirm with the link in their inbox (double opt-in). Every report is sent to each person individually, with a one-tap unsubscribe link and the standard one-click unsubscribe headers that Gmail and Apple Mail show as an Unsubscribe button. Resend's free plan allows 100 emails a day, roughly 90 subscribers.
-- **App notifications:** "Turn on" on the Help page uses Web Push from the app itself, so nobody needs a separate app. It works on Android and desktop browsers, and on iPhone after Snow Desk is added to the Home Screen (iOS 16.4+). Powder alerts go only to app notifications.
+- **App notifications:** "Turn on" on the Help page uses Web Push from the app itself, so nobody needs a separate app. It works on Android and desktop browsers, and on iPhone after 0xSnow is added to the Home Screen (iOS 16.4+). Powder alerts go only to app notifications.
 
 ## Settings (Vercel project `snow-desk` → Environment Variables)
 | Variable | Status |

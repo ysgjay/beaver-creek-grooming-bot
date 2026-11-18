@@ -1,4 +1,4 @@
-"""The resorts Snow Desk covers. Each one has its own grooming map, snow report, cams,
+"""The resorts 0xSnow covers. Each one has its own grooming map, snow report, cams,
 forecast point, archive folder, subscribers and once-a-day send.
 
 Colorado and Utah on the Epic and Ikon passes. Vail Resorts' own mountains share one website
@@ -121,7 +121,7 @@ RESORTS = {
 
     # ---- Added 11/15/2026: the rest of Colorado and Utah on the Epic and Ikon passes. ----
     # Park City runs on the Vail platform (snow report + Lumiplan map). The others run their own
-    # sites, which Snow Desk doesn't read yet (snow_report_path None): their report is the
+    # sites, which 0xSnow doesn't read yet (snow_report_path None): their report is the
     # forecast, SNOTEL and, where known, cams, sent at 7:00. Coordinates are on the mountain;
     # SNOTEL stations are the nearest active ones (NRCS station list, checked 11/15/2026).
     "park-city": {
