@@ -227,6 +227,8 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
         "days": days,
         "next_1_5": total(slice(0, 5)),
         "next_1_5_range": rng(slice(0, 5)),
+        "next_1_7": total(slice(0, 7)),
+        "next_1_7_range": rng(slice(0, 7)),
         "next_6_10": total(slice(5, 10)),
         "next_6_10_range": rng(slice(5, 10)),
         "powder_odds_pct": powder_odds,
