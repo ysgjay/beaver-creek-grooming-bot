@@ -492,7 +492,7 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setitem(resorts.RESORTS["beaver-creek"], "opening_day", date(2026, 11, 1).isoformat())   # these tests are in season
     pdf = {"bytes": make_pdf()}
 
-    def fake_groom():
+    def fake_groom(known_hash=None):
         jpeg, text = grooming.render(pdf["bytes"])
         import hashlib
         return {"hash": hashlib.sha256(pdf["bytes"]).hexdigest()[:16], "jpeg": jpeg,

@@ -192,7 +192,7 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
 
     # 1. Cheap check: has the grooming map changed? (Resorts with no map: nothing to wait for.)
     has_map = bool(config.GROOMING_PDF_URL)
-    groom = _try("grooming map", grooming.fetch, errors, None) if has_map else None
+    groom = _try("grooming map", lambda: grooming.fetch(state.get("last_map_hash")), errors, None) if has_map else None
     map_changed = bool(groom) and groom["hash"] != state.get("last_map_hash")
     last_change = now.isoformat(timespec="minutes") if map_changed else state.get("last_map_change")
     # "New" = changed since the last report went out (or in the last 18 hours if none has).
