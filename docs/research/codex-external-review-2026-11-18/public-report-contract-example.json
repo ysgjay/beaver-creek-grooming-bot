@@ -1,0 +1,319 @@
+{
+  "_example": {
+    "purpose": "Illustrative proposed public contract, not a deployed API response or JSON Schema.",
+    "basis": "Selected values captured from the public Beaver Creek report on November 18, 2026 ET.",
+    "unknowns_policy": "Unknown timestamps, observation periods, rights and revision metadata remain null; no provenance is invented.",
+    "schema_status": "Draft design example; field names and status vocabulary require implementation review."
+  },
+  "schema_version": "1.0.0-draft",
+  "publisher": {
+    "name": "0xSnow",
+    "former_names": [
+      "Chair 0",
+      "Snow Desk"
+    ],
+    "url": "https://snow.0xm.studio/",
+    "independent_of_resort": true
+  },
+  "resort": {
+    "id": "beaver-creek",
+    "name": "Beaver Creek",
+    "region": "Colorado",
+    "country": "US",
+    "time_zone": "America/Denver"
+  },
+  "report": {
+    "kind": "daily_report",
+    "local_date": "2026-11-18",
+    "generated_at": "2026-11-18T14:01-07:00",
+    "published_at": null,
+    "citation_url": "https://snow.0xm.studio/resorts/beaver-creek",
+    "representation_url": "https://snow.0xm.studio/resorts/beaver-creek.json",
+    "immutable_snapshot_url": null,
+    "revision_id": null,
+    "content_hash": null,
+    "correction": null,
+    "revision_status": "not_recorded_in_sample"
+  },
+  "observations": [
+    {
+      "metric": "resort_reported_snowfall",
+      "value": 1.0,
+      "unit": "in",
+      "status": "available",
+      "source_id": "beaver-creek-official-snow-report",
+      "source_published_at": "2026-11-18T05:32:00-07:00",
+      "source_timestamp_text": "Updated November 18, 2026 at 5:32 AM MST",
+      "source_checked_at": null,
+      "measurement_location": null,
+      "observation_period": {
+        "source_label": "Last 24 hours",
+        "start_at": null,
+        "end_at": null,
+        "status": "source_window_boundaries_unverified"
+      },
+      "freshness": {
+        "status": "not_assessed",
+        "reason": "Source publication time is known; source check time and freshness policy are not recorded in this sample."
+      }
+    },
+    {
+      "metric": "resort_reported_base_depth",
+      "value": 4.0,
+      "unit": "in",
+      "status": "available",
+      "source_id": "beaver-creek-official-snow-report",
+      "source_published_at": "2026-11-18T05:32:00-07:00",
+      "source_checked_at": null,
+      "measurement_location": null
+    }
+  ],
+  "grooming": {
+    "status": "stale",
+    "source_id": "beaver-creek-grooming-map",
+    "source_valid_date": "2026-11-16",
+    "source_date_text": "November 16, 2026",
+    "source_checked_at": null,
+    "age_calendar_days_relative_to_report": 2,
+    "current_day_runs": null,
+    "missing_reason": "No current-day run list is available in the captured report; the available map is dated two days earlier.",
+    "map_link": "https://grooming.lumiplan.pro/beaver-creek-grooming-map.pdf",
+    "map_link_is_immutable": false,
+    "rehosted_media_reuse_permission": "unknown"
+  },
+  "forecast": {
+    "kind": "derived_model_blend",
+    "issued_local_date": "2026-11-18",
+    "issued_at": null,
+    "generated_report_at": "2026-11-18T14:01-07:00",
+    "model_initializations": null,
+    "point": {
+      "latitude": 39.5893,
+      "longitude": -106.5214,
+      "elevation": {
+        "value": 10476,
+        "unit": "ft"
+      },
+      "role": "configured_upper_mountain_forecast_point"
+    },
+    "valid_period": {
+      "start_at": "2026-11-18T00:00:00-07:00",
+      "end_at_exclusive": "2026-11-23T00:00:00-07:00",
+      "definition": "Five resort-local calendar dates including the issue date; not five complete 24-hour periods from the request time."
+    },
+    "coverage": {
+      "expected_local_dates": [
+        "2026-11-18",
+        "2026-11-19",
+        "2026-11-20",
+        "2026-11-21",
+        "2026-11-22"
+      ],
+      "available_local_dates": [
+        "2026-11-18",
+        "2026-11-19",
+        "2026-11-20",
+        "2026-11-21",
+        "2026-11-22"
+      ],
+      "missing_local_dates": [],
+      "daily_rows_status": "complete",
+      "per_model_hourly_coverage": null,
+      "per_member_period_coverage": null,
+      "limitation": "Complete daily rows do not prove complete hourly coverage for every contributing model/member."
+    },
+    "snow_total": {
+      "estimate": 3.4,
+      "unit": "in",
+      "model_range": {
+        "low": 1.0,
+        "high": 8.6,
+        "method": "ensemble_p10_p90_widened_to_include_blend_and_complete_deterministic_model_totals",
+        "nominal_probability": null,
+        "empirically_calibrated": false,
+        "label": "Model range",
+        "limitation": "The current aggregation can substitute zero for missing ensemble dates; completeness must be validated before treating this as a reliable uncertainty estimate."
+      }
+    },
+    "days": [
+      {
+        "local_date": "2026-11-18",
+        "snow_estimate": 0.1,
+        "unit": "in",
+        "model_range": {
+          "low": 0.0,
+          "high": 0.4
+        },
+        "value_status": "available",
+        "source_ids": [
+          "open-meteo"
+        ],
+        "contributing_model_ids": [
+          "ecmwf_ifs",
+          "gem_seamless",
+          "gfs_global",
+          "gfs_hrrr",
+          "icon_seamless",
+          "ncep_nbm_conus",
+          "ukmo_seamless"
+        ]
+      },
+      {
+        "local_date": "2026-11-19",
+        "snow_estimate": 0.0,
+        "unit": "in",
+        "model_range": {
+          "low": 0.0,
+          "high": 0.0
+        },
+        "value_status": "available",
+        "source_ids": [
+          "open-meteo",
+          "nws"
+        ],
+        "contributing_model_ids": [
+          "ecmwf_ifs",
+          "gem_seamless",
+          "gfs_global",
+          "gfs_hrrr",
+          "icon_seamless",
+          "ncep_nbm_conus",
+          "nws",
+          "ukmo_seamless"
+        ]
+      },
+      {
+        "local_date": "2026-11-20",
+        "snow_estimate": 2.2,
+        "unit": "in",
+        "model_range": {
+          "low": 0.4,
+          "high": 7.7
+        },
+        "value_status": "available",
+        "source_ids": [
+          "open-meteo",
+          "nws"
+        ],
+        "contributing_model_ids": [
+          "ecmwf_ifs",
+          "gem_seamless",
+          "gfs_global",
+          "icon_seamless",
+          "ncep_nbm_conus",
+          "nws",
+          "ukmo_seamless"
+        ]
+      },
+      {
+        "local_date": "2026-11-21",
+        "snow_estimate": 1.1,
+        "unit": "in",
+        "model_range": {
+          "low": 0.0,
+          "high": 3.8
+        },
+        "value_status": "available",
+        "source_ids": [
+          "open-meteo",
+          "nws"
+        ],
+        "contributing_model_ids": [
+          "ecmwf_ifs",
+          "gem_seamless",
+          "gfs_global",
+          "icon_seamless",
+          "ncep_nbm_conus",
+          "nws",
+          "ukmo_seamless"
+        ]
+      },
+      {
+        "local_date": "2026-11-22",
+        "snow_estimate": 0.0,
+        "unit": "in",
+        "model_range": {
+          "low": 0.0,
+          "high": 0.0
+        },
+        "value_status": "available",
+        "source_ids": [
+          "open-meteo",
+          "nws"
+        ],
+        "contributing_model_ids": [
+          "ecmwf_ifs",
+          "gem_seamless",
+          "gfs_global",
+          "icon_seamless",
+          "ncep_nbm_conus",
+          "nws",
+          "ukmo_seamless"
+        ]
+      }
+    ],
+    "models_requested_or_available_in_snapshot": [
+      "ecmwf_ifs",
+      "ecmwf_ifs025",
+      "gem_seamless",
+      "gfs_global",
+      "gfs_hrrr",
+      "icon_seamless",
+      "ncep_nbm_conus",
+      "nws",
+      "ukmo_seamless"
+    ],
+    "ensemble_members_in_snapshot": 212,
+    "blend_method_version": null,
+    "inspected_implementation_commit": "413056ccf6a163ad4082d2107e50e28af2b21535",
+    "implementation_commit_is_proven_live_model_version": false,
+    "source_ids": [
+      "open-meteo",
+      "nws"
+    ],
+    "transformations": [
+      "snow-to-liquid conversion",
+      "bias adjustment",
+      "weighted blend",
+      "resort snowfall calibration"
+    ],
+    "warning": "These are forecast estimates, not observed snowfall or guaranteed outcomes."
+  },
+  "sources": [
+    {
+      "id": "beaver-creek-official-snow-report",
+      "name": "Beaver Creek official snow report",
+      "type": "resort_report",
+      "url": "https://www.beavercreek.com/the-mountain/mountain-conditions/snow-and-weather-report.aspx",
+      "reuse_license": null
+    },
+    {
+      "id": "beaver-creek-grooming-map",
+      "name": "Beaver Creek grooming map",
+      "type": "resort_map",
+      "url": "https://grooming.lumiplan.pro/beaver-creek-grooming-map.pdf",
+      "reuse_license": null
+    },
+    {
+      "id": "open-meteo",
+      "name": "Open-Meteo",
+      "type": "forecast_data_service",
+      "url": "https://open-meteo.com/",
+      "data_license_url": "https://open-meteo.com/en/licence",
+      "attribution": "Forecast data supplied by Open-Meteo under CC BY 4.0; 0xSnow applies the transformations listed in this report.",
+      "service_terms_url": "https://open-meteo.com/en/terms"
+    },
+    {
+      "id": "nws",
+      "name": "NOAA National Weather Service",
+      "type": "forecast_provider",
+      "url": "https://www.weather.gov/",
+      "exact_grid_product_url": null,
+      "attribution": "Includes NWS inputs where available. The 0xSnow blend is a derived product, not an official NWS forecast."
+    }
+  ],
+  "reuse": {
+    "whole_document_license": null,
+    "note": "No blanket license is asserted for third-party reports, maps or imagery. Consult source-specific rights."
+  }
+}
