@@ -818,6 +818,12 @@ def due(today=None, facts=None):
     return sorted(out, key=lambda x: -x[2])
 
 
+def last_checked(slug, kind, f, confirmed=None):
+    """The fact's checked date, or a later date the daily watch confirmed its source page unchanged."""
+    c = (confirmed or {}).get(f"{slug}|{kind}")
+    return max(f["checked"], c) if c else f["checked"]
+
+
 def stale(f, kind, today=None):
     """Shown on the page when a fact is more than twice its check interval old."""
     today = today or date.today()
@@ -897,9 +903,19 @@ def watch(store, fetch, now=None):
         else:
             entry["pending_fp"] = fp
         seen[url] = entry
+    # A page read cleanly today, with no change since the fact was checked, confirms the fact: no
+    # person or PR needed (Young, 11/19/2026: re-checks that change nothing skip the PR). Kept in Blob.
+    confirmed = dict(prev.get("confirmed") or {})
+    for slug, kinds in FACTS.items():
+        for kind, f in kinds.items():
+            page = seen.get(f["source"]) or {}
+            clean = page.get("read_at", "")[:16] == stamp and not page.get("pending_fp")
+            if clean and not (page.get("changed_at") and page["changed_at"][:10] > f["checked"]) and f.get("value") is not None:
+                confirmed[f"{slug}|{kind}"] = now.date().isoformat()
     # A change stays in the queue until the facts on that page are re-checked after it.
     queue = []
-    due_now = {(s, k): d for s, k, d in due(now.date())}
+    eff = {s: {k: dict(f, checked=last_checked(s, k, f, confirmed)) for k, f in kinds.items()} for s, kinds in FACTS.items()}
+    due_now = {(s, k): d for s, k, d in due(now.date(), eff)}
     for slug, kinds in FACTS.items():
         for kind, f in kinds.items():
             page = seen.get(f["source"]) or {}
@@ -915,7 +931,8 @@ def watch(store, fetch, now=None):
             queue.append(item)
     queue.sort(key=lambda q: (q["reason"] != "changed", -q["overdue_days"], q["resort"], q["fact"]))
     status = {"generated": stamp, "pages": seen, "changed_today": changed, "failing": failing,
-              "due": [{"resort": s, "fact": k, "overdue_days": d} for (s, k), d in due_now.items()], "queue": queue}
+              "due": [{"resort": s, "fact": k, "overdue_days": d} for (s, k), d in due_now.items()], "queue": queue,
+              "confirmed": confirmed}
     store.put_json("data/facts/status.json", status)
     return status
 
@@ -934,7 +951,7 @@ if __name__ == "__main__":  # python -m bcbot.facts [todo|due]
 
 # ---------- owner view: what we have, what's missing, how fresh (/admin "Resort facts") ----------
 
-def grid(today=None):
+def grid(today=None, confirmed=None):
     """One row per resort and fact kind for the private admin table and its CSV export.
     status: "filled" (a value), "not_posted" (we checked and the resort hasn't posted it), "missing" (never checked).
     fresh: "ok", "due" (next check date has come) or "stale" (more than twice the check interval old)."""
@@ -952,6 +969,7 @@ def grid(today=None):
                                  source="", source_name="", maps=0, map_images=0))
                 continue
             every = interval_days(kind, today)
+            f = dict(f, checked=last_checked(slug, kind, f, confirmed))
             nxt = date.fromisoformat(f["checked"]) + timedelta(days=every)
             value = f.get("value")
             if kind == "trail_map":
