@@ -70,6 +70,8 @@ class handler(Handler):
             if self.query("llms"):
                 return self.send(200, llm.llms_txt(), "text/plain", "public, max-age=3600, s-maxage=86400")
             pass_key = self.query("pass")
+            if pass_key and pass_key.endswith(".ics") and pass_key[:-4] in pages.PASSES:
+                return self.send(200, pages.pass_ics(pass_key[:-4]), "text/calendar", "public, max-age=3600, s-maxage=86400")
             if pass_key:
                 if pass_key not in pages.PASSES:
                     return self.not_found()
