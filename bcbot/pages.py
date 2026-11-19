@@ -359,7 +359,7 @@ def sitemap(store):
 def _more(slug, name):
     region = resorts.get(slug)["region"]
     return (f'<h2>More for {escape(name)}</h2><ul class="list">'
-            f'<li><a href="{resort_path(slug, "guide")}">How the {escape(name)} grooming and snow report works</a></li>'
+            f'<li><a href="{resort_path(slug, "guide")}">{escape(_guide_label(slug, name))}</a></li>'
             f'<li><a href="{resort_path(region.lower())}">{escape(region)} snow report today</a></li>'
             f'<li><a href="/resorts/{slug}/feed.xml">RSS feed of {escape(name)} reports</a></li></ul>')
 
@@ -531,10 +531,18 @@ def guide_page(slug, summary=None):
     ]
     rows = "".join(f'<tr><td style="padding:6px 8px;border-bottom:1px solid #c3d3e0;color:#52677b">{escape(k)}</td>'
                    f'<td style="padding:6px 8px;border-bottom:1px solid #c3d3e0">{escape(v)}</td></tr>' for k, v in facts)
+    info, faq = _facts_section(slug, name)
+    if info:
+        facts = [f for f in facts if f[0] not in ("Opening day", "Scheduled opening")]
+        rows = "".join(f'<tr><td style="padding:6px 8px;border-bottom:1px solid #c3d3e0;color:#52677b">{escape(k)}</td>'
+                       f'<td style="padding:6px 8px;border-bottom:1px solid #c3d3e0">{escape(v)}</td></tr>' for k, v in facts)
+    h1 = (f"{name}: hours, opening and closing day, trail map" if info
+          else f"How the {name} grooming and snow report works")
     body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › <a href="{resort_path(slug)}">{escape(name)}</a> › Guide</p>'
-            f'<h1 class="page">How the {escape(name)} grooming and snow report works</h1>'
+            f'<h1 class="page">{escape(h1)}</h1>'
             f'<p class="lead">Everything 0xSnow knows about when and how {escape(name)} reports grooming and snow, '
             f'and how the daily 0xSnow report is put together. <a href="{resort_path(slug)}">See today\'s report</a>.</p>'
+            + info +
             f'<h2>When the report posts</h2><p>{escape(timing)}</p>'
             f'<p>Before opening day, 0xSnow sends the {escape(name)} report at 7:00 AM. From opening day, it goes out as '
             f'soon as both the new grooming and that morning\'s snow report are in, and by 9:00 AM at the latest.</p>'
@@ -549,8 +557,72 @@ def guide_page(slug, summary=None):
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": f"How the {name} grooming and snow report works",
           "url": site(resort_path(slug, "guide")), "author": _org(), "publisher": _org(),
           "about": {"@type": "SkiResort", "name": name}}
-    return shell(page_title=f"When does the {name} grooming report come out? | {ORG}",
-                 desc=f"When {name} posts its grooming and snow report each morning, where the numbers come from, "
-                      f"and how to get the {name} report free every day.",
-                 canonical=site(resort_path(slug, "guide")), body=body, ld=[ld],
+    if info:
+        ld["headline"] = h1
+    title = (f"{name} hours, opening day, closing day and trail map | {ORG}" if info
+             else f"When does the {name} grooming report come out? | {ORG}")
+    desc = (f"{name} lift hours, opening and closing day and the official trail map, each with its source and the "
+            f"date we checked it. Plus when the {name} grooming report posts." if info else
+            f"When {name} posts its grooming and snow report each morning, where the numbers come from, "
+            f"and how to get the {name} report free every day.")
+    return shell(page_title=title, desc=desc,
+                 canonical=site(resort_path(slug, "guide")), body=body, ld=[ld] + ([faq] if faq else []),
                  feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"))
+
+
+def _fact_date(iso):
+    d = date.fromisoformat(iso)
+    return f"{d.strftime('%A')} {report.mmdd(d)}/{d.year}"
+
+
+def _facts_section(slug, name, today=None):
+    """Hours, dates and trail map with a source and checked date on each. ('', None) if none."""
+    from . import facts as F
+    kinds = F.FACTS.get(slug)
+    if not kinds:
+        return "", None
+    today = today or date.today()
+    items, qa = "", []
+    for kind in ("opening_day", "closing_day", "lift_hours", "trail_map"):
+        f = kinds.get(kind)
+        if not f:
+            continue
+        v = f.get("value")
+        if kind in ("opening_day", "closing_day"):
+            said = _fact_date(v) if v else "Not announced yet"
+            q = f"When {'does' if not v or date.fromisoformat(v) >= today else 'did'} {name} " \
+                f"{'open' if kind == 'opening_day' else 'close'} for the 2026/27 season?"
+            ans = (f"{name} {'opens' if kind == 'opening_day' else 'closes'} on {said}." if v
+                   else f"{name} hasn't announced its {'opening' if kind == 'opening_day' else 'closing'} day yet.")
+            if v and date.fromisoformat(v) < today:
+                ans = f"{name} {'opened' if kind == 'opening_day' else 'closed'} on {said}."
+            shown = escape(said)
+        elif kind == "lift_hours":
+            q, ans = f"What are {name}'s lift hours?", (v or f.get("note") or "Not posted yet.")
+            shown = escape(v or "Not posted yet")
+        else:
+            q, ans = f"Where is the {name} trail map?", f"The official map is on the resort's site: {v}"
+            shown = f'<a href="{escape(v)}" rel="nofollow">{escape(f.get("label") or "Official trail map")}</a>'
+        note = f'<div style="font-size:13px;margin-top:2px">{escape(f["note"])}</div>' if f.get("note") and v else ""
+        if f.get("note") and not v and kind != "lift_hours":
+            note = f'<div style="font-size:13px;margin-top:2px">{escape(f["note"])}</div>'
+        flag = ' · <b style="color:#7b1e2e">re-checking</b>' if F.stale(f, kind, today) else ""
+        items += (f'<div style="padding:10px 4px;border-bottom:1px solid #c3d3e0">'
+                  f'<div style="font:600 11px/1.3 \'IBM Plex Mono\',monospace;letter-spacing:.05em;text-transform:uppercase;color:#52677b">{F.LABELS[kind]}</div>'
+                  f'<div style="font-size:16px;margin-top:2px">{shown}</div>{note}'
+                  f'<div style="font-size:12px;color:#52677b;margin-top:4px">Source: <a href="{escape(f["source"])}" rel="nofollow">'
+                  f'{escape(f.get("source_name") or f["source"])}</a> · checked {report.mmdd(f["checked"])}{flag}</div></div>')
+        qa.append({"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": ans}})
+    html_ = (f'<h2>Hours, dates and trail map</h2>'
+             f'<div style="background:#f5f9fc;border:1px solid #fff;border-radius:20px;padding:6px 12px">{items}</div>'
+             f'<p style="font-size:12px;color:#52677b">Every fact links to the resort page it came from. Dates and hours '
+             f'can change with conditions, so check the source before you go. 0xSnow re-checks closing dates every 2 days '
+             f'from March and opening dates every 2 days in the fall.</p>')
+    faq = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": qa}
+    return html_, faq
+
+
+def _guide_label(slug, name):
+    from . import facts as F
+    return (f"{name} hours, opening and closing day, trail map" if slug in F.FACTS
+            else f"How the {name} grooming and snow report works")
