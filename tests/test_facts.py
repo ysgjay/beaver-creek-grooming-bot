@@ -85,10 +85,11 @@ def test_shared_pass_facts_cover_every_resort():
 
 
 def test_guide_title_follows_the_facts_it_has():
-    assert facts.topics("alta") == "opening day, closing day, lift hours, passes and blackout dates"
+    assert facts.topics("brighton") == ("opening day, closing day, lift hours, passes, blackout dates, "
+                                        "lift ticket prices and lessons")  # no trail map posted
     html = pages.guide_page("alta", {})
-    assert "<title>Alta opening day, blackout dates and lift hours 2026/27 | 0xSnow</title>" in html
-    assert '<h1 class="page">Alta guide: opening day, blackout dates and lift hours 2026/27</h1>' in html
+    assert "<title>Alta trail map, opening day, blackout dates, lift hours, ticket prices and lessons 2026/27 | 0xSnow</title>" in html
+    assert '<h1 class="page">Alta guide: trail map, opening day, blackout dates and more 2026/27</h1>' in html
     assert "doesn&#x27;t include Alta" in html and "Not included" in html
 
 
@@ -103,7 +104,9 @@ def test_guide_leads_with_snow_report_and_quick_answers():
     assert "The daily Alta report starts on opening day." in pages.guide_page("alta", {}, None, today=date(2026, 11, 19))
 
 
-def test_todo_points_at_operator_pages():
+def test_todo_points_at_operator_pages(monkeypatch):
+    monkeypatch.setitem(facts.FACTS, "park-city", {k: v for k, v in facts.FACTS["park-city"].items() if k != "lift_tickets"})
+    monkeypatch.setitem(facts.FACTS, "alta", {k: v for k, v in facts.FACTS["alta"].items() if k != "lift_tickets"})
     rows = {(s, k): w for s, k, w in facts.todo()}
     assert rows[("park-city", "lift_tickets")] == "https://www.parkcitymountain.com/plan-your-trip/lift-access/tickets.aspx"
     assert ("copper", "lessons") not in rows
@@ -116,5 +119,28 @@ def test_lift_hours_sit_in_the_top_row():
     assert '<nav class="chips" aria-label="On this page"><a href="#hours">Lift hours</a>' in html
     assert 'aria-current="page"><span class="full">Resort guide</span>' in html and "scroll-padding-top" in html
     assert 'href="/resorts/alta/guide" aria-current="page"><span class="full">Resort guide' in html
-    assert "hasn&#x27;t checked Snowbird" in pages.guide_page("snowbird", {}, None, today=date(2026, 11, 19)) or \
-        "hasn't checked Snowbird" in pages.guide_page("snowbird", {}, None, today=date(2026, 11, 19))
+    assert "Snowbird hasn&#x27;t posted 2026/27 lift hours" in pages.guide_page("snowbird", {}, None, today=date(2026, 11, 19))
+
+
+def test_multi_map_resorts_show_every_map_from_the_resorts_own_server():
+    vail = facts.FACTS["vail"]["trail_map"]["maps"]
+    assert [m["label"] for m in vail] == ["Front Side", "Back Bowls", "Blue Sky Basin"]
+    assert all(m["image"].startswith("https://scene7.vailresorts.com/") for m in vail)
+    html = pages.guide_page("vail", {}, None, today=date(2026, 11, 19))
+    assert html.count('referrerpolicy="no-referrer"') == 3 and "Blue Sky Basin trail map" in html
+    assert len(facts.FACTS["arapahoe-basin"]["trail_map"]["maps"]) == 4
+    for kinds in facts.FACTS.values():  # every map has a label and an image or PDF on the resort's site
+        for m in (kinds.get("trail_map") or {}).get("maps") or []:
+            assert m["label"] and (m.get("image") or m.get("pdf")) and m.get("season")
+
+
+def test_admin_grid_lists_every_resort_and_fact():
+    g = facts.grid(date(2026, 11, 19))
+    from bcbot import resorts
+    assert len(g["rows"]) == len(resorts.RESORTS) * len(facts.LABELS)
+    row = {(r["resort"], r["fact"]): r for r in g["rows"]}
+    assert row[("brighton", "trail_map")]["status"] == "missing"
+    assert row[("snowbird", "lift_hours")]["status"] == "not_posted"
+    assert row[("vail", "trail_map")]["maps"] == 3 and row[("vail", "trail_map")]["map_images"] == 3
+    assert row[("vail", "lift_tickets")]["fresh"] == "ok"
+    assert facts.grid(date(2027, 3, 10))["rows"][0]["fresh"] in ("due", "stale")

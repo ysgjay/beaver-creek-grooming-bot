@@ -62,6 +62,39 @@
   const card = (title, sub, body, cls = "") => `<section class="card ${cls}"><h2>${title}</h2>${sub ? `<p class="sub">${sub}</p>` : ""}${body}</section>`;
   const legend = (items) => `<div class="ad-legend">${items.map(([cls, label]) => `<span><i style="background:var(${cls})"></i>${label}</span>`).join("")}</div>`;
 
+
+  // Resort facts: one row per resort, one column per fact. Cells show when each fact was last read.
+  // The full table (values, sources, next check) downloads as a CSV that opens in Excel.
+  function factsCard(fx, names) {
+    if (!fx || !fx.rows) return "";
+    const kinds = fx.kinds, by = {};
+    fx.rows.forEach((r) => ((by[r.resort] ||= {})[r.fact] = r));
+    const n = (st) => fx.rows.filter((r) => r.status === st).length;
+    const due = fx.rows.filter((r) => r.fresh === "due" || r.fresh === "stale").length;
+    const cell = (r) => {
+      if (!r || r.status === "missing") return `<td class="fx missing" title="Never checked">Missing</td>`;
+      const cls = r.fresh === "stale" ? "stale" : r.fresh === "due" ? "due" : r.status;
+      const mark = r.status === "filled" ? "✓" : "Not posted";
+      const maps = r.fact === "trail_map" && r.maps ? ` · ${r.maps} map${r.maps > 1 ? "s" : ""}${r.map_images ? `, ${r.map_images} img` : ""}` : "";
+      const tip = `${r.value}\n\nSource: ${r.source_name}\nChecked ${r.checked}, next check ${r.next_check}`;
+      return `<td class="fx ${cls}" title="${esc(tip)}"><a href="${esc(r.source)}" target="_blank" rel="noopener">${mark}</a><span>${mmdd(r.checked)}${maps}</span></td>`;
+    };
+    const rows = Object.keys(by).map((k) => `<tr><th>${esc(names?.[k] || by[k][kinds[0]]?.name || k)}</th>${kinds.map((kd) => cell(by[k][kd])).join("")}</tr>`).join("");
+    return card("Resort facts", `${n("filled")} filled, ${n("not_posted")} checked but not posted by the resort, ${n("missing")} missing, ${due} due for a re-check. Hover a cell for the value and source; click to open the source.`,
+      `<div class="ad-legend fx-legend"><span><i class="fx filled"></i>Filled</span><span><i class="fx not_posted"></i>Not posted yet</span><span><i class="fx missing"></i>Missing</span><span><i class="fx due"></i>Due for re-check</span><span><i class="fx stale"></i>Stale</span>
+       <button class="btn secondary" type="button" id="fx-csv">Download CSV</button></div>
+       <div class="fx-scroll"><table class="ad-t fx-t"><thead><tr><th>Resort</th>${kinds.map((k) => `<th>${esc(fx.labels[k])}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`, "wide");
+  }
+  function factsCsv(fx) {
+    const cols = ["name", "resort", "label", "status", "fresh", "value", "checked", "next_check", "every_days", "maps", "map_images", "source_name", "source"];
+    const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [cols.join(","), ...fx.rows.map((r) => cols.map((c) => q(r[c])).join(","))].join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv" }));
+    a.download = `0xsnow-resort-facts-${fx.today}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
   function render(s) {
     const days = daysBack(s.today, s.days);
     const sig = s.signups || {}, vis = s.visits || {};
@@ -107,11 +140,12 @@
         : `<p class="small muted">No sign-ups yet.</p>`, "wide");
 
     const off = !!store.get("noCount");
-    $("#ad-body").innerHTML = kpis + `<div class="ad-grid">${signupsCard}${visitsCard}${resortCard}${useCard}${recentCard}</div>
+    $("#ad-body").innerHTML = kpis + `<div class="ad-grid">${signupsCard}${visitsCard}${resortCard}${useCard}${recentCard}${factsCard(s.facts, s.names)}</div>
       <div class="ad-foot"><label><input type="checkbox" id="ad-nocount"${off ? " checked" : ""}> Don't count my visits on this device</label>
       <span>Visits are counted by the app itself: a random id per browser, no cookies or IPs. Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.</span></div>`;
     const cards = $("#ad-body").querySelectorAll(".ad-grid .card");
     sg.wire(cards[0]); vg.wire(cards[1]);
+    $("#fx-csv")?.addEventListener("click", () => factsCsv(s.facts));
     $("#ad-nocount").addEventListener("change", (e) => store.set("noCount", e.target.checked ? "1" : null));
     $("#ad-sub").textContent = `Private · Mountain Time · ${wd(s.today)} ${mmdd(s.today)}`;
   }
