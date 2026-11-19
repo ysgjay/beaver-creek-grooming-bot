@@ -85,6 +85,8 @@ Naming (11/18/2026): the app is **0xSnow** everywhere (title, Home Screen label,
 - RSS: `/feed.xml` (newest post per resort) and `/resorts/<slug>/feed.xml`.
 - IndexNow: each new post pings api.indexnow.org (production only). Key file `public/a156955085e0f01a4754e933d5369d7f.txt` (public by design).
 - The service worker skips `/resorts`, `/sitemap.xml`, `/feed.xml` and `/robots.txt`.
+- Resort facts (`bcbot/facts.py`): opening day, closing day, lift hours and trail map link, each with its official source URL and checked date, shown on `/resorts/<slug>/guide` with FAQ JSON-LD. Only Beaver Creek and Copper so far. Never rehost resort trail map art; link to it.
+- Re-check schedule: closing day every 2 days from 3/1 to 5/31, opening day every 2 days from 9/15 to 11/30, otherwise weekly or monthly (`interval_days`). The `/api/facts` cron (daily 14:30 UTC) fingerprints each source page, writes `data/facts/status.json` and sends an admin alert when a page changed or a fact is overdue. A person (or Claude) then re-reads the source and updates `FACTS`; nothing changes on the page automatically. Facts older than twice their interval show "re-checking".
 
 ## Snow Audit (forecast grading, `/audit/<resort>`)
 Spec: https://claude.ai/artifact/Sm6FFGCXht3qMBE7hbZbEg (Young's decisions, 11/16/2026). Linked only from Help → About the numbers, on purpose: it is historical data.
