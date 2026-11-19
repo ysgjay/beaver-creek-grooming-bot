@@ -261,7 +261,7 @@ RESORTS = {
     },
     "brighton": {
         "name": "Brighton", "region": "Utah", "pass": "Ikon",
-        "site": "https://www.brightonresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.brightonresort.com", "snow_report_path": None, "reportpal": "br", "grooming_pdf": None,
         "lat": 40.5920, "lon": -111.5800, "elevation_ft": 9600,
         "bands": _bands((40.5980, -111.5830, 8755, "base"), (40.5920, -111.5800, 9600, "mid-mountain"),
                         (40.5800, -111.5600, 10500, "summit")),
@@ -452,7 +452,7 @@ RESORTS = {
     },
     "big-sky": {
         "name": "Big Sky", "region": "Montana", "pass": "Ikon",
-        "site": "https://www.bigskyresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.bigskyresort.com", "snow_report_path": None, "reportpal": "bs", "grooming_pdf": None,
         "lat": 45.2889, "lon": -111.4292, "elevation_ft": 8800,
         "bands": _bands((45.2871, -111.3997, 7500, "Mountain Village"), (45.2889, -111.4292, 8800, "mid-mountain"),
                         (45.2772, -111.4509, 11166, "Lone Peak")),
@@ -579,7 +579,7 @@ RESORTS = {
     # Pass labels for the independents and every opening day (est.) get checked before launch.
     "sugarloaf": {
         "name": "Sugarloaf", "region": "Maine", "pass": "Ikon",
-        "site": "https://www.sugarloaf.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.sugarloaf.com", "snow_report_path": None, "reportpal": "sl", "grooming_pdf": None,
         "lat": 45.0400, "lon": -70.3100, "elevation_ft": 2800,
         "bands": _bands((45.0640, -70.3100, 1417, "base"), (45.0400, -70.3100, 2800, "mid-mountain"),
                         (45.0314, -70.3131, 4237, "summit")),
@@ -589,7 +589,7 @@ RESORTS = {
     },
     "sunday-river": {
         "name": "Sunday River", "region": "Maine", "pass": "Ikon",
-        "site": "https://www.sundayriver.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.sundayriver.com", "snow_report_path": None, "reportpal": "sr", "grooming_pdf": None,
         "lat": 44.4650, "lon": -70.8750, "elevation_ft": 1800,
         "bands": _bands((44.4730, -70.8570, 800, "South Ridge"), (44.4650, -70.8750, 1800, "mid-mountain"),
                         (44.4580, -70.9000, 3140, "Oz")),
@@ -599,7 +599,7 @@ RESORTS = {
     },
     "loon": {
         "name": "Loon Mountain", "region": "New Hampshire", "pass": "Ikon",
-        "site": "https://www.loonmtn.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.loonmtn.com", "snow_report_path": None, "reportpal": "lm", "grooming_pdf": None,
         "lat": 44.0445, "lon": -71.6288, "elevation_ft": 2000,
         "bands": _bands((44.0563, -71.6299, 950, "base"), (44.0445, -71.6288, 2000, "mid-mountain"),
                         (44.0360, -71.6210, 3050, "North Peak")),
@@ -873,9 +873,13 @@ def get(slug):
     r.setdefault("region", "Colorado")
     r.setdefault("pass", "Epic")
     r.setdefault("dor_api", None)
+    r.setdefault("reportpal", None)
     r["country"] = "CA" if r["region"] in CANADA_REGIONS else "US"
     if r["dor_api"]:  # POWDR's open JSON feed (sources/dor.py): snow report and groomed runs
         r["snow_report"] = r["dor_api"] + "/api/v1/dor/drupal/snow-reports"
+    elif r["reportpal"]:  # Boyne's open JSON feed on the resort's own site (sources/reportpal.py)
+        from .sources.reportpal import url as _rp_url
+        r["snow_report"] = _rp_url(r["site"], r["reportpal"])
     elif "snow_report_path" in r and r["snow_report_path"] is None:
         r["snow_report"] = None  # this resort's own snow report isn't read (yet)
     env = os.environ.get("OPENING_DAY_" + slug.upper().replace("-", "_")) or (
@@ -901,7 +905,7 @@ def public_list():
         out.append({"slug": slug, "name": r["name"], "timezone": r["tz"], "cams": r["cams"], "patrol": r["patrol"],
                     "snotel": r["snotel_label"], "site": r["site"], "lat": r["lat"], "lon": r["lon"],
                     "region": r["region"], "pass": r["pass"], "snow_report": bool(r["snow_report"]),
-                    "grooming": bool(r["grooming_pdf"] or r["dor_api"])})
+                    "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"])})
     return {"default": DEFAULT, "resorts": out}
 
 

@@ -93,6 +93,9 @@ def fetch():
     if config.DOR_API:  # Copper, Snowbird, Eldora: open JSON feed
         from . import dor
         return dor.fetch_snow_report()
+    if config.REPORTPAL:  # Boyne resorts: open JSON feed on the resort's own site
+        from . import reportpal
+        return reportpal.fetch_snow_report()
     if not config.RESORT_SNOW_REPORT_URL:  # this resort's report isn't read (yet)
         return {}
     try:

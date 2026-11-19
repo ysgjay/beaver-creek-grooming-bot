@@ -439,8 +439,8 @@
    "lon": -111.58,
    "region": "Utah",
    "pass": "Ikon",
-   "snow_report": false,
-   "grooming": false
+   "snow_report": true,
+   "grooming": true
   },
   {
    "slug": "alta",
