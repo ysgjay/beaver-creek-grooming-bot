@@ -70,3 +70,73 @@ def test_sitemap_and_hub_list_every_resort(tmp_path):
 
 def test_valid_date_rejects_junk():
     assert pages.valid_date("2026-11-18") and not pages.valid_date("2026-11-8") and not pages.valid_date("../x")
+
+
+def test_post_is_frozen_at_send_and_resort_page_uses_it(tmp_path):
+    store = LocalStore(tmp_path)
+    rs = resort_store("vail", store)
+    pages.add_post(store, "vail", "2026-11-18", dict(DAY, note="sent"), ping=False)
+    rs.put_json("data/days/2026-11-18.json", dict(DAY, note="afternoon"))
+    rs.put_json("data/latest.json", dict(DAY, note="afternoon"))
+    assert pages.post_day(store, "vail", "2026-11-18")["note"] == "sent"
+    assert pages.latest_day(store, "vail")["note"] == "sent"
+    rs.put_json("data/latest.json", dict(DAY, date="2026-11-19", note="next morning, not sent yet"))
+    assert pages.latest_day(store, "vail")["note"] == "next morning, not sent yet"
+
+
+def test_indexnow_only_from_production(monkeypatch):
+    calls = []
+    monkeypatch.setattr("bcbot.util.http", lambda: type("H", (), {"post": lambda self, url, **k: calls.append((url, k)) or type("R", (), {"status_code": 200})()})())
+    monkeypatch.delenv("VERCEL_ENV", raising=False)
+    assert pages.indexnow(["https://snow.0xm.studio/resorts/vail"]) is None and not calls
+    monkeypatch.setenv("VERCEL_ENV", "production")
+    assert pages.indexnow(["https://snow.0xm.studio/resorts/vail"]) == 200
+    body = calls[0][1]["json"]
+    assert calls[0][0] == "https://api.indexnow.org/indexnow" and body["host"] == "snow.0xm.studio"
+    assert body["keyLocation"].endswith(pages.INDEXNOW_KEY + ".txt")
+
+
+def test_indexnow_key_file_is_served():
+    from pathlib import Path
+    assert (Path(__file__).parent.parent / "public" / f"{pages.INDEXNOW_KEY}.txt").read_text().strip() == pages.INDEXNOW_KEY
+
+
+def test_region_page_sorts_by_new_snow(tmp_path):
+    store = LocalStore(tmp_path)
+    resort_store("vail", store).put_json("data/latest.json", dict(DAY, resort={"last_24h_in": 3, "base_in": 18}))
+    resort_store("copper", store).put_json("data/latest.json", dict(DAY, resort={"last_24h_in": 7, "base_in": 20}))
+    html = pages.region_page(store, "colorado")
+    assert "<h1 class=\"page\">Colorado snow report today</h1>" in html
+    assert "Most new snow: Copper Mountain 7&quot;, Vail 3&quot;." in html
+    assert html.index("/resorts/copper") < html.index("/resorts/vail\">")
+    assert "/resorts/alta\"" not in html  # Utah resorts stay on the Utah page
+
+
+def test_feeds_are_valid_rss(tmp_path):
+    import xml.etree.ElementTree as ET
+    store = LocalStore(tmp_path)
+    pages.add_post(store, "vail", "2026-11-17", ping=False)
+    pages.add_post(store, "vail", "2026-11-18", ping=False)
+    one = ET.fromstring(pages.feed_xml(store, "vail"))
+    items = one.findall("./channel/item")
+    assert [i.findtext("link") for i in items] == ["https://snow.0xm.studio/resorts/vail/2026-11-18",
+                                                   "https://snow.0xm.studio/resorts/vail/2026-11-17"]
+    assert items[0].findtext("pubDate").endswith("-0700")
+    everything = ET.fromstring(pages.feed_xml(store))
+    assert len(everything.findall("./channel/item")) == 1
+
+
+def test_guide_uses_posting_study_medians():
+    summary = {"changes": [
+        {"resort": "vail", "source": "grooming", "day": "2026-11-16", "at": "05:10"},
+        {"resort": "vail", "source": "grooming", "day": "2026-11-16", "at": "06:40"},
+        {"resort": "vail", "source": "grooming", "day": "2026-11-17", "at": "05:20"},
+        {"resort": "vail", "source": "grooming", "day": "2026-11-18", "at": "05:30"},
+        {"resort": "vail", "source": "snow", "day": "2026-11-17", "at": "05:35"},
+        {"resort": "vail", "source": "snow", "day": "2026-11-17", "at": "21:00"},
+        {"resort": "alta", "source": "snow", "day": "2026-11-17", "at": "04:00"}]}
+    assert pages.posting_times(summary, "vail") == {"grooming": {"time": "5:20 AM", "days": 3}, "snow": {"time": "5:35 AM", "days": 1}}
+    html = pages.guide_page("vail", summary)
+    assert "When does the Vail grooming report come out?" in html
+    assert "usually lands around 5:20 AM" in html and "grooming map each night as a PDF" in html
+    assert "still measuring" in pages.guide_page("alta", {})

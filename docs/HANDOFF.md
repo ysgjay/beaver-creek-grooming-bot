@@ -80,7 +80,11 @@ Naming (11/18/2026): the app is **0xSnow** everywhere (title, Home Screen label,
 - `/resorts` lists every resort; `/resorts/<slug>` is today's report and `/resorts/<slug>/<YYYY-MM-DD>` is an archive post. Each is plain HTML: a short summary from the day's numbers, then the single-resort Day Ticket email body (`mailer.daily_html`).
 - Pages read the stored day JSON in Blob. The archive index is `data/<slug>/posts.json`, appended on each daily send; if missing it is rebuilt from the Blob listing of `data/<slug>/days/`.
 - `/sitemap.xml` (dynamic) and `public/robots.txt`. Google Search Console and Bing Webmaster Tools are verified with a DNS TXT record on 0xm.studio.
-- The service worker skips `/resorts`, `/sitemap.xml` and `/robots.txt`.
+- Each sent report is frozen at `data/<slug>/posts/<date>.json`, so a post (and the resort page once today's report is out) stays the morning report while the day's data keeps refreshing.
+- `/resorts/colorado` and `/resorts/utah`: every resort in one table, sorted by new snow. `/resorts/<slug>/guide`: evergreen "how this resort's report works", with posting times from the posting-time study (`data/observer/summary.json`).
+- RSS: `/feed.xml` (newest post per resort) and `/resorts/<slug>/feed.xml`.
+- IndexNow: each new post pings api.indexnow.org (production only). Key file `public/a156955085e0f01a4754e933d5369d7f.txt` (public by design).
+- The service worker skips `/resorts`, `/sitemap.xml`, `/feed.xml` and `/robots.txt`.
 
 ## Snow Audit (forecast grading, `/audit/<resort>`)
 Spec: https://claude.ai/artifact/Sm6FFGCXht3qMBE7hbZbEg (Young's decisions, 11/16/2026). Linked only from Help → About the numbers, on purpose: it is historical data.

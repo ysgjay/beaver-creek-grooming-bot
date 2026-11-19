@@ -58,12 +58,58 @@ def post_dates(store, slug):
     return dates
 
 
-def add_post(store, slug, day_str):
-    """Record a sent report in the archive index (called by the daily run)."""
+def add_post(store, slug, day_str, day=None, ping=True):
+    """Record a sent report in the archive (called by the daily run). The day as it was sent is
+    kept at data/posts/<date>.json, so the post stays the morning report while the day's data
+    keeps refreshing. Then search engines are told the new URLs (IndexNow)."""
+    rs = resort_store(slug, store)
+    if day:
+        rs.put_json(f"data/posts/{day_str}.json", day)
     dates = [d for d in post_dates(store, slug) if d != day_str]
     dates = sorted(dates + [day_str], reverse=True)[:MAX_POSTS]
-    resort_store(slug, store).put_json("data/posts.json", {"dates": dates})
+    rs.put_json("data/posts.json", {"dates": dates})
+    if ping:
+        region = resorts.get(slug)["region"].lower()
+        indexnow([site(resort_path(slug, day_str)), site(resort_path(slug)), site(resort_path(region)),
+                  site("resorts"), site(f"resorts/{slug}/feed.xml")])
     return dates
+
+
+def post_day(store, slug, day_str):
+    """A post's day: the snapshot taken when it was sent, else the day file (older posts)."""
+    rs = resort_store(slug, store)
+    return rs.get_json(f"data/posts/{day_str}.json") or rs.get_json(f"data/days/{day_str}.json")
+
+
+def latest_day(store, slug, dates=None):
+    """What the resort page shows: today's sent report once it's out, else the latest data."""
+    rs = resort_store(slug, store)
+    latest = rs.get_json("data/latest.json")
+    dates = dates if dates is not None else post_dates(store, slug)
+    if dates and (not latest or latest.get("date") == dates[0]):
+        return rs.get_json(f"data/posts/{dates[0]}.json") or latest
+    return latest
+
+
+# ---------- IndexNow: tell Bing (and Yandex, Seznam, Naver) about new URLs right away ----------
+
+INDEXNOW_KEY = "a156955085e0f01a4754e933d5369d7f"  # public by design; served at /<key>.txt
+
+
+def indexnow(urls):
+    """Best effort, never raises. Only from production (previews have other hosts)."""
+    import os
+    from urllib.parse import urlsplit
+    from .util import http
+    if os.environ.get("VERCEL_ENV") != "production":
+        return None
+    host = urlsplit(site()).netloc
+    try:
+        r = http().post("https://api.indexnow.org/indexnow", timeout=10, json={
+            "host": host, "key": INDEXNOW_KEY, "keyLocation": site(f"{INDEXNOW_KEY}.txt"), "urlList": urls})
+        return r.status_code
+    except Exception:
+        return None
 
 
 # ---------- words: a short plain summary that search engines can read ----------
@@ -157,7 +203,7 @@ def _ld(obj):
     return f'<script type="application/ld+json">{data}</script>'
 
 
-def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=False):
+def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=False, feed=None):
     image = image or site("brand/share-1200x630.png")
     meta = [
         f"<title>{escape(page_title)}</title>",
@@ -173,6 +219,8 @@ def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=Fal
     ]
     if noindex:
         meta.append('<meta name="robots" content="noindex">')
+    feed = feed or ("/feed.xml", f"{ORG} daily reports")
+    meta.append(f'<link rel="alternate" type="application/rss+xml" title="{escape(feed[1])}" href="{feed[0]}">')
     lds = "".join(_ld(x) for x in (ld or []))
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -226,7 +274,7 @@ def resort_page(slug, day, dates, dated=False):
     body = (crumbs + f'<h1 class="page">{escape(h1)}</h1>'
             + f'<p class="lead">{escape(" ".join(words))}</p>'
             + mailer.daily_html(day, map_url, hidden_preheader=False)
-            + _cta(slug, name) + past)
+            + _cta(slug, name) + past + _more(slug, name))
     article = {
         "@context": "https://schema.org", "@type": "BlogPosting" if dated else "WebPage",
         "headline": h1, "description": desc, "url": canonical, "inLanguage": "en-US",
@@ -243,7 +291,8 @@ def resort_page(slug, day, dates, dated=False):
         {"@type": "ListItem", "position": 1, "name": "Resorts", "item": site("resorts")},
         {"@type": "ListItem", "position": 2, "name": name, "item": site(resort_path(slug))}]
         + ([{"@type": "ListItem", "position": 3, "name": report.mmdd(d), "item": canonical}] if dated else [])}
-    return shell(page_title=t, desc=desc, canonical=canonical, body=body, ld=[article, crumbs_ld], image=map_url)
+    return shell(page_title=t, desc=desc, canonical=canonical, body=body, ld=[article, crumbs_ld], image=map_url,
+                 feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"))
 
 
 def empty_resort_page(slug):
@@ -267,7 +316,8 @@ def hub_page():
             '<p class="lead">A short report for each resort every morning: what was groomed, new snow, base, '
             'the weather from first chair to last and the snow forecast. Free, and updated daily.</p>')
     for region in sorted(groups):
-        body += f"<h2>{escape(region)}</h2><ul class=\"list\">" + "".join(
+        body += (f"<h2>{escape(region)}</h2><p style=\"margin:0 0 6px\"><a href=\"{resort_path(region.lower())}\">"
+                 f"{escape(region)} snow report today: every resort in one table</a></p><ul class=\"list\">") + "".join(
             f'<li><a href="{resort_path(r["slug"])}">{escape(r["name"])} grooming report</a> '
             f'<span style="color:{mailer.INK2};font-size:13px">({escape(r["pass"])} pass)</span></li>'
             for r in sorted(groups[region], key=lambda r: r["name"])) + "</ul>"
@@ -294,11 +344,213 @@ def sitemap(store):
     with ThreadPoolExecutor(max_workers=8) as pool:
         by = dict(pool.map(dates, slugs))
     urls = [(site(), None, "daily"), (site("resorts"), None, "daily")]
+    urls += [(site(resort_path(r)), None, "daily") for r in REGIONS]
     for s in slugs:
         ds = by.get(s) or []
         urls.append((site(resort_path(s)), ds[0] if ds else None, "daily"))
+        urls.append((site(resort_path(s, "guide")), None, "weekly"))
         urls += [(site(resort_path(s, d)), d, "never") for d in ds]
     rows = "".join(f"<url><loc>{escape(u)}</loc>" + (f"<lastmod>{m}</lastmod>" if m else "")
                    + f"<changefreq>{f}</changefreq></url>" for u, m, f in urls)
     return ('<?xml version="1.0" encoding="UTF-8"?>'
             f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{rows}</urlset>')
+
+
+def _more(slug, name):
+    region = resorts.get(slug)["region"]
+    return (f'<h2>More for {escape(name)}</h2><ul class="list">'
+            f'<li><a href="{resort_path(slug, "guide")}">How the {escape(name)} grooming and snow report works</a></li>'
+            f'<li><a href="{resort_path(region.lower())}">{escape(region)} snow report today</a></li>'
+            f'<li><a href="/resorts/{slug}/feed.xml">RSS feed of {escape(name)} reports</a></li></ul>')
+
+
+# ---------- state pages: every resort in one table ----------
+
+REGIONS = {"colorado": "Colorado", "utah": "Utah"}
+
+
+def _row(slug, day):
+    day = day or {}
+    rs = day.get("resort") or {}
+    runs = ((day.get("grooming") or {}).get("runs")) or {}
+    fc = day.get("forecast") or {}
+    return {"slug": slug, "name": resorts.get(slug)["name"], "pass": resorts.get(slug)["pass"],
+            "date": day.get("date"), "new": mailer.new_snow(day) if day else None, "base": rs.get("base_in"),
+            "groomed": len(mailer.groomed_runs(runs)) or None, "next5": fc.get("next_1_5"),
+            "posted": rs.get("updated_time")}
+
+
+def region_rows(store, region):
+    slugs = [s for s in resorts.enabled() if resorts.get(s)["region"].lower() == region]
+
+    def one(s):
+        try:
+            return _row(s, latest_day(store, s))
+        except Exception:
+            return _row(s, None)
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        rows = list(pool.map(one, slugs))
+    return sorted(rows, key=lambda r: (-(r["new"] or 0), -(r["next5"] or 0), r["name"]))
+
+
+def region_page(store, region, today=None):
+    label = REGIONS[region]
+    rows = region_rows(store, region)
+    today = today or max((r["date"] for r in rows if r["date"]), default=date.today().isoformat())
+    d = date.fromisoformat(today)
+    fresh = [r for r in rows if r["date"] == today]
+    top = [r for r in fresh if (r["new"] or 0) >= 0.1][:3]
+    lead = f"{label} ski resort snow report for {d.strftime('%A')} {report.mmdd(d)}, {len(rows)} resorts in one table."
+    if top:
+        lead += " Most new snow: " + ", ".join(f'{r["name"]} {_n(r["new"])}' for r in top) + "."
+    big = sorted(fresh, key=lambda r: -(r["next5"] or 0))[:1]
+    if big and (big[0]["next5"] or 0) >= 1:
+        lead += f' Biggest 5-day forecast: {big[0]["name"]}, {_n(big[0]["next5"])}.'
+    cell = 'style="padding:6px 8px;border-bottom:1px solid #c3d3e0;text-align:right;font-family:\'IBM Plex Mono\',monospace;font-size:13px"'
+    head = 'style="padding:6px 8px;border-bottom:1px solid #c3d3e0;text-align:right;font-size:12px;color:#52677b"'
+    trs = ""
+    for r in rows:
+        stale = "" if r["date"] == today else ' style="opacity:.6"'
+        trs += (f"<tr{stale}><td style=\"padding:6px 8px;border-bottom:1px solid #c3d3e0\"><a href=\"{resort_path(r['slug'])}\">"
+                f"{escape(r['name'])}</a> <span style=\"font-size:11px;color:#52677b\">{escape(r['pass'])}</span></td>"
+                f"<td {cell}>{_n(r['new'])}</td><td {cell}>{_n(r['base'])}</td>"
+                f"<td {cell}>{r['groomed'] if r['groomed'] is not None else '–'}</td><td {cell}>{_n(r['next5'])}</td></tr>")
+    table = (f'<div style="overflow-x:auto;background:#f5f9fc;border:1px solid #fff;border-radius:20px;padding:8px">'
+             f'<table style="width:100%;border-collapse:collapse"><thead><tr>'
+             f'<th style="padding:6px 8px;border-bottom:1px solid #c3d3e0;text-align:left;font-size:12px;color:#52677b">Resort</th>'
+             f'<th {head}>New 24 hr</th><th {head}>Base</th><th {head}>Groomed</th><th {head}>Next 5 days</th></tr></thead>'
+             f'<tbody>{trs}</tbody></table></div>'
+             f'<p style="font-size:12px;color:#52677b">Sorted by new snow. Groomed counts only where the resort publishes '
+             f'groomed runs. Faded rows have no report for {report.mmdd(d)} yet. Updated through the morning.</p>')
+    other = [k for k in REGIONS if k != region]
+    body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › {label}</p>'
+            f'<h1 class="page">{label} snow report today</h1><p class="lead">{escape(lead)}</p>{table}'
+            + _cta(resorts.DEFAULT, "morning")
+            + "".join(f'<p><a href="{resort_path(o)}">{REGIONS[o]} snow report today</a></p>' for o in other))
+    ld = {"@context": "https://schema.org", "@type": "WebPage", "name": f"{label} snow report today",
+          "url": site(resort_path(region)), "dateModified": today, "publisher": _org(), "description": lead}
+    return shell(page_title=f"{label} snow report today: new snow and grooming at {len(rows)} resorts | {ORG}",
+                 desc=lead[:300], canonical=site(resort_path(region)), body=body, ld=[ld])
+
+
+# ---------- RSS ----------
+
+def _rfc822(day_str, hhmm="07:00"):
+    from datetime import datetime
+    from email.utils import format_datetime
+    from zoneinfo import ZoneInfo
+    h, m = (int(x) for x in hhmm.split(":"))
+    return format_datetime(datetime.fromisoformat(day_str).replace(hour=h, minute=m, tzinfo=ZoneInfo("America/Denver")))
+
+
+def feed_xml(store, slug=None):
+    """One resort's posts (newest 30), or every resort's newest post."""
+    if slug:
+        name = resorts.get(slug)["name"]
+        items = [(slug, d) for d in post_dates(store, slug)[:30]]
+        title, link = f"{name} grooming report | {ORG}", site(resort_path(slug))
+        desc = f"Daily {name} grooming report, new snow and forecast."
+    else:
+        def newest(s):
+            try:
+                ds = post_dates(store, s)
+                return (s, ds[0]) if ds else None
+            except Exception:
+                return None
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            items = sorted(filter(None, pool.map(newest, resorts.enabled())), key=lambda x: x[1], reverse=True)
+        title, link = f"{ORG} daily ski reports, Colorado and Utah", site("resorts")
+        desc = "The newest daily grooming and snow report for every resort 0xSnow covers."
+    out = ""
+    for s, d in items:
+        n = resorts.get(s)["name"]
+        dd = date.fromisoformat(d)
+        url = site(resort_path(s, d))
+        out += (f"<item><title>{escape(n)} grooming report, {dd.strftime('%a')} {report.mmdd(dd)}</title>"
+                f"<link>{url}</link><guid isPermaLink=\"true\">{url}</guid><pubDate>{_rfc822(d)}</pubDate>"
+                f"<description>{escape(f'{n} grooming, new snow, weather and forecast for {report.mmdd(dd)}.')}</description></item>")
+    self_url = site(f"resorts/{slug}/feed.xml" if slug else "feed.xml")
+    return ('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>'
+            f"<title>{escape(title)}</title><link>{link}</link><description>{escape(desc)}</description>"
+            f'<atom:link href="{self_url}" rel="self" type="application/rss+xml"/><language>en-us</language>'
+            f"{out}</channel></rss>")
+
+
+# ---------- evergreen guide per resort ----------
+
+def posting_times(summary, slug):
+    """Median first morning change (3 to 10 AM, Mountain time) per source, from the posting-time study."""
+    from statistics import median
+    first = {}
+    for c in (summary or {}).get("changes") or []:
+        if c.get("resort") != slug or not c.get("at") or not ("03:00" <= c["at"] <= "10:00"):
+            continue
+        key = (c.get("source"), c.get("day"))
+        if key not in first or c["at"] < first[key]:
+            first[key] = c["at"]
+    out = {}
+    for source in ("grooming", "snow"):
+        mins = [int(t[:2]) * 60 + int(t[3:]) for (src, _), t in first.items() if src == source]
+        if mins:
+            m = round(median(mins))
+            h = m // 60
+            out[source] = {"time": f"{(h % 12) or 12}:{m % 60:02d} {'AM' if h < 12 else 'PM'}", "days": len(mins)}
+    return out
+
+
+def guide_page(slug, summary=None):
+    r = resorts.get(slug)
+    name = r["name"]
+    times = posting_times(summary, slug)
+    if r.get("grooming_pdf"):
+        groom = (f"{name} publishes a grooming map each night as a PDF. 0xSnow reads the run names off that map "
+                 "and shows the full map in the morning report.")
+    elif r.get("dor_api"):
+        groom = f"{name} publishes groomed runs in its trail status feed. 0xSnow lists every groomed run from it."
+    else:
+        groom = (f"0xSnow doesn't read {name}'s grooming yet, so its report covers snow, weather and the forecast. "
+                 "Grooming will be added when a public source is checked.")
+    when = []
+    if "grooming" in times:
+        when.append(f'the grooming update usually lands around {times["grooming"]["time"]}')
+    if "snow" in times:
+        when.append(f'the official snow report usually updates around {times["snow"]["time"]}')
+    days = max([t["days"] for t in times.values()], default=0)
+    timing = (f"In 0xSnow's posting-time study ({days} morning{'s' if days != 1 else ''} since 11/16), " + " and ".join(when) + " Mountain time."
+              if when else f"0xSnow is still measuring when {name} posts its morning updates; times will appear here.")
+    bands = {b["key"]: b for b in r.get("bands") or []}
+    elev = ", ".join(f'{k} {bands[k]["elevation_ft"]:,} ft' for k in ("base", "mid", "peak") if k in bands)
+    opening = r["opening_day"]
+    facts = [
+        ("Region and pass", f'{r["region"]}, {r["pass"]} pass'),
+        ("Opening day" if opening <= date.today() else "Scheduled opening", f"{opening.strftime('%a')} {report.mmdd(opening)}"),
+        ("Forecast points", elev or f'{r["elevation_ft"]:,} ft'),
+        ("Snow station", f'{r["snotel_label"]} SNOTEL' if r.get("snotel_label") else "Resort report only"),
+        ("Cams in the app", str(len(r.get("cams") or [])) if r.get("cams") else "Not yet"),
+    ]
+    rows = "".join(f'<tr><td style="padding:6px 8px;border-bottom:1px solid #c3d3e0;color:#52677b">{escape(k)}</td>'
+                   f'<td style="padding:6px 8px;border-bottom:1px solid #c3d3e0">{escape(v)}</td></tr>' for k, v in facts)
+    body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › <a href="{resort_path(slug)}">{escape(name)}</a> › Guide</p>'
+            f'<h1 class="page">How the {escape(name)} grooming and snow report works</h1>'
+            f'<p class="lead">Everything 0xSnow knows about when and how {escape(name)} reports grooming and snow, '
+            f'and how the daily 0xSnow report is put together. <a href="{resort_path(slug)}">See today\'s report</a>.</p>'
+            f'<h2>When the report posts</h2><p>{escape(timing)}</p>'
+            f'<p>Before opening day, 0xSnow sends the {escape(name)} report at 7:00 AM. From opening day, it goes out as '
+            f'soon as both the new grooming and that morning\'s snow report are in, and by 9:00 AM at the latest.</p>'
+            f'<h2>Grooming</h2><p>{escape(groom)}</p>'
+            f'<h2>Snow totals and forecast</h2><p>New snow, base and season totals come from the resort\'s own report when '
+            f'it posts, or the nearest SNOTEL station otherwise. The forecast blends public weather models and the '
+            f'National Weather Service at base, mid-mountain and summit, and is graded every day against what fell '
+            f'(see the <a href="/audit/{slug}">Snow Audit</a>).</p>'
+            f'<h2>At a glance</h2><div style="background:#f5f9fc;border:1px solid #fff;border-radius:20px;padding:8px">'
+            f'<table style="width:100%;border-collapse:collapse;font-size:14px">{rows}</table></div>'
+            + _cta(slug, name))
+    ld = {"@context": "https://schema.org", "@type": "Article", "headline": f"How the {name} grooming and snow report works",
+          "url": site(resort_path(slug, "guide")), "author": _org(), "publisher": _org(),
+          "about": {"@type": "SkiResort", "name": name}}
+    return shell(page_title=f"When does the {name} grooming report come out? | {ORG}",
+                 desc=f"When {name} posts its grooming and snow report each morning, where the numbers come from, "
+                      f"and how to get the {name} report free every day.",
+                 canonical=site(resort_path(slug, "guide")), body=body, ld=[ld],
+                 feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"))
