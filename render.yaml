@@ -41,11 +41,11 @@ services:
         value: shadow
       - key: WORKER_CONCURRENCY
         value: "4"
-      - key: OPEN_METEO_HOSTPORT
+      - key: OPEN_METEO_HOST
         fromService:
           type: pserv
           name: snow-meteo
-          property: hostport
+          property: host
       - key: BLOB_PUBLIC_BASE
         sync: false
       # Needed only for live mode (same values as in Vercel); leave empty while in shadow.

@@ -15,7 +15,7 @@ class Resp:
 
 def test_forecast_uses_our_server_first(monkeypatch):
     calls = []
-    monkeypatch.setenv("OPEN_METEO_HOSTPORT", "snow-meteo:8080")
+    monkeypatch.setenv("OPEN_METEO_HOST", "snow-meteo")
     monkeypatch.setattr(openmeteo, "_http_get", lambda url, **o: calls.append(url) or Resp())
     openmeteo.get(openmeteo.FORECAST_URL, params={})
     openmeteo.get(openmeteo.ENSEMBLE_URL, params={})
@@ -43,7 +43,7 @@ def test_falls_back_to_public_api(monkeypatch):
 def test_history_and_unset_server_stay_public(monkeypatch):
     calls = []
     monkeypatch.delenv("OPEN_METEO_URL", raising=False)
-    monkeypatch.delenv("OPEN_METEO_HOSTPORT", raising=False)
+    monkeypatch.delenv("OPEN_METEO_HOST", raising=False)
     monkeypatch.setattr(openmeteo, "_http_get", lambda url, **o: calls.append(url) or Resp())
     openmeteo.get(openmeteo.FORECAST_URL, params={})
     monkeypatch.setenv("OPEN_METEO_URL", "http://snow-meteo:8080")

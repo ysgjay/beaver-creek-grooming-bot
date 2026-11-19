@@ -16,10 +16,12 @@ PREVIOUS_RUNS_URL = "https://previous-runs-api.open-meteo.com/v1/forecast"
 
 def self_hosted_base():
     """Our own Open-Meteo server (Render, docs/RENDER.md), if configured: OPEN_METEO_URL
-    (e.g. http://snow-meteo:8080) or OPEN_METEO_HOSTPORT (what a Render blueprint hands out)."""
+    (e.g. http://snow-meteo:8080), or OPEN_METEO_HOST (the private host name a Render blueprint
+    hands out) plus OPEN_METEO_PORT (default 8080, the port the image listens on)."""
     url = os.environ.get("OPEN_METEO_URL", "").strip().rstrip("/")
-    if not url and os.environ.get("OPEN_METEO_HOSTPORT", "").strip():
-        url = "http://" + os.environ["OPEN_METEO_HOSTPORT"].strip()
+    host = os.environ.get("OPEN_METEO_HOST", "").strip()
+    if not url and host:
+        url = f"http://{host}:{os.environ.get('OPEN_METEO_PORT', '').strip() or '8080'}"
     return url or None
 
 

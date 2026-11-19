@@ -70,8 +70,35 @@ def tick(force=False, now=None):
     return {"mode": mode(), "resorts": results, "digest": digest}
 
 
+def check_forecast_server():
+    """Log whether our own Open-Meteo server answers, and how fast (first call is a cold cache)."""
+    from bcbot.sources import openmeteo
+    base = openmeteo.self_hosted_base()
+    if not base:
+        log.info("no self-hosted Open-Meteo configured; using the public API")
+        return None
+    from bcbot.util import http
+    try:
+        t = time.monotonic()
+        r = http().get(f"{base}/v1/forecast", timeout=60, params={
+            "latitude": 39.6, "longitude": -106.5, "hourly": "temperature_2m,precipitation",
+            "models": "gfs_global,ncep_nbm_conus,gfs_hrrr,ecmwf_ifs025", "forecast_days": 3})
+        log.info("forecast server %s: HTTP %s in %.1fs %s", base, r.status_code, time.monotonic() - t,
+                 "" if r.ok else r.text[:200])
+        return r.ok
+    except Exception as e:
+        log.warning("forecast server %s unreachable: %s", base, e)
+        return False
+
+
 def loop():
     log.info("0xSnow worker started in %s mode", mode())
+    check_forecast_server()
+    if mode() == "shadow" and os.environ.get("WORKER_TICK_ON_START", "1") == "1":
+        try:  # every deploy checks every reader once; harmless in shadow mode
+            tick(force=True)
+        except Exception:
+            log.exception("start-up tick failed")
     last = None
     while True:
         now = datetime.now(timezone.utc).replace(second=0, microsecond=0)

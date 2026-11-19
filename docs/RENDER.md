@@ -13,7 +13,7 @@ Blueprint: `render.yaml` at the repo root. Region oregon (close to Open-Meteo's 
 Rough cost: Standard $25 + disk 40 GB x $0.25 = $10 + Starter worker $7, about **$42/month**.
 
 ## How the app uses the forecast server
-`bcbot/sources/openmeteo.py`: when `OPEN_METEO_URL` (or `OPEN_METEO_HOSTPORT`, which the blueprint
+`bcbot/sources/openmeteo.py`: when `OPEN_METEO_URL` (or `OPEN_METEO_HOST`, which the blueprint
 sets) is present, forecast and ensemble calls go to our server first and fall back to the public API
 if it errors or refuses a model. History and previous-runs calls (priors once a season, Snow Audit
 replay) stay on the public API. Vercel does not set these variables, so the app on Vercel is unchanged.
