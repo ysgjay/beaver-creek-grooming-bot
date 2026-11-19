@@ -1016,7 +1016,7 @@ def test_every_resort_is_complete():
         assert [b["key"] for b in r["bands"]] == ["base", "mid", "peak"] and fts == sorted(fts), slug
         assert fts[0] < r["elevation_ft"] <= fts[2], slug          # forecast point is on the mountain
         # SNOTEL covers the western US only; Big Bear and Mammoth have none close enough
-        no_snotel = r["region"] in NO_SNOTEL or slug in ("big-bear", "mammoth")
+        no_snotel = r["region"] in NO_SNOTEL or slug in ("big-bear", "mammoth", "whitefish")
         assert (r["snotel"] or no_snotel) and r["opening_day"], slug
         from zoneinfo import ZoneInfo
         assert ZoneInfo(r["tz"]) and r["tz"] == REGION_TZ[r["region"]], slug
@@ -1381,3 +1381,11 @@ def test_wave_2_resorts_are_in_shadow_and_read_no_resort_page_yet():
     for slug in wave2:
         r = resorts.get(slug)
         assert r["snow_report"] is None and resorts.is_static(slug), slug  # no keyed feeds, no page reader yet
+
+
+def test_wave_3_and_4_resorts_are_in_shadow():
+    wave3 = ["sugarloaf", "sunday-river", "loon", "whiteface", "gore", "taos", "whitefish", "grand-targhee", "revelstoke",
+             "jay-peak", "loveland", "wolf-creek", "mt-hood-meadows", "big-white"]
+    for slug in wave3:
+        assert slug in resorts.shadow() and slug not in resorts.enabled(), slug
+        assert resorts.get(slug)["snow_report"] is None and resorts.is_static(slug), slug
