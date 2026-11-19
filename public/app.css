@@ -381,6 +381,7 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .groom { display: grid; gap: 8px; }
 @media (min-width: 560px) { .groom { grid-template-columns: 1.4fr 1fr; align-items: start; } }
 .cam-row { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
+.resort-links { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin: 2px 0 0; font-size: 12px; color: var(--ink-2); }
 .status-line { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
 
 /* ---- Finishes: a material layer on top of any color theme ---- */

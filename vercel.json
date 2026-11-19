@@ -28,6 +28,10 @@
   ],
   "rewrites": [
     {
+      "source": "/llms.txt",
+      "destination": "/api/page?llms=1"
+    },
+    {
       "source": "/feed.xml",
       "destination": "/api/page?feed=1"
     },
