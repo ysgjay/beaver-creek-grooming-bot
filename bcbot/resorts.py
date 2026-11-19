@@ -533,7 +533,15 @@ RESORTS = {
         "bands": _bands((37.6483, -119.0250, 8900, "Main Lodge"), (37.6402, -119.0262, 9600, "McCoy Station"),
                         (37.6303, -119.0330, 11053, "summit")),
         "snotel": [], "snotel_label": None,  # nearest SNOTEL (Virginia Lakes Ridge) is 51 km away: too far to count as truth
-        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-05",  # opened early
+        "cams": [{"label": label, "image": f"https://media.mammothresorts.com/mmsa/mammoth/cams/{name}_1280x720.jpg",
+                  "live": f"https://www.youtube.com/watch?v={yt}"}
+                 for name, label, yt in (("Main_Broadway", "Main Lodge", "m4u2kGpkYD4"),
+                                         ("Top_Of_Sierra_1", "The Summit", "awxz_oIlJE0"),
+                                         ("McCoy_Chair_23_Top", "McCoy Station", "jFK8bVYad0M"),
+                                         ("Unbound_Main_Park_1", "Unbound Main Park", "gelXqzE1Xi0"),
+                                         ("Woolly_Woolly", "Woolly Cam", "AXyxIFY3JaA"),
+                                         ("Village_Village", "The Village", "MwHWDokyUhw"),
+                                         ("Outpost_Arriba", "The Outpost", "xaf6OzA-i6M"))], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-05",  # opened early
         "enabled": False, "stage": "shadow",
     },
     "palisades-tahoe": {
