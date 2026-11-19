@@ -96,6 +96,9 @@ def fetch():
     if config.REPORTPAL:  # Boyne resorts: open JSON feed on the resort's own site
         from . import reportpal
         return reportpal.fetch_snow_report()
+    if config.REPORT_FEED:  # Jackson Hole, Killington and other one-off readers
+        from . import feeds
+        return feeds.fetch_snow_report()
     if not config.RESORT_SNOW_REPORT_URL:  # this resort's report isn't read (yet)
         return {}
     try:

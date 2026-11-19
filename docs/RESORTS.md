@@ -156,3 +156,19 @@ Current Conditions pages load. `bcbot/sources/reportpal.py` takes the resort-wid
 `updated` time and the groomed runs by area. Set a resort's `"reportpal"` code in resorts.py to use it.
 Operating directive (Young, 11/19/2026): support every resort's facts, maps and cams while we ask operators for
 permission, and take anything down the same day an operator asks.
+
+### Per-resort report readers (11/19/2026)
+
+`bcbot/sources/feeds.py` picks a reader from a resort's `"report_feed"`:
+
+- `{"kind": "json", ...}`: the resort's own report JSON, with dotted paths per field. Jackson Hole
+  (jacksonhole-prod.zaneray.com/api/snow.json, mid-mountain numbers) and Taos (/api/conditions).
+- `{"kind": "text", "url", "start", "order"}`: server-rendered report pages (`sources/textpage.py`). It strips the
+  page to text and pairs labels ("24 Hour", "Base Depth", "Season Total", ...) with the number after them
+  (`order: "after"`) or before them (`"before"`), converting cm to inches. `start` skips summary tiles.
+  Killington, Sun Valley, Revelstoke, Whitefish, Banff Sunshine, Big White, Sun Peaks, Loveland, Wolf Creek,
+  Powder Mountain, Mt. Baker, Tamarack, and the live Telluride and A-Basin.
+
+Shadow resorts prove these readers for 3 days before launch. Not read yet: Alterra (keyed feed, waiting on Alterra),
+pages that fill their numbers in with JavaScript (Lake Louise, Grand Targhee, Mt. Hood Meadows, Mt. Bachelor) and
+sites that refused the check (Whiteface, Gore, Jay Peak, Purgatory, Bretton Woods, Smugglers' Notch).

@@ -379,7 +379,7 @@
    "lon": -105.873,
    "region": "Colorado",
    "pass": "Ikon",
-   "snow_report": false,
+   "snow_report": true,
    "grooming": false
   },
   {
