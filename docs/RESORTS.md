@@ -96,10 +96,12 @@ Canadian resorts still show inches and °F; the cm/°C choice is open (see the p
 
 ### Wave 3 (added 11/19/2026, shadow mode)
 
-Boyne (Sugarloaf, Sunday River, Loon), ORDA (Whiteface, Gore) and the top independents: Taos, Whitefish (SNOTEL
-Stryker Basin 1311, 30 km), Grand Targhee (Grand Targhee 1082), Revelstoke, Jay Peak, Loveland (Loveland Basin 602),
+Boyne (Sugarloaf, Sunday River, Loon), ORDA (Whiteface, Gore) and the top independents: Taos, Whitefish (no SNOTEL
+within 30 km), Grand Targhee (Grand Targhee 1082), Revelstoke, Jay Peak, Loveland (Loveland Basin 602),
 Wolf Creek (Wolf Creek Summit 874), Mt. Hood Meadows (Mt Hood Test Site 651) and Big White. Same setup as Wave 2: no
-resort page read yet, opening days and independent pass labels are estimates to confirm before launch.
+resort page read yet. Opening days and pass labels were checked 11/19 (Ikon, Mountain Collective and Indy lists);
+Grand Targhee and Loon have no date yet. Whiteface is Mountain Collective, Gore is on no multi-resort pass, and Loveland,
+Mt. Hood Meadows and Big White are Indy.
 
 ## What differs between resorts
 - **Grooming map layouts.** Beaver Creek's PDF has "Groomers of the day", "Last night's grooming" and

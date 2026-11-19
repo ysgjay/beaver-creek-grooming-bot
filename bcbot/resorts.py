@@ -572,7 +572,8 @@ RESORTS = {
         "enabled": False, "stage": "shadow",
     },
     # ---------- Wave 3 (11/19/2026): shadow mode only ----------
-    # Boyne (Sugarloaf, Sunday River, Loon), ORDA (Whiteface, Gore) and top independents. Same as Wave 2: no resort
+    # Boyne (Sugarloaf, Sunday River, Loon), ORDA (Whiteface, Gore) and top independents. Pass = the main one (Revelstoke,
+    # Taos, Sugarloaf and Sunday River are also on the Mountain Collective). Same as Wave 2: no resort
     # page is read yet (no open feed found; the page reader isn't built), so forecast + snow stations only.
     # Pass labels for the independents and every opening day (est.) get checked before launch.
     "sugarloaf": {
@@ -582,7 +583,7 @@ RESORTS = {
         "bands": _bands((45.0540, -70.3090, 1417, "base"), (45.0400, -70.3100, 2800, "mid-mountain"),
                         (45.0314, -70.3131, 4237, "summit")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-20",  # Ikon list
         "enabled": False, "stage": "shadow",
     },
     "sunday-river": {
@@ -592,7 +593,7 @@ RESORTS = {
         "bands": _bands((44.4730, -70.8570, 800, "South Ridge"), (44.4650, -70.8750, 1800, "mid-mountain"),
                         (44.4580, -70.9000, 3140, "Oz")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-14",  # est.
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-15",  # Ikon list, tentative
         "enabled": False, "stage": "shadow",
     },
     "loon": {
@@ -606,7 +607,7 @@ RESORTS = {
         "enabled": False, "stage": "shadow",
     },
     "whiteface": {
-        "name": "Whiteface", "region": "New York", "pass": "Ikon",
+        "name": "Whiteface", "region": "New York", "pass": "Mountain Collective",
         "site": "https://whiteface.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 44.3600, "lon": -73.8800, "elevation_ft": 2400,
         "bands": _bands((44.3600, -73.8590, 1220, "base"), (44.3600, -73.8800, 2400, "Mid Station"),
@@ -616,7 +617,7 @@ RESORTS = {
         "enabled": False, "stage": "shadow",
     },
     "gore": {
-        "name": "Gore Mountain", "region": "New York", "pass": "Ikon",
+        "name": "Gore Mountain", "region": "New York", "pass": "Independent",
         "site": "https://goremountain.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 43.6650, "lon": -74.0300, "elevation_ft": 2500,
         "bands": _bands((43.6730, -74.0060, 1500, "base"), (43.6650, -74.0300, 2500, "mid-mountain"),
@@ -632,7 +633,7 @@ RESORTS = {
         "bands": _bands((36.5960, -105.4540, 9207, "base"), (36.5850, -105.4500, 10500, "mid-mountain"),
                         (36.5720, -105.4460, 12481, "Kachina Peak")),
         "snotel": ["1168:NM:SNTL", "1307:NM:SNTL"], "snotel_label": "Taos Powderhorn",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26",  # est.
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26",  # announced
         "enabled": False, "stage": "shadow",
     },
     "whitefish": {
@@ -641,8 +642,8 @@ RESORTS = {
         "lat": 48.4930, "lon": -114.3620, "elevation_ft": 5800,
         "bands": _bands((48.4840, -114.3530, 4464, "base"), (48.4930, -114.3620, 5800, "mid-mountain"),
                         (48.5040, -114.3700, 6817, "summit")),
-        "snotel": ["1311:MT:SNTL"], "snotel_label": "Stryker Basin",  # nearest SNOTEL is 30 km away
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-05",  # est.
+        "snotel": [], "snotel_label": None,  # nearest SNOTEL (Stryker Basin) is 31 km away: too far to count as truth
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-04",  # announced
         "enabled": False, "stage": "shadow",
     },
     "grand-targhee": {
@@ -651,18 +652,18 @@ RESORTS = {
         "lat": 43.7800, "lon": -110.9420, "elevation_ft": 9000,
         "bands": _bands((43.7890, -110.9580, 7851, "base"), (43.7800, -110.9420, 9000, "mid-mountain"),
                         (43.7720, -110.9350, 9862, "Fred's Mountain")),
-        "snotel": ["1082:WY:SNTL", "689:WY:SNTL"], "snotel_label": "Grand Targhee",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-21",  # est.
+        "snotel": ["1082:WY:SNTL"], "snotel_label": "Grand Targhee",
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-21",  # est.; the resort says it is delaying opening day, no date yet
         "enabled": False, "stage": "shadow",
     },
     "revelstoke": {
-        "name": "Revelstoke", "region": "British Columbia", "pass": "Mountain Collective",
+        "name": "Revelstoke", "region": "British Columbia", "pass": "Ikon",
         "site": "https://www.revelstokemountainresort.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 50.9620, "lon": -118.1920, "elevation_ft": 5600,
         "bands": _bands((50.9580, -118.1640, 1680, "base"), (50.9620, -118.1920, 5600, "Mackenzie Outpost"),
                         (50.9530, -118.2300, 7300, "summit")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-05",  # est.
+        "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-05",  # announced
         "enabled": False, "stage": "shadow",
     },
     "jay-peak": {
@@ -676,13 +677,13 @@ RESORTS = {
         "enabled": False, "stage": "shadow",
     },
     "loveland": {
-        "name": "Loveland", "region": "Colorado", "pass": "Independent",
+        "name": "Loveland", "region": "Colorado", "pass": "Indy",
         "site": "https://skiloveland.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 39.6700, "lon": -105.9050, "elevation_ft": 11500,
         "bands": _bands((39.6800, -105.8980, 10800, "Loveland Basin"), (39.6700, -105.9050, 11500, "mid-mountain"),
                         (39.6600, -105.9100, 13010, "summit")),
         "snotel": ["602:CO:SNTL", "505:CO:SNTL"], "snotel_label": "Loveland Basin",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-06",  # est.
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-07",  # opened
         "enabled": False, "stage": "shadow",
     },
     "wolf-creek": {
@@ -692,21 +693,21 @@ RESORTS = {
         "bands": _bands((37.4740, -106.7930, 10300, "base"), (37.4700, -106.8000, 11000, "mid-mountain"),
                         (37.4650, -106.8100, 11904, "summit")),
         "snotel": ["874:CO:SNTL", "840:CO:SNTL"], "snotel_label": "Wolf Creek Summit",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-07",  # est.
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-10-31",  # opened
         "enabled": False, "stage": "shadow",
     },
     "mt-hood-meadows": {
-        "name": "Mt. Hood Meadows", "region": "Oregon", "pass": "Independent",
+        "name": "Mt. Hood Meadows", "region": "Oregon", "pass": "Indy",
         "site": "https://www.skihood.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 45.3350, "lon": -121.6680, "elevation_ft": 6500,
         "bands": _bands((45.3310, -121.6650, 5250, "base"), (45.3350, -121.6680, 6500, "mid-mountain"),
                         (45.3420, -121.6720, 7300, "Cascade Express top")),
         "snotel": ["651:OR:SNTL", "1314:OR:SNTL"], "snotel_label": "Mt Hood Test Site",
-        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-05",  # est.
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04",  # announced
         "enabled": False, "stage": "shadow",
     },
     "big-white": {
-        "name": "Big White", "region": "British Columbia", "pass": "Independent",
+        "name": "Big White", "region": "British Columbia", "pass": "Indy",
         "site": "https://www.bigwhite.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 49.7210, "lon": -118.9290, "elevation_ft": 5757,
         "bands": _bands((49.7180, -118.9250, 4950, "base"), (49.7210, -118.9290, 5757, "Village"),
