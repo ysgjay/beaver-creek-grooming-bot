@@ -136,3 +136,17 @@ def test_unchanged_map_is_not_rendered(monkeypatch):
     assert same["hash"] == digest and same["jpeg"] is None and same["text_lines"] and rendered == []
     new = grooming.fetch("something-else")
     assert new["jpeg"] and rendered == [1]
+
+
+def test_compare_forecasts_flags_big_gaps(monkeypatch, tmp_path):
+    live = store.LocalStore(tmp_path / "live")
+    shadow = store.ShadowStore(live, tmp_path / "shadow")
+    day = lambda *snow: {"forecast": {"days": [{"snow": s} for s in snow]}}
+    store.ResortStore(live, "vail").put_json("data/latest.json", day(2, 3, 1))
+    store.ResortStore(shadow, "vail").put_json("data/latest.json", day(2, 3, 2))
+    store.ResortStore(live, "keystone").put_json("data/latest.json", day(1, 0, 0))
+    store.ResortStore(shadow, "keystone").put_json("data/latest.json", day(6, 2, 0))
+    monkeypatch.setattr(store, "get_store", lambda: shadow)
+    out = worker.compare_forecasts(["vail", "keystone"])
+    assert out["rows"] == ["vail 7/6", "keystone 8/1"]
+    assert out["differ"] == ["keystone"]
