@@ -82,8 +82,6 @@ def compose(day):
         best = max(fc["days"], key=lambda x: x["snow"])
         if best["snow"] >= 1:
             lines.append(f"🏔️ Snowiest day: {short_date(best['date'])} — {_in(best['snow'])}")
-        if fc.get("powder_odds_pct") is not None:
-            lines.append(f"🎯 Chance of a {config.POWDER_ALERT_INCHES:.0f}\"+ day this week: {fc['powder_odds_pct']}%")
 
     hours = (day.get("hourly") or {}).get("hours", [])
     if hours:
