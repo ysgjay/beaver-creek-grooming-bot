@@ -969,7 +969,7 @@ def test_resort_link_and_names_in_messages():
 def test_daily_email_has_a_choose_resorts_link(monkeypatch):
     from bcbot import mailer
     posted = []
-    monkeypatch.setattr(mailer, "_post", lambda path, payload: posted.append(payload))
+    monkeypatch.setattr(mailer, "_post", lambda path, payload, **k: posted.append(payload))
     mailer.send_daily([("a@example.com", "tok")], "s", "<p>x</p>", "x")
     assert "/api/resorts?t=tok" in posted[0][0]["html"] and "/api/resorts?t=tok" in posted[0][0]["text"]
 
@@ -1169,7 +1169,7 @@ def test_day_ticket_email_without_map_lists_runs_and_subject_carries_numbers():
 def test_resubmitting_signup_as_active_subscriber_emails_a_resort_update_link(monkeypatch):
     from bcbot import mailer
     posted = []
-    monkeypatch.setattr(mailer, "_post", lambda path, payload: posted.append(payload))
+    monkeypatch.setattr(mailer, "_post", lambda path, payload, **k: posted.append(payload))
     mailer.send_resort_update("a@example.com", "tok", ["beaver-creek", "vail"])
     p = posted[0]
     assert p["to"] == ["a@example.com"] and "Update" in p["subject"]
@@ -1416,3 +1416,89 @@ def test_wave_3_and_4_resorts_are_in_shadow():
 
 def test_the_next_50_are_all_registered():
     assert len(resorts.RESORTS) == 72 and len(resorts.shadow()) == 40
+
+
+# ---------- send safety ----------
+
+def test_failed_email_is_retried_on_later_ticks_only(sandbox, monkeypatch):
+    store, root, pdf, sent = sandbox
+    from bcbot import alert
+    monkeypatch.setattr(alert, "admin", lambda title, body: None)
+    calls = []
+    results = iter([{"email": "FAILED: Resend 500", "push": "1 delivered"}, {"email": "FAILED: Resend 500"}, {"email": "sent to 3"}])
+    monkeypatch.setattr(notify, "send_all", lambda day, map_url, channels=None, slug=None: calls.append(channels) or next(results))
+    main.run(store=store, send=True, now=at(5, 45))
+    main.run(store=store, send=True, now=at(7, 0))
+    assert calls == [None]
+    main.run(store=store, send=True, now=at(7, 5))
+    main.run(store=store, send=True, now=at(7, 10))
+    assert calls == [None, ["email"], ["email"]]          # only email again, never a second push
+    main.run(store=store, send=True, now=at(7, 15))
+    assert len(calls) == 3                                 # it worked: no more tries
+    day = store.get_json("data/latest.json")
+    assert day["delivery"]["results"]["email"] == "sent to 3" and len(day["delivery"]["retries"]) == 2
+
+
+def test_resend_retries_with_one_idempotency_key(monkeypatch):
+    from bcbot import mailer
+
+    class R:
+        def __init__(self, code, text="{}"):
+            self.status_code, self.text, self.ok = code, text, code < 400
+
+        def json(self):
+            return {}
+
+    seen, answers = [], iter([R(500), R(429), R(200)])
+
+    class H:
+        def post(self, url, json=None, timeout=None, headers=None):
+            seen.append(headers.get("Idempotency-Key"))
+            return next(answers)
+
+    monkeypatch.setenv("RESEND_API_KEY", "k")
+    monkeypatch.setattr(mailer, "http", lambda: H())
+    monkeypatch.setattr(mailer, "RETRY_WAITS", (0, 0))
+    mailer.send_daily([("a@x.com", "ta")], "s", "<p>h</p>", "t", kind="daily-vail", day="2026-11-20")
+    assert len(seen) == 3 and len(set(seen)) == 1 and seen[0].startswith("daily-vail/2026-11-20/")
+    assert mailer.batch_key("d", "x", ["b", "a"]) == mailer.batch_key("d", "x", ["a", "b"])
+    answers = iter([R(409, '{"name":"invalid_idempotent_request"}')])
+    assert mailer._post("/emails/batch", [], idempotency_key="k1") == {"already_sent": True}
+
+
+def test_digest_respects_send_switch_noon_and_deadline(monkeypatch):
+    import time
+    from bcbot import digest
+    monkeypatch.setenv("RESEND_API_KEY", "k")
+    monkeypatch.setenv("SNOWDB_DATABASE_URL", "postgres://x")
+    monkeypatch.setenv("SEND_ENABLED", "0")
+    assert digest.run(now=datetime(2026, 11, 20, 6, 30, tzinfo=digest.TZ))["status"] == "skipped (sending off)"
+    monkeypatch.setenv("SEND_ENABLED", "1")
+    assert digest.run(now=datetime(2026, 11, 20, 12, 5, tzinfo=digest.TZ))["status"] == "skipped (past noon)"
+    assert "no time left" in digest.run(deadline=time.monotonic() + 3)["status"]
+
+
+def test_digest_hands_back_claims_when_the_send_fails(monkeypatch):
+    from contextlib import contextmanager
+    from bcbot import db, digest, mailer
+    monkeypatch.setenv("RESEND_API_KEY", "k")
+    monkeypatch.setenv("SEND_ENABLED", "1")
+    monkeypatch.setattr(db, "url", lambda: "postgres://x")
+    monkeypatch.setattr(db, "connect", contextmanager(lambda: (yield object())))
+    monkeypatch.setattr(db, "multi_resort_subscribers", lambda c: [("a@x.com", "ta", ["vail", "copper"], False)])
+    monkeypatch.setattr(db, "sent_resorts", lambda c, d: {"vail", "copper"})
+    monkeypatch.setattr(db, "digest_sent", lambda c, d: set())
+    monkeypatch.setattr(db, "claim_digest", lambda *a: True)
+    released = []
+    monkeypatch.setattr(db, "release_digest", lambda c, d, tokens: released.append((d, tokens)))
+    days = {"vail": _digest_day("vail", "Vail", 2, ["Born Free"]), "copper": _digest_day("copper", "Copper Mountain", 1, [])}
+    monkeypatch.setattr(digest, "_today_day", lambda store, slug, today: days[slug])
+    monkeypatch.setattr(digest.radar, "snapshot", lambda store, now: None)
+
+    def boom(messages, kind=None, day=None):
+        assert kind == "digest" and day == "2026-11-16"
+        raise RuntimeError("Resend 500")
+    monkeypatch.setattr(mailer, "send_personal", boom)
+    with pytest.raises(RuntimeError):
+        digest.run(now=datetime(2026, 11, 16, 6, 30, tzinfo=digest.TZ), store=object())
+    assert released == [("2026-11-16", ["ta"])]

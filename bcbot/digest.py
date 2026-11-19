@@ -43,11 +43,25 @@ def plan(subs, sent, days, now):
     return out
 
 
-def run(now=None, store=None):
-    """Send any combined emails that are due. Safe to call on every tick."""
+LATEST = (12, 0)   # no combined "morning" email after noon (same as SEND_CUTOFF for one resort)
+MIN_SECONDS = 15   # with less time than this left in the tick, leave the claims for the next tick
+RADAR_SECONDS = 30  # the radar picture renders only with this much time to spare
+
+
+def run(now=None, store=None, deadline=None):
+    """Send any combined emails that are due. Safe to call on every tick.
+    deadline: time.monotonic() value the tick must finish by (Vercel's function limit)."""
+    import time
+    if os.environ.get("SEND_ENABLED") != "1":
+        return {"status": "skipped (sending off)"}
     if not (os.environ.get("RESEND_API_KEY") and db.url()):
         return {"status": "skipped (email not configured)"}
+    left = (lambda: deadline - time.monotonic()) if deadline else (lambda: float("inf"))
+    if left() < MIN_SECONDS:
+        return {"status": "skipped (no time left this tick)"}
     now = now or datetime.now(TZ)
+    if (now.hour, now.minute) >= LATEST:
+        return {"status": "skipped (past noon)"}
     today = now.date().isoformat()
     store = store or get_store()
     with db.connect() as conn:
@@ -67,7 +81,9 @@ def run(now=None, store=None):
                 log.exception("digest: could not read %s", slug)
         due = plan(subs, sent, days, now)
         messages = []
-        radar_url = radar.snapshot(store, now) if due else None
+        radar_url = radar.snapshot(store, now) if due and left() > RADAR_SECONDS else None
+        if due and left() < MIN_SECONDS:
+            return {"status": "skipped (no time left this tick)", "waiting": len(subs)}
         for email, token, ready, pending in due:
             if not db.claim_digest(conn, today, token, ready, pending):
                 continue
@@ -76,6 +92,12 @@ def run(now=None, store=None):
             messages.append((email, token, mailer.digest_subject(picked, pending),
                              mailer.digest_html(picked, pending, now, radar_url=radar_url, maps=maps_on.get(token), token=token),
                              mailer.digest_text(picked, pending)))
-    if messages:
-        mailer.send_personal(messages)
+        if messages:
+            try:
+                mailer.send_personal(messages, kind="digest", day=today)
+            except Exception:
+                # Hand the claims back so the next tick tries again. The batch idempotency key
+                # stops anything that did go out from going out twice.
+                db.release_digest(conn, today, [m[1] for m in messages])
+                raise
     return {"status": "ok", "sent": len(messages), "waiting": len(subs) - len(due)}

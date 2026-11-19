@@ -193,7 +193,8 @@ def main(argv=None):
     if a.once:
         out = tick(force=True)
         print({s: r.get("status") for s, r in out["resorts"].items()})
-        return 0
+        bad = [s for s, r in out["resorts"].items() if r.get("status") == "error"]
+        return 1 if bad else 0   # a resort that crashed fails the smoke test
     loop()
     return 0
 

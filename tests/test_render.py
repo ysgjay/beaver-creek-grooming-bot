@@ -9,8 +9,12 @@ from bcbot.sources import openmeteo
 
 
 class Resp:
-    def __init__(self, status=200, text="{}"):
+    def __init__(self, status=200, text='{"hourly": {"time": ["t"], "precipitation": [0.1]}}'):
         self.status_code, self.text, self.ok = status, text, status < 400
+
+    def json(self):
+        import json
+        return json.loads(self.text)
 
 
 def test_forecast_uses_our_server_first(monkeypatch):
@@ -150,3 +154,27 @@ def test_compare_forecasts_flags_big_gaps(monkeypatch, tmp_path):
     out = worker.compare_forecasts(["vail", "keystone"])
     assert out["rows"] == ["vail 7/6", "keystone 8/1"]
     assert out["differ"] == ["keystone"]
+
+
+def test_empty_200_from_our_server_falls_back(monkeypatch):
+    calls = []
+    monkeypatch.setenv("OPEN_METEO_URL", "http://snow-meteo:8080")
+
+    def fake(url, **o):
+        calls.append(url)
+        return Resp(200, '{"hourly": {"time": ["t"], "precipitation": [null]}}') if "snow-meteo" in url else Resp()
+
+    monkeypatch.setattr(openmeteo, "_http_get", fake)
+    openmeteo.get(openmeteo.FORECAST_URL, params={})
+    assert calls == ["http://snow-meteo:8080/v1/forecast", openmeteo.FORECAST_URL]
+
+
+def test_live_mode_refuses_a_local_store(monkeypatch):
+    import pytest
+    for k in ("BLOB_READ_WRITE_TOKEN", "BLOB_PUBLIC_BASE", "STORE_MODE", "VERCEL_ENV"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("WORKER_MODE", "live")
+    with pytest.raises(RuntimeError):
+        store.get_store()
+    monkeypatch.setenv("WORKER_MODE", "shadow")
+    assert isinstance(store.get_store(), store.LocalStore)

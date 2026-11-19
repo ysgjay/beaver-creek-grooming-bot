@@ -28,6 +28,20 @@ def self_hosted_base():
 _SELF_PATHS = {FORECAST_URL: "/v1/forecast", ENSEMBLE_URL: "/v1/ensemble"}
 
 
+def _has_data(r):
+    """A 200 from our server can still be empty (no hourly block, or every value null) while
+    it warms up. Treat that as a miss so the public API answers instead."""
+    try:
+        j = r.json()
+    except Exception:
+        return False
+    if not isinstance(j, dict):
+        return False
+    blocks = [b for b in (j.get("hourly"), j.get("daily")) if isinstance(b, dict)]
+    return any(isinstance(v, list) and any(x is not None for x in v)
+               for b in blocks for k, v in b.items() if k != "time")
+
+
 def get(url, **opts):
     """Forecast and ensemble calls go to our own server first when one is configured, and fall
     back to the public API if it errors or refuses (a model it can't serve yet, a cold start).
@@ -37,7 +51,7 @@ def get(url, **opts):
     if base and path:
         try:
             r = _http_get(base + path, **(opts | {"retries": 0}))
-            if r.ok:
+            if r.ok and _has_data(r):
                 return r
             log.warning("self-hosted Open-Meteo %s returned %s; using the public API: %s",
                         path, r.status_code, r.text[:160])

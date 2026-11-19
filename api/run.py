@@ -44,12 +44,16 @@ def due(slugs, force=False, user_agent="", now=None):
     return [s for s in slugs if minute % 30 < 2 or not resorts.is_static(s)]
 
 
-def _digest():
+TICK_SECONDS = 55   # Vercel stops the function at 60 s (vercel.json maxDuration)
+
+
+def _digest(deadline=None):
     """After the resorts run: the combined email for people with several resorts, once all of
-    theirs are in (or at the cutoff). Never fails the tick."""
+    theirs are in (or at the cutoff). Never fails the tick. With a deadline it leaves anything
+    it can't finish in time for the next tick rather than risk being cut off mid-send."""
     try:
         from bcbot import digest
-        return digest.run()
+        return digest.run(deadline=deadline)
     except Exception as e:
         logging.exception("digest failed")
         from bcbot import alert
@@ -59,6 +63,8 @@ def _digest():
 
 class handler(BaseHTTPRequestHandler):
     def _go(self):
+        import time
+        started = time.monotonic()
         secret = os.environ.get("CRON_SECRET", "")
         auth = self.headers.get("Authorization")
         if not secret or auth != f"Bearer {secret}":
@@ -77,7 +83,7 @@ class handler(BaseHTTPRequestHandler):
                 return self._reply(200 if _ok(result) else 500, result)
             results = self._fan_out(auth, force)
             code = 200 if all(_ok(r) for r in results.values()) else 500
-            return self._reply(code, {"status": "ok", "resorts": results, "digest": _digest()})
+            return self._reply(code, {"status": "ok", "resorts": results, "digest": _digest(deadline=started + TICK_SECONDS)})
         except Exception as e:  # report, don't hide
             logging.exception("run failed")
             return self._reply(500, {"status": "error", "error": str(e)})

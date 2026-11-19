@@ -101,7 +101,8 @@ def indexnow(urls):
     import os
     from urllib.parse import urlsplit
     from .util import http
-    if os.environ.get("VERCEL_ENV") != "production":
+    live_worker = os.environ.get("WORKER_MODE", "").strip().lower() == "live"   # Render, after cutover
+    if os.environ.get("VERCEL_ENV") != "production" and not live_worker:
         return None
     host = urlsplit(site()).netloc
     try:
