@@ -12,7 +12,7 @@ from .mailer import DISPLAY, MONO
 
 CSS = f"""
 .wrap.wide .lead,.wrap.wide .cta{{max-width:760px}}
-.rp .card{{background:var(--paper);border:1px solid var(--edge);border-radius:20px;box-shadow:var(--shadow);padding:16px;margin:0 0 14px}}
+.rp .card{{background:var(--paper);border:1px solid var(--edge);border-radius:24px;box-shadow:var(--shadow);padding:16px;margin:0 0 14px}}
 .rp h2{{margin:0 0 10px}}
 .rp .kick{{margin:0 0 6px;font:600 11px/1.3 {MONO};letter-spacing:.05em;text-transform:uppercase;color:var(--ink2)}}
 .rp .sub{{margin:6px 0 0;color:var(--ink2);font-size:14px}}

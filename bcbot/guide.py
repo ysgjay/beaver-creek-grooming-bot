@@ -29,7 +29,7 @@ CSS = f"""
 .gd .layout{{display:grid;gap:14px}}
 .gd .layout>div>.card:last-child{{margin-bottom:0}}
 .gd aside .cta{{margin:0 0 14px}}
-.toc{{background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:14px 16px}}
+.toc{{background:var(--paper);border:1px solid var(--edge);border-radius:24px;padding:14px 16px}}
 .toc ol{{margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.8}}
 .answer{{font:600 18px/1.35 {DISPLAY};margin:0 0 4px}}
 .bo{{list-style:none;padding:0;margin:12px 0 8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}}
