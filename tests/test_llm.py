@@ -20,13 +20,17 @@ def test_report_markdown_has_only_real_numbers():
     assert "Source page: https://snow.0xm.studio/resorts/vail" in md
 
 
-def test_report_json_and_guide_markdown():
+def test_report_json_and_guide_markdown(monkeypatch):
     j = llm.report_json("beaver-creek", DAY)
     json.dumps(j)
     assert j["snow_in"]["base"] == 18 and j["grooming"]["all"][0] == "Born Free"
     assert j["facts"]["blackout_dates"]["source"].startswith("https://www.epicpass.com")
     g = llm.guide_md("copper")
     assert "## Lift hours" in g and "checked 11/19/2026" in g and "## Blackout dates" in g
+    v = llm.guide_md("vail")
+    assert "## Blackout dates" in v and "Epic Local Pass: 10 days total" in v
+    from bcbot import facts as F
+    monkeypatch.setattr(F, "FACTS", {})
     assert "hasn't collected sourced facts" in llm.guide_md("vail")
 
 

@@ -565,8 +565,12 @@ def guide_page(slug, summary=None):
         facts = [f for f in facts if f[0] not in ("Opening day", "Scheduled opening")]
         rows = "".join(f'<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line);color:var(--ink2)">{escape(k)}</td>'
                        f'<td style="padding:6px 8px;border-bottom:1px solid var(--line)">{escape(v)}</td></tr>' for k, v in facts)
-    h1 = (f"{name}: hours, opening and closing day, trail map" if info
-          else f"How the {name} grooming and snow report works")
+    from . import facts as F
+    covers = F.topics(slug)
+    h1 = (f"{name}: {covers}" if info else f"How the {name} grooming and snow report works")
+    if faq:
+        faq["mainEntity"].append({"@type": "Question", "name": f"When does the {name} grooming report come out?",
+                                  "acceptedAnswer": {"@type": "Answer", "text": timing}})
     body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › <a href="{resort_path(slug)}">{escape(name)}</a> › Guide</p>'
             f'<h1 class="page">{escape(h1)}</h1>'
             f'<p class="lead">Everything 0xSnow knows about when and how {escape(name)} reports grooming and snow, '
@@ -588,10 +592,10 @@ def guide_page(slug, summary=None):
           "about": {"@type": "SkiResort", "name": name}}
     if info:
         ld["headline"] = h1
-    title = (f"{name} hours, opening day, closing day and trail map | {ORG}" if info
+    title = (f"{name} {covers} | {ORG}" if info
              else f"When does the {name} grooming report come out? | {ORG}")
-    desc = (f"{name} lift hours, opening and closing day, trail map, pass blackout dates, lift ticket prices and "
-            f"lessons, each with its source and the date we checked it." if info else
+    desc = (f"{name} {covers}, each with its source and the date we checked it, plus when the "
+            f"grooming report comes out." if info else
             f"When {name} posts its grooming and snow report each morning, where the numbers come from, "
             f"and how to get the {name} report free every day.")
     return shell(page_title=title, desc=desc,
@@ -655,7 +659,8 @@ def _facts_section(slug, name, today=None):
             items += row
         qa.append({"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": ans}})
     box = '<div style="background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:6px 12px">{}</div>'
-    html_ = (f'<h2>Hours, dates and trail map</h2>' + box.format(items)
+    html_ = ((f'<h2>{"Hours, dates and trail map" if any(k in kinds for k in ("lift_hours", "trail_map")) else "Season dates"}</h2>'
+              + box.format(items) if items else "")
              + (f'<h2>Passes, tickets and lessons</h2>' + box.format(more) if more else "")
              + f'<p style="font-size:12px;color:var(--ink2)">Every fact links to the resort page it came from. Dates and hours '
              f'can change with conditions and prices change by date, so check the source before you go. 0xSnow re-checks '
@@ -667,5 +672,5 @@ def _facts_section(slug, name, today=None):
 
 def _guide_label(slug, name):
     from . import facts as F
-    return (f"{name} hours, opening and closing day, trail map" if slug in F.FACTS
+    return (f"{name} {F.topics(slug)}" if slug in F.FACTS
             else f"How the {name} grooming and snow report works")
