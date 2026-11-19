@@ -68,10 +68,44 @@ def tick(force=False, now=None):
     if mode() == "live":
         from api.run import _digest
         digest = _digest()
+    if mode() == "shadow":
+        compare_forecasts([s for s, r in results.items() if r.get("full_run") and s in resorts.enabled()])
     bad = [s for s, r in results.items() if r.get("status") == "error" or (r.get("status") != "skipped" and not r.get("ok"))]
     log.info("tick (%s): %d resorts in %.0fs, %d with problems %s, %s MB", mode(), len(results),
              time.monotonic() - started, len(bad), bad, _release_memory())
     return {"mode": mode(), "resorts": results, "digest": digest}
+
+
+def _snow(day, n=3):
+    days = ((day or {}).get("forecast") or {}).get("days") or []
+    return round(sum(d.get("snow") or 0 for d in days[:n]), 1) if days else None
+
+
+def compare_forecasts(slugs):
+    """Shadow check before going live: for each live resort this tick refreshed, log the next
+    3 days of snow from our run (self-hosted forecast) beside what the app shows now (Vercel,
+    public API). One line per tick, so the logs show whether the two agree."""
+    from bcbot import store
+    shadow = store.get_store()
+    if not slugs or not isinstance(shadow, store.ShadowStore):
+        return None
+    rows, big = [], []
+    for slug in slugs:
+        try:
+            ours = _snow(store.ResortStore(shadow.local, slug).get_json("data/latest.json"))
+            live = _snow(store.ResortStore(shadow.live, slug).get_json("data/latest.json"))
+        except Exception as e:
+            log.warning("compare %s failed: %s", slug, e)
+            continue
+        if ours is None or live is None:
+            continue
+        rows.append(f"{slug} {ours}/{live}")
+        if abs(ours - live) > max(1.0, 0.25 * max(ours, live)):
+            big.append(slug)
+    if rows:
+        log.info("compare 3-day snow in (render/vercel), %d differ by more than 25%%: %s | %s",
+                 len(big), big, ", ".join(rows))
+    return {"rows": rows, "differ": big}
 
 
 def _release_memory():
