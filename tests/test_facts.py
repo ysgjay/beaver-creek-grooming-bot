@@ -85,10 +85,10 @@ def test_shared_pass_facts_cover_every_resort():
 
 
 def test_guide_title_follows_the_facts_it_has():
-    assert facts.topics("alta") == "opening day, closing day, passes and blackout dates"
+    assert facts.topics("alta") == "opening day, closing day, lift hours, passes and blackout dates"
     html = pages.guide_page("alta", {})
-    assert "<title>Alta opening day and blackout dates 2026/27 | 0xSnow</title>" in html
-    assert '<h1 class="page">Alta guide: opening day and blackout dates 2026/27</h1>' in html
+    assert "<title>Alta opening day, blackout dates and lift hours 2026/27 | 0xSnow</title>" in html
+    assert '<h1 class="page">Alta guide: opening day, blackout dates and lift hours 2026/27</h1>' in html
     assert "doesn&#x27;t include Alta" in html and "Not included" in html
 
 
@@ -105,6 +105,14 @@ def test_guide_leads_with_snow_report_and_quick_answers():
 
 def test_todo_points_at_operator_pages():
     rows = {(s, k): w for s, k, w in facts.todo()}
-    assert rows[("park-city", "lift_hours")] == "https://www.parkcitymountain.com/explore-the-resort/about-the-resort/hours-of-operation.aspx"
+    assert rows[("park-city", "lift_tickets")] == "https://www.parkcitymountain.com/plan-your-trip/lift-access/tickets.aspx"
     assert ("copper", "lessons") not in rows
-    assert "find the official page" in rows[("alta", "lift_hours")]
+    assert "find the official page" in rows[("alta", "lift_tickets")]
+
+
+def test_lift_hours_sit_in_the_top_row():
+    html = pages.guide_page("alta", {}, None, today=date(2026, 11, 19))
+    assert html.index('id="hours"') < html.index("Quick answers") and "Collins and Sunnyside run to 4:30 PM" in html
+    assert 'href="/resorts/alta/guide#hours">Lift hours</a>' in html
+    assert "hasn&#x27;t checked Snowbird" in pages.guide_page("snowbird", {}, None, today=date(2026, 11, 19)) or \
+        "hasn't checked Snowbird" in pages.guide_page("snowbird", {}, None, today=date(2026, 11, 19))

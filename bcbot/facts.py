@@ -150,15 +150,44 @@ ANNOUNCED = {
                                               "Telluride: 2026-27 winter season dates")),
     "aspen-mountain": ("2026-11-26", None, IKON_DATES), "snowmass": ("2026-11-26", None, IKON_DATES),
     "aspen-highlands": ("2026-12-12", None, IKON_DATES), "buttermilk": ("2026-12-12", None, IKON_DATES),
-    "steamboat": ("2026-11-21", None, IKON_DATES), "alta": ("2026-11-20", None, IKON_DATES),
-    "snowbird": ("2026-11-27", None, IKON_DATES), "solitude": ("2026-11-20", None, IKON_DATES),
+    "steamboat": ("2026-11-27", None, ("https://www.steamboat.com/the-mountain/hours-and-operations", "Steamboat: Hours and Operations")), "alta": ("2026-11-20", None, IKON_DATES),
+    "snowbird": ("2026-11-27", None, IKON_DATES), "solitude": ("2026-11-19", None, ("https://www.solitudemountain.com/mountain-and-village/mountain-information/hours-of-operation", "Solitude: Hours of Operation")),
     "deer-valley": ("2026-12-05", None, IKON_DATES), "snowbasin": ("2026-11-27", None, IKON_DATES),
+    "winter-park": ("2026-11-13", "2027-04-18", ("https://www.winterparkresort.com/the-mountain/hours-of-operation", "Winter Park: Hours of Operation")),
 }
 # Trail map pages checked by hand (we link, never copy the art).
 TRAIL_MAPS = {
     "vail": ("https://www.vail.com/the-mountain/about-the-mountain/trail-map.aspx", "Winter 2026/27 trail maps: Front Side, Back Bowls, Blue Sky (on vail.com)"),
     "breckenridge": ("https://www.breckenridge.com/the-mountain/about-the-mountain/trail-map.aspx", "Winter 2026/27 trail map (on breckenridge.com)"),
     "keystone": ("https://www.keystoneresort.com/the-mountain/about-the-mountain/trail-map.aspx", "Trail maps (on keystoneresort.com)"),
+}
+# Lift hours read from each resort's own hours page: slug -> (value, (url, page name)).
+LIFT_HOURS = {
+    "vail": ("9 AM to 3:30 PM daily.", ("https://www.vail.com/explore-the-resort/about-the-resort/hours-of-operation.aspx", "Vail: Hours of Operation")),
+    "breckenridge": ("Chairlifts 9 AM to 4 PM. The gondola (BreckConnect) runs 8:30 AM to 5 PM, last upload 4:30 PM. High alpine lifts may open later with conditions.",
+                     ("https://www.breckenridge.com/explore-the-resort/about-the-resort/hours-of-operation.aspx", "Breckenridge: Hours of Operation")),
+    "keystone": ("Chairlifts 9 AM to 4 PM. Early season runs from River Run only: River Run Gondola, Summit Express and Montezuma Express, 9 AM to 4 PM.",
+                 ("https://www.keystoneresort.com/explore-the-resort/about-the-resort/hours-of-operation.aspx", "Keystone: Hours of Operation")),
+    "crested-butte": ("9 AM to 4 PM daily, starting 11/25.", ("https://www.skicb.com/explore-the-resort/about-the-resort/hours-of-operation.aspx", "Crested Butte: Hours of Operation")),
+    "park-city": ("Lifts 9 AM to 4 PM daily. Canyons Village Skyway and Frostwood Gondola 7 AM to 6 PM.",
+                  ("https://www.parkcitymountain.com/explore-the-resort/about-the-resort/hours-of-operation.aspx", "Park City Mountain: Hours of Operation")),
+    "winter-park": ("9 AM to 4 PM daily through 12/5. From 12/5 to 4/4, lifts open at 8 AM on Saturdays and Sundays.",
+                    ("https://www.winterparkresort.com/the-mountain/hours-of-operation", "Winter Park: Hours of Operation")),
+    "arapahoe-basin": ("9 AM to 4 PM Monday to Friday, 8:30 AM to 4 PM weekends and select holidays. Lenawee Express and Pallavicini close at 3:30 PM.",
+                       ("https://www.arapahoebasin.com/operating-hours-/", "A-Basin: Lift & Dining Operating Hours")),
+    "steamboat": ("Christie Peak Express and the Steamboat Gondola 8:30 AM to 4 PM (gondola last download 4:30 PM). Wild Blue Gondola 9 AM to 3 PM. Four Points Express 9:30 AM to 3:15 PM from 12/18.",
+                  ("https://www.steamboat.com/the-mountain/hours-and-operations", "Steamboat: Hours and Operations")),
+    "eldora": ("9 AM to 4 PM Monday to Friday, 8:30 AM to 4 PM Saturday and Sunday. No night skiing.",
+               ("https://www.eldora.com/the-mountain/mountain-info/faqs-policies/", "Eldora: Hours & FAQs")),
+    "snowmass": ("9 AM to 3:30 PM.", ("https://www.aspensnowmass.com/four-mountains/snowmass/lift-status", "Snowmass: Lift Status")),
+    "aspen-mountain": ("9 AM to 3:30 PM.", ("https://www.aspensnowmass.com/four-mountains/aspen-mountain/lift-status", "Aspen Mountain: Lift Status")),
+    "aspen-highlands": ("9 AM to 3:30 PM.", ("https://www.aspensnowmass.com/four-mountains/aspen-highlands/lift-status", "Aspen Highlands: Lift Status")),
+    "buttermilk": ("9 AM to 3:30 PM.", ("https://www.aspensnowmass.com/four-mountains/buttermilk/lift-status", "Buttermilk: Lift Status")),
+    "alta": ("Lifts start at 9:15 AM. Collins and Sunnyside run to 4:30 PM, Sugarloaf and Wildcat to 4 PM, Supreme to 3:30 PM.",
+             ("https://www.alta.com/about", "Alta: About Alta Ski Area")),
+    "solitude": ("Early season (to mid-December): most lifts 9 AM to 4 PM; Summit Express and Honeycomb Return 9 AM to 3:30 PM. From mid-December, Apex, Moonbeam and Link open at 8 AM.",
+                 ("https://www.solitudemountain.com/mountain-and-village/mountain-information/hours-of-operation", "Solitude: Hours of Operation")),
+    "snowbasin": ("9 AM to 4 PM daily.", ("https://www.snowbasin.com/about/faqs/", "Snowbasin: FAQs")),
 }
 TELLURIDE_HOURS = "Base lifts 9 AM to 4 PM. The free gondola runs 6:30 AM to midnight, 7 days a week."
 
@@ -175,6 +204,9 @@ def _shared(slug, name):
         out["closing_day"] = _fact(c, src)
     if slug == "telluride":
         out["lift_hours"] = _fact(TELLURIDE_HOURS, ANNOUNCED["telluride"][2])
+    if slug in LIFT_HOURS:
+        value, src = LIFT_HOURS[slug]
+        out["lift_hours"] = _fact(value, src)
     if slug in TRAIL_MAPS:
         url, label = TRAIL_MAPS[slug]
         out["trail_map"] = _fact(url, (url, f"{name}: Trail and Mountain Maps"), label=label)

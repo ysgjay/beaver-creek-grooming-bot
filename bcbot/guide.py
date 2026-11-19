@@ -24,6 +24,8 @@ CSS = f"""
 .answers b{{display:block;font:600 16px/1.25 {DISPLAY};margin-top:4px}}
 .answers .s{{display:block;font-size:12px;color:var(--ink2);margin-top:2px}}
 .answers .hot b{{color:var(--accent-ink)}}
+.hours-v{{font:600 18px/1.4 {DISPLAY};margin:0}}
+.hourscard .card{{margin:0}}
 .gd .layout{{display:grid;gap:14px}}
 .gd .layout>div>.card:last-child{{margin-bottom:0}}
 .gd aside .cta{{margin:0 0 14px}}
@@ -58,8 +60,16 @@ table.glance td:first-child{{color:var(--ink2);width:40%}}
 @media (min-width:640px){{.answers{{grid-template-columns:repeat(3,minmax(0,1fr))}}}}
 @media (min-width:900px){{
  .gd .hero{{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
+ .gd .hero .qa{{grid-column:1 / -1}}
+ .answers{{grid-template-columns:repeat(6,minmax(0,1fr))}}
  .gd .layout{{grid-template-columns:minmax(0,1fr) 300px;align-items:start}}
  .gd aside{{position:sticky;top:76px}}
+}}
+@media (min-width:1300px){{
+ .gd .hero{{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) minmax(0,1.2fr)}}
+ .gd .hero .qa{{grid-column:auto}}
+ .answers{{grid-template-columns:repeat(3,minmax(0,1fr))}}
+ .gd .layout{{grid-template-columns:minmax(0,1fr) 340px}}
 }}
 """
 
@@ -250,6 +260,19 @@ def render(slug, summary=None, day=None, today=None):
             f'<p class="actions"><a class="btn" href="{report_url}">Today\'s full report</a>'
             f'<a href="{app}">Open in the app</a></p></div>')
 
+    # Lift hours: one of the most asked questions, so it sits in the hero.
+    lh = kinds.get("lift_hours")
+    if lh and lh.get("value"):
+        hours_body = (f'<p class="hours-v">{escape(lh["value"])}</p>'
+                      + (f'<p class="sub">{escape(lh["note"])}</p>' if lh.get("note") else "") + _src(lh, "lift_hours", today))
+    elif lh:
+        hours_body = f'<p class="hours-v">Not posted yet</p><p class="sub">{escape(lh.get("note") or "")}</p>' + _src(lh, "lift_hours", today)
+    else:
+        hours_body = (f'<p class="sub" style="margin:0">0xSnow hasn\'t checked {escape(name)}\'s lift hours yet. '
+                      f'<a href="{escape(r["site"])}" rel="nofollow">See the resort\'s site</a>.</p>')
+    hours = (f'<div class="hourscard" id="hours"><h2>{escape(name)} lift hours</h2>'
+             f'<section class="card">{hours_body}</section></div>')
+
     tiles = []
     tiles.append(("#season", "Open?", open_tile, ""))
     bo_tile, bo_html = _blackout(slug, name, kinds, today)
@@ -267,9 +290,7 @@ def render(slug, summary=None, day=None, today=None):
     g_time = (times.get("grooming") or {}).get("time")
     tiles.append(("#grooming", "Grooming", f"About {g_time}" if g_time else ("Nightly PDF" if r.get("grooming_pdf") else "Not read yet"),
                   "usual posting time" if g_time else ""))
-    if kinds.get("lift_hours"):
-        tiles.append(("#season", "Lift hours", "See hours", ""))
-    elif kinds.get("lift_tickets"):
+    if kinds.get("lift_tickets"):
         tiles.append(("#tickets", "Lift tickets", "Prices", ""))
     answers = '<ul class="answers">' + "".join(
         f'<li><a href="{h}"{" class=\"hot\"" if k == "Blackout dates" and "Blackout day" in b else ""}>'
@@ -290,8 +311,8 @@ def render(slug, summary=None, day=None, today=None):
                         f'<p class="sub" style="margin:0 0 10px">0xSnow links to the resort\'s own trail map and shows its '
                         f'public cams in the app.</p><div class="links">{links}</div>'
                         + (_src(tm, "trail_map", today) if tm else "") + "</section>")
-    season = _fact_rows(kinds, ("opening_day", "closing_day", "lift_hours"), today, name)
-    sections.append(f'<section class="card" id="season"><h2>{escape(name)} opening day, closing day and hours</h2>'
+    season = _fact_rows(kinds, ("opening_day", "closing_day"), today, name)
+    sections.append(f'<section class="card" id="season"><h2>{escape(name)} opening and closing day</h2>'
                     + (season or f'<p class="answer">{escape(open_sentence)}</p>') + "</section>")
     tickets = _fact_rows(kinds, ("lift_tickets", "lessons"), today, name)
     if tickets:
@@ -318,7 +339,7 @@ def render(slug, summary=None, day=None, today=None):
 
     toc = [("#blackout-dates", "Blackout dates and passes") if bo_html else None,
            ("#trail-map", "Trail map and webcams") if (tm or r.get("cams")) else None,
-           ("#season", "Opening day and hours"), ("#tickets", "Lift tickets and lessons") if tickets else None,
+           ("#hours", "Lift hours"), ("#season", "Opening and closing day"), ("#tickets", "Lift tickets and lessons") if tickets else None,
            ("#grooming", "Grooming report times"), ("#how", "How the report works")]
     aside = (pages._cta(slug, name)
              + '<nav class="toc" aria-label="On this page"><p class="kick" style="margin:0">On this page</p><ol>'
@@ -327,7 +348,7 @@ def render(slug, summary=None, day=None, today=None):
                f'Markdown version</a></p></nav>')
 
     words = covers(slug)
-    h1 = f"{name} guide: " + _join(words or ["snow report", "grooming"]) + " 2026/27"
+    h1 = f"{name} guide: " + _join((words[:3] + ["more"]) if len(words) > 4 else (words or ["snow report", "grooming"])) + " 2026/27"
     title = f"{name} " + _join(words or ["snow report", "grooming report times"]) + f" 2026/27 | {pages.ORG}"
     parts = ["Today's snow report", "blackout dates" if bo_html else None, "trail map" if tm else None,
              "cams" if r.get("cams") else None, "when grooming posts"]
@@ -336,7 +357,7 @@ def render(slug, summary=None, day=None, today=None):
         " for 2026/27, each with its source and the date we checked it, plus today's snow report and when grooming posts.")
     body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › <a href="{report_url}">{escape(name)}</a> › Guide</p>'
             f'<h1 class="page">{escape(h1)}</h1><p class="lead">{escape(lead)}</p>'
-            f'<article class="rp gd"><div class="hero">{snow}<div><h2>Quick answers</h2>{answers}</div></div>'
+            f'<article class="rp gd"><div class="hero">{snow}{hours}<div class="qa"><h2>Quick answers</h2>{answers}</div></div>'
             f'<div class="layout"><div>{"".join(sections)}</div><aside>{aside}</aside></div></article>')
     ld = [{"@context": "https://schema.org", "@type": "Article", "headline": h1,
            "url": pages.site(pages.resort_path(slug, "guide")), "author": pages._org(), "publisher": pages._org(),

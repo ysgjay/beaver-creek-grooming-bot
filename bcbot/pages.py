@@ -179,15 +179,15 @@ def description(day):
 THEME = """
 :root{--bg:#dcebfa;--paper:#f5f9fc;--surface:#ffffff;--edge:#ffffff;--ink:#0c2a4a;--ink2:#52677b;--line:#c3d3e0;
 --action:#365c7d;--btn:#7b1e2e;--btn-hover:#651826;--accent-soft:#f2e6e9;--accent-ink:#7b1e2e;--chip-line:#e3c9cf;--snow:#376f9b;
---tile-line:#dce8f2;--bar:#dcebfaee;--shadow:inset 0 1px 0 #fff,0 8px 24px rgba(12,42,74,.07),0 1px 3px rgba(12,42,74,.04);
+--tile-line:#dce8f2;--sel:#dce8f2;--bar:#dcebfaee;--shadow:inset 0 1px 0 #fff,0 8px 24px rgba(12,42,74,.07),0 1px 3px rgba(12,42,74,.04);
 --glow:radial-gradient(ellipse at 15% 0%,#ffffffd9,transparent 48%),linear-gradient(145deg,#eef5fc,#dcebfa 65%,#e8f1fa);color-scheme:light}
 html[data-appearance="dark"]{--bg:#071b2e;--paper:#102a40;--surface:#18384f;--edge:#365870;--ink:#e7f2fc;--ink2:#a9bfd2;--line:#32516a;
 --action:#b8dcf6;--btn:#8b2941;--btn-hover:#a13a53;--accent-soft:#402437;--accent-ink:#f0bfca;--chip-line:#6b3a4c;--snow:#8dc4eb;
---tile-line:#32516a;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
+--tile-line:#32516a;--sel:#24475e;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
 --glow:radial-gradient(ellipse at 15% 0%,#24517166,transparent 48%),linear-gradient(145deg,#0b243b,#071b2e 65%,#0c2940);color-scheme:dark}
 @media (prefers-color-scheme:dark){html:not([data-appearance]){--bg:#071b2e;--paper:#102a40;--surface:#18384f;--edge:#365870;--ink:#e7f2fc;--ink2:#a9bfd2;--line:#32516a;
 --action:#b8dcf6;--btn:#8b2941;--btn-hover:#a13a53;--accent-soft:#402437;--accent-ink:#f0bfca;--chip-line:#6b3a4c;--snow:#8dc4eb;
---tile-line:#32516a;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
+--tile-line:#32516a;--sel:#24475e;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
 --glow:radial-gradient(ellipse at 15% 0%,#24517166,transparent 48%),linear-gradient(145deg,#0b243b,#071b2e 65%,#0c2940);color-scheme:dark}}
 html[data-appearance="dark"] :is(ol.days .v,table.hours td.g span){color:#e7f2fc;box-shadow:inset 0 0 0 99px rgba(7,27,46,.6)}
 """
@@ -216,6 +216,20 @@ ul.list{{padding-left:18px}}
 .cta{{background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:16px;margin:16px 0}}
 .cta a.btn{{background:var(--btn);color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600;display:inline-block}}
 footer{{margin-top:26px;font-size:12px;color:var(--ink2)}}
+.topbar.wide .top{{max-width:1680px;padding:8px 20px}}
+.wrap.wide{{max-width:1680px;padding:14px 20px 32px}}
+.top .resort{{font:600 20px/1 {mailer.DISPLAY};color:var(--ink);text-decoration:none;white-space:nowrap;padding-left:12px;border-left:1px solid var(--line)}}
+.rtabs{{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}}
+.rtabs::-webkit-scrollbar{{display:none}}
+.rtabs a{{flex:none;display:inline-flex;align-items:center;height:40px;padding:0 13px;border-radius:999px;
+ font:500 15px/1 {mailer.SANS};color:var(--ink);text-decoration:none;white-space:nowrap}}
+.rtabs a:hover{{background:var(--paper)}}
+.rtabs a[aria-current="page"]{{background:var(--sel);font-weight:600}}
+.rtabs a:focus-visible{{outline:2px solid var(--btn);outline-offset:2px}}
+.subtabs{{display:none;max-width:1680px;margin:0 auto;padding:0 12px 8px}}
+@media (min-width:1100px){{.top .rtabs{{margin-left:6px;padding-left:10px;border-left:1px solid var(--line)}}}}
+@media (max-width:1099px){{.top .rtabs{{display:none}} .subtabs{{display:block}} .subtabs .rtabs a{{height:36px;padding:0 12px;font-size:14px}}}}
+@media (max-width:520px){{.top .resort{{display:none}}}}
 """ + webreport.CSS + guide_mod.CSS
 
 
@@ -224,8 +238,19 @@ def _ld(obj):
     return f'<script type="application/ld+json">{data}</script>'
 
 
+def resort_tabs(slug, current):
+    """App-style section tabs for a resort's public pages. `current` is the tab key shown as selected."""
+    from . import facts as F
+    guide = resort_path(slug, "guide")
+    tabs = [("report", "Snow report", resort_path(slug)), ("hours", "Lift hours", f"{guide}#hours"),
+            ("blackout", "Blackout dates", f"{guide}#blackout-dates"), ("map", "Trail map and cams", f"{guide}#trail-map"),
+            ("grooming", "Grooming", f"{resort_path(slug)}#grooming"), ("guide", "Resort guide", guide)]
+    links = "".join(f'<a href="{h}"{" aria-current=\"page\"" if k == current else ""}>{escape(t)}</a>' for k, t, h in tabs)
+    return f'<nav class="rtabs" aria-label="{escape(resorts.get(slug)["name"])} sections">{links}</nav>'
+
+
 def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=False, feed=None, wide=False,
-          app_href="/", where=None, markdown=None):
+          app_href="/", where=None, markdown=None, tabs=None):
     image = image or site("brand/share-1200x630.png")
     meta = [
         f"<title>{escape(page_title)}</title>",
@@ -248,6 +273,12 @@ def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=Fal
     meta.append('<link rel="alternate" type="text/plain" title="Guide for AI assistants" href="/llms.txt">')
     lds = "".join(_ld(x) for x in (ld or []))
     where_html = f'<span class="where">/ {escape(where)}</span>' if where else ""
+    sub = ""
+    if tabs:
+        slug, current = tabs
+        nav = resort_tabs(slug, current)
+        where_html = f'<a class="resort" href="{resort_path(slug)}">{escape(resorts.get(slug)["name"])}</a>{nav}'
+        sub = f'<div class="subtabs">{nav}</div>'
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {chr(10).join(meta)}
@@ -255,8 +286,8 @@ def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=Fal
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <script src="/appearance.js"></script>
 <style>{CSS}</style>{lds}</head>
-<body><header class="topbar"><div class="top"><a href="/"><img src="/brand/frosted-logo-email.png" width="36" height="36" alt="">{ORG}</a>
-{where_html}<a class="app" href="{escape(app_href)}">Open in the app</a></div></header>
+<body><header class="topbar{' wide' if wide else ''}"><div class="top"><a href="/"><img src="/brand/frosted-logo-email.png" width="36" height="36" alt="">{ORG}</a>
+{where_html}<a class="app" href="{escape(app_href)}">Open in the app</a></div>{sub}</header>
 <div class="wrap{' wide' if wide else ''}">
 {body}
 <footer><p>{DISCLAIMER} Grooming and snow totals come from each resort's own reports. Forecast data by
@@ -321,7 +352,7 @@ def resort_page(slug, day, dates, dated=False):
         + ([{"@type": "ListItem", "position": 3, "name": report.mmdd(d), "item": canonical}] if dated else [])}
     return shell(page_title=t, desc=desc, canonical=canonical, body=body, ld=[article, crumbs_ld], image=map_url,
                  feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"), wide=True,
-                 where=name, app_href=f"/?resort={slug}",
+                 where=name, app_href=f"/?resort={slug}", tabs=(slug, "report"),
                  markdown=f"/resorts/{slug}/{day_str}.md" if dated else f"/resorts/{slug}.md")
 
 
@@ -559,7 +590,7 @@ def guide_page(slug, summary=None, day=None, today=None):
     name = resorts.get(slug)["name"]
     return shell(page_title=title, desc=desc, canonical=site(resort_path(slug, "guide")), body=body, ld=ld,
                  feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"), wide=True, where=name,
-                 app_href=f"/?resort={slug}", markdown=f"/resorts/{slug}/guide.md")
+                 app_href=f"/?resort={slug}", markdown=f"/resorts/{slug}/guide.md", tabs=(slug, "guide"))
 
 
 def _guide_label(slug, name):
