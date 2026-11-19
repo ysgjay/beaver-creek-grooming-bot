@@ -50,7 +50,7 @@ def test_watch_flags_changed_pages(tmp_path):
 
 def test_guide_shows_sourced_facts_and_faq():
     html = pages.guide_page("copper", {})
-    assert "Copper Mountain opening day, closing day, lift hours, trail map, passes, blackout dates, lift ticket prices and lessons | 0xSnow" in html
+    assert "<title>Copper Mountain trail map, opening day, blackout dates, lift hours, ticket prices and lessons 2026/27 | 0xSnow</title>" in html
     assert "Base area lifts 9 AM to 4 PM" in html and "coppercolorado.com/the-mountain/trail-lift-info/lift-hours/" in html
     assert "checked 11/19" in html and '"@type":"FAQPage"' in html
     assert "Not announced yet" in html  # closing day
@@ -65,8 +65,8 @@ def test_passes_tickets_and_lessons_section():
     assert facts.interval_days("passes", date(2027, 1, 10)) == 30
     assert facts.interval_days("lift_tickets", date(2027, 1, 10)) == 7
     bc = pages.guide_page("beaver-creek", {})
-    assert "<h2>Passes, tickets and lessons</h2>" in bc
-    assert "12/26 to 12/31/2026" in bc and "$211 online" in bc and "Epic Ascent" in bc
+    assert "<h2>Beaver Creek blackout dates and passes</h2>" in bc and "<h2>Beaver Creek lift tickets and lessons</h2>" in bc
+    assert "Sat 12/26 to Thu 12/31" in bc and 'href="/passes/epic-blackout-dates"' in bc and "$211 online" in bc and "Epic Ascent" in bc
     assert "What are the Beaver Creek blackout dates for 2026/27?" in bc
     cu = pages.guide_page("copper", {})
     assert "No fixed price posted" in cu and "at least 1 day ahead" in cu and "Ikon Base Pass" in cu
@@ -87,8 +87,20 @@ def test_shared_pass_facts_cover_every_resort():
 def test_guide_title_follows_the_facts_it_has():
     assert facts.topics("alta") == "opening day, closing day, passes and blackout dates"
     html = pages.guide_page("alta", {})
-    assert "<title>Alta opening day, closing day, passes and blackout dates | 0xSnow</title>" in html
-    assert "Season dates" in html and "Hours, dates and trail map" not in html
+    assert "<title>Alta opening day and blackout dates 2026/27 | 0xSnow</title>" in html
+    assert '<h1 class="page">Alta guide: opening day and blackout dates 2026/27</h1>' in html
+    assert "doesn&#x27;t include Alta" in html and "Not included" in html
+
+
+def test_guide_leads_with_snow_report_and_quick_answers():
+    day = {"date": "2026-11-19", "resort": {"last_24h_in": 4, "base_in": 22}}
+    html = pages.guide_page("vail", {}, day, today=date(2026, 11, 19))
+    assert html.index("Vail snow report today") < html.index("Quick answers") < html.index("Vail blackout dates and passes")
+    assert "Open since Fri 11/13" in html and "Fri 11/27 to Sat 11/28" in html and 'class="next"' in html
+    assert 'href="/resorts/vail"' in html and "Official map" in html and "5 cams" in html
+    on = pages.guide_page("vail", {}, day, today=date(2026, 12, 27))
+    assert "Today (12/27) is a blackout date at Vail" in on and 'class="on"' in on
+    assert "The daily Alta report starts on opening day." in pages.guide_page("alta", {}, None, today=date(2026, 11, 19))
 
 
 def test_todo_points_at_operator_pages():

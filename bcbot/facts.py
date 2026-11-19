@@ -182,19 +182,28 @@ def _shared(slug, name):
         full, local = EPIC_ACCESS[slug]
         text = f"Epic Pass: {full}. " + (f"Epic Local Pass: {local}. " if local else f"The Epic Local Pass doesn't include {name}. ")
         text += "Epic Day Pass: not valid on peak dates."
-        out["passes"] = _fact(text, EPIC_LOCAL if local else EPIC_PASS)
+        rows = [("Epic Pass", full), ("Epic Local Pass", local or "Not included"), ("Epic Day Pass", "Not valid on peak dates")]
+        out["passes"] = _fact(text, EPIC_LOCAL if local else EPIC_PASS, rows=rows)
         on_peak = [p for p, rule in (("Epic Local Pass", local),) if rule and "not valid on peak" in rule]
-        out["blackout_dates"] = _fact(f"{EPIC_PEAK_DATES}. These apply to the " + " and ".join(on_peak + ["Epic Day Pass"])
-                                      + (". The full Epic Pass has none." if "unlimited" in full else "."), EPIC_PEAK)
+        applies = " and ".join(on_peak + ["Epic Day Pass"])
+        out["blackout_dates"] = _fact(f"{EPIC_PEAK_DATES}. These apply to the {applies}"
+                                      + (". The full Epic Pass has none." if "unlimited" in full else "."), EPIC_PEAK,
+                                      pass_key="epic-blackout-dates", applies=applies)
     if slug in IKON_ACCESS:
         full, base, session = IKON_ACCESS[slug]
         bits = [f"Ikon Pass: {full}" + (", no blackout dates" if full == "unlimited" else "")]
         bits.append(f"Ikon Base Pass: {base}" + (", with blackout dates" if base else "") if base else f"The Ikon Base Pass doesn't include {name}")
         if session:
             bits.append(f"Ikon Session Pass: {session}")
-        out["passes"] = _fact(". ".join(bits) + ".", IKON_COMPARE)
-        out["blackout_dates"] = (_fact(f"{IKON_BASE_DATES} on the Ikon Base Pass. The full Ikon Pass has none.", IKON_BASE_BLACKOUTS) if base
-                                 else _fact(f"None. The Ikon Pass has no blackout dates, and the Ikon Base Pass doesn't include {name}.", IKON_COMPARE))
+        rows = [("Ikon Pass", full + (", no blackout dates" if full == "unlimited" else "")),
+                ("Ikon Base Pass", (base + ", with blackout dates") if base else "Not included")]
+        if session:
+            rows.append(("Ikon Session Pass", session))
+        out["passes"] = _fact(". ".join(bits) + ".", IKON_COMPARE, rows=rows)
+        out["blackout_dates"] = (_fact(f"{IKON_BASE_DATES} on the Ikon Base Pass. The full Ikon Pass has none.", IKON_BASE_BLACKOUTS,
+                                       pass_key="ikon-blackout-dates", applies="Ikon Base Pass") if base
+                                 else _fact(f"None. The Ikon Pass has no blackout dates, and the Ikon Base Pass doesn't include {name}.",
+                                            IKON_COMPARE, pass_key=None, applies=None))
     return out
 
 
@@ -203,7 +212,12 @@ def _build():
     out = {}
     for slug in resorts.RESORTS:
         name = resorts.RESORTS[slug]["name"]
-        merged = dict(_shared(slug, name), **CURATED.get(slug, {}))
+        shared = _shared(slug, name)
+        merged = dict(shared, **CURATED.get(slug, {}))
+        # Hand-checked pass facts keep the structured rows and blackout ranges from the shared tables.
+        for kind, keys in (("passes", ("rows",)), ("blackout_dates", ("pass_key", "applies"))):
+            if kind in CURATED.get(slug, {}) and kind in shared and shared[kind]["source"] == merged[kind]["source"]:
+                merged[kind] = dict({k: shared[kind][k] for k in keys if k in shared[kind]}, **merged[kind])
         if merged:
             out[slug] = merged
     return out
