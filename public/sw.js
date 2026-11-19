@@ -1,6 +1,6 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v24-report-pages";
+const SHELL = "shell-v25-report-feeds";
 const DATA = "data-v1";
 const SHELL_FILES = [
   "/", "/index.html", "/appearance.js", "/report-ui.js", "/app.js", "/app.css", "/themes.css", "/frost.css", "/dark.css", "/frost-surfaces.css",
@@ -21,7 +21,7 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
   // Public report pages and crawler files: always from the network, never the app shell.
-  if (url.pathname.startsWith("/resorts") || url.pathname === "/sitemap.xml" || url.pathname === "/robots.txt") return;
+  if (url.pathname.startsWith("/resorts") || url.pathname === "/sitemap.xml" || url.pathname === "/feed.xml" || url.pathname === "/robots.txt") return;
   if (url.pathname.startsWith("/data/") || url.pathname.startsWith("/maps/") || url.pathname.startsWith("/cams/")) {
     e.respondWith(networkFirst(e.request, DATA, () => caches.match(e.request, { ignoreSearch: true })));
     return;

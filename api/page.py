@@ -3,6 +3,9 @@
 GET /api/page                         -> /resorts hub
 GET /api/page?resort=vail             -> today's Vail report
 GET /api/page?resort=vail&date=...    -> that day's archived report
+GET /api/page?resort=colorado         -> every Colorado resort in one table (also utah)
+GET /api/page?resort=vail&date=guide  -> how Vail's report works (evergreen)
+GET /api/page?feed=1[&resort=vail]    -> RSS: newest post per resort, or one resort's posts
 GET /api/page?sitemap=1               -> sitemap.xml
 (vercel.json rewrites the clean URLs /resorts, /resorts/<slug>[/<date>] and /sitemap.xml here.)
 """
@@ -10,7 +13,7 @@ import logging
 
 from bcbot.web import Handler
 from bcbot import pages, resorts
-from bcbot.store import get_store, resort_store
+from bcbot.store import get_store
 
 LATEST = "public, max-age=300, s-maxage=600, stale-while-revalidate=3600"
 ARCHIVE = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
@@ -36,20 +39,28 @@ class handler(Handler):
             if self.query("sitemap"):
                 return self.send(200, pages.sitemap(store), "application/xml", "public, s-maxage=3600")
             slug, day_str = self.query("resort"), self.query("date")
+            if self.query("feed"):
+                if slug and slug not in resorts.enabled():
+                    return self.not_found()
+                return self.send(200, pages.feed_xml(store, slug or None), "application/rss+xml", "public, s-maxage=1800")
             if not slug:
                 return self.send(200, pages.hub_page(), cache="public, max-age=3600, s-maxage=86400")
+            if slug in pages.REGIONS and not day_str:
+                return self.send(200, pages.region_page(store, slug))
             if slug not in resorts.enabled():
                 return self.not_found("We don't cover that resort yet")
-            rs = resort_store(slug, store)
+            if day_str == "guide":
+                summary = store.get_json("data/observer/summary.json")
+                return self.send(200, pages.guide_page(slug, summary), cache="public, max-age=3600, s-maxage=21600")
             dates = pages.post_dates(store, slug)
             if day_str:
                 if not pages.valid_date(day_str):
                     return self.not_found()
-                day = rs.get_json(f"data/days/{day_str}.json")
+                day = pages.post_day(store, slug, day_str)
                 if not day or not day.get("date"):
                     return self.not_found("No report for that day")
                 return self.send(200, pages.resort_page(slug, day, dates, dated=True), cache=ARCHIVE)
-            day = rs.get_json("data/latest.json")
+            day = pages.latest_day(store, slug, dates)
             if not day or not day.get("date"):
                 return self.send(200, pages.empty_resort_page(slug))
             return self.send(200, pages.resort_page(slug, day, dates))

@@ -246,7 +246,7 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
                                "new_map": map_new, "snow_report_fresh": resort_fresh, "results": delivered}
             store.put_json(f"data/days/{day_str}.json", day)
             store.put_json("data/latest.json", day)
-            _try("report archive", lambda: pages.add_post(store, slug, day_str), errors)
+            _try("report archive", lambda: pages.add_post(store, slug, day_str, day), errors)
         state["last_sent_date"] = day_str
         state["last_sent_at"] = now.isoformat(timespec="minutes")
     elif in_window and map_new and not resort_fresh:

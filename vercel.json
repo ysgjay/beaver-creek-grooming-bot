@@ -24,6 +24,10 @@
   ],
   "rewrites": [
     {
+      "source": "/feed.xml",
+      "destination": "/api/page?feed=1"
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/api/page?sitemap=1"
     },
@@ -34,6 +38,10 @@
     {
       "source": "/resorts/:slug",
       "destination": "/api/page?resort=:slug"
+    },
+    {
+      "source": "/resorts/:slug/feed.xml",
+      "destination": "/api/page?resort=:slug&feed=1"
     },
     {
       "source": "/resorts/:slug/:date",
