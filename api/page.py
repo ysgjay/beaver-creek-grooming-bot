@@ -12,7 +12,7 @@ GET /api/page?sitemap=1               -> sitemap.xml
 import logging
 
 from bcbot.web import Handler
-from bcbot import pages, resorts
+from bcbot import llm, pages, resorts
 from bcbot.store import get_store
 
 LATEST = "public, max-age=300, s-maxage=600, stale-while-revalidate=3600"
@@ -20,11 +20,15 @@ ARCHIVE = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
 
 
 class handler(Handler):
-    def send(self, code, body, content_type="text/html", cache=LATEST):
+    def send(self, code, body, content_type="text/html", cache=LATEST, canonical=None):
         data = body.encode()
         self.send_response(code)
         self.send_header("Content-Type", content_type + "; charset=utf-8")
         self.send_header("Cache-Control", cache if code == 200 else "public, s-maxage=300")
+        if canonical:
+            self.send_header("Link", f'<{canonical}>; rel="canonical"')
+        if content_type != "text/html":
+            self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(data)
 
@@ -33,12 +37,46 @@ class handler(Handler):
                            body=f'<h1 class="page">{msg}</h1><p><a href="/resorts">See all resorts</a></p>')
         self.send(404, body)
 
+    def machine(self, store, slug, day_str, fmt):
+        """Markdown and JSON twins of the HTML pages (bcbot/llm.py)."""
+        import json
+        md, js = "text/markdown", "application/json"
+        if slug in pages.REGIONS and not day_str and fmt == "md":
+            return self.send(200, llm.region_md(store, slug), md, canonical=pages.site("resorts/" + slug))
+        if slug not in resorts.enabled():
+            return self.send(404, "Not found\n", "text/plain")
+        if day_str == "guide" and fmt == "md":
+            return self.send(200, llm.guide_md(slug), md, "public, max-age=3600, s-maxage=21600",
+                             canonical=pages.site(f"resorts/{slug}/guide"))
+        dated = bool(day_str)
+        if dated:
+            day = pages.post_day(store, slug, day_str) if pages.valid_date(day_str) else None
+        else:
+            day = pages.latest_day(store, slug, pages.post_dates(store, slug))
+        if not day or not day.get("date"):
+            return self.send(404, "No report for that day\n", "text/plain")
+        canonical = pages.site(pages.resort_path(slug, day_str if dated else None))
+        cache = ARCHIVE if dated else LATEST
+        if fmt == "json":
+            return self.send(200, json.dumps(llm.report_json(slug, day, dated), indent=1), js, cache, canonical)
+        return self.send(200, llm.report_md(slug, day, dated), md, cache, canonical)
+
     def do_GET(self):
         try:
             store = get_store()
             if self.query("sitemap"):
                 return self.send(200, pages.sitemap(store), "application/xml", "public, s-maxage=3600")
+            if self.query("llms"):
+                return self.send(200, llm.llms_txt(), "text/plain", "public, max-age=3600, s-maxage=86400")
             slug, day_str = self.query("resort"), self.query("date")
+            fmt = None
+            for ext in ("md", "json"):
+                if slug and slug.endswith("." + ext):
+                    slug, fmt = slug[:-len(ext) - 1], ext
+                if day_str and day_str.endswith("." + ext):
+                    day_str, fmt = day_str[:-len(ext) - 1], ext
+            if fmt:
+                return self.machine(store, slug, day_str, fmt)
             if self.query("feed"):
                 if slug and slug not in resorts.enabled():
                     return self.not_found()

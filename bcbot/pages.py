@@ -175,26 +175,46 @@ def description(day):
 
 # ---------- page shell ----------
 
-CSS = f"""
+THEME = """
+:root{--bg:#dcebfa;--paper:#f5f9fc;--surface:#ffffff;--edge:#ffffff;--ink:#0c2a4a;--ink2:#52677b;--line:#c3d3e0;
+--action:#365c7d;--btn:#7b1e2e;--btn-hover:#651826;--accent-soft:#f2e6e9;--accent-ink:#7b1e2e;--chip-line:#e3c9cf;--snow:#376f9b;
+--tile-line:#dce8f2;--bar:#dcebfaee;--shadow:inset 0 1px 0 #fff,0 8px 24px rgba(12,42,74,.07),0 1px 3px rgba(12,42,74,.04);
+--glow:radial-gradient(ellipse at 15% 0%,#ffffffd9,transparent 48%),linear-gradient(145deg,#eef5fc,#dcebfa 65%,#e8f1fa);color-scheme:light}
+html[data-appearance="dark"]{--bg:#071b2e;--paper:#102a40;--surface:#18384f;--edge:#365870;--ink:#e7f2fc;--ink2:#a9bfd2;--line:#32516a;
+--action:#b8dcf6;--btn:#8b2941;--btn-hover:#a13a53;--accent-soft:#402437;--accent-ink:#f0bfca;--chip-line:#6b3a4c;--snow:#8dc4eb;
+--tile-line:#32516a;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
+--glow:radial-gradient(ellipse at 15% 0%,#24517166,transparent 48%),linear-gradient(145deg,#0b243b,#071b2e 65%,#0c2940);color-scheme:dark}
+@media (prefers-color-scheme:dark){html:not([data-appearance]){--bg:#071b2e;--paper:#102a40;--surface:#18384f;--edge:#365870;--ink:#e7f2fc;--ink2:#a9bfd2;--line:#32516a;
+--action:#b8dcf6;--btn:#8b2941;--btn-hover:#a13a53;--accent-soft:#402437;--accent-ink:#f0bfca;--chip-line:#6b3a4c;--snow:#8dc4eb;
+--tile-line:#32516a;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
+--glow:radial-gradient(ellipse at 15% 0%,#24517166,transparent 48%),linear-gradient(145deg,#0b243b,#071b2e 65%,#0c2940);color-scheme:dark}}
+html[data-appearance="dark"] :is(ol.days .v,table.hours td.g span){color:#e7f2fc;box-shadow:inset 0 0 0 99px rgba(7,27,46,.6)}
+"""
+
+CSS = THEME + f"""
 @font-face{{font-family:Outfit;src:url(/brand/fonts/outfit.woff2) format('woff2');font-weight:100 900;font-display:swap}}
 @font-face{{font-family:'IBM Plex Sans';src:url(/brand/fonts/plex-sans.woff2) format('woff2');font-weight:100 700;font-display:swap}}
 @font-face{{font-family:'IBM Plex Mono';src:url(/brand/fonts/plex-mono.woff2) format('woff2');font-weight:400;font-display:swap}}
-body{{margin:0;background:{mailer.ICE};color:{mailer.INK};font:16px/1.55 {mailer.SANS}}}
+body{{margin:0;background-color:var(--bg);background-image:var(--glow);min-height:100vh;color:var(--ink);font:16px/1.55 {mailer.SANS}}}
 .wrap{{max-width:680px;margin:0 auto;padding:14px 16px 32px}}
-a{{color:{mailer.QUIET}}}
-.top{{display:flex;align-items:center;gap:10px;margin:4px 0 14px}}
-.top a{{display:flex;align-items:center;gap:8px;text-decoration:none;color:{mailer.INK};font:600 17px/1 {mailer.DISPLAY}}}
-.top .app{{margin-left:auto;background:{mailer.BURGUNDY};color:#fff;padding:9px 14px;border-radius:12px;font:600 14px/1 {mailer.SANS}}}
+a{{color:var(--action)}}
+.topbar{{position:sticky;top:0;z-index:5;background:var(--bar);border-bottom:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}}
+.top{{display:flex;align-items:center;gap:10px;max-width:1040px;margin:0 auto;padding:10px 16px}}
+.top .where{{color:var(--ink2);font:500 15px/1 {mailer.SANS};white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.top a{{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font:600 17px/1 {mailer.DISPLAY}}}
+.top .app{{margin-left:auto;flex:none;background:var(--btn);color:#fff;padding:10px 14px;border-radius:12px;font:600 14px/1 {mailer.SANS}}}
+.top .app:hover,.cta a.btn:hover,.actions a.btn:hover{{background:var(--btn-hover)}}
+.wrap>.crumbs:first-child{{margin-top:16px}}
 h1.page{{font:600 26px/1.2 {mailer.DISPLAY};margin:0 0 6px}}
-.lead{{margin:0 0 14px;color:{mailer.INK}}}
-.crumbs{{font-size:13px;color:{mailer.INK2};margin:0 0 6px}}
+.lead{{margin:0 0 14px;color:var(--ink)}}
+.crumbs{{font-size:13px;color:var(--ink2);margin:0 0 6px}}
 h2{{font:600 18px/1.3 {mailer.DISPLAY};margin:22px 0 8px}}
 ul.dates{{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}}
-ul.dates a{{display:inline-block;padding:4px 10px;border-radius:8px;background:{mailer.FROST};border:1px solid {mailer.LINE};text-decoration:none;color:{mailer.INK};font:400 13px {mailer.MONO}}}
+ul.dates a{{display:inline-block;padding:4px 10px;border-radius:8px;background:var(--paper);border:1px solid var(--line);text-decoration:none;color:var(--ink);font:400 13px {mailer.MONO}}}
 ul.list{{padding-left:18px}}
-.cta{{background:{mailer.FROST};border:1px solid #fff;border-radius:20px;padding:16px;margin:16px 0}}
-.cta a.btn{{background:{mailer.BURGUNDY};color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600;display:inline-block}}
-footer{{margin-top:26px;font-size:12px;color:{mailer.INK2}}}
+.cta{{background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:16px;margin:16px 0}}
+.cta a.btn{{background:var(--btn);color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600;display:inline-block}}
+footer{{margin-top:26px;font-size:12px;color:var(--ink2)}}
 """ + webreport.CSS
 
 
@@ -203,7 +223,8 @@ def _ld(obj):
     return f'<script type="application/ld+json">{data}</script>'
 
 
-def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=False, feed=None, wide=False):
+def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=False, feed=None, wide=False,
+          app_href="/", where=None, markdown=None):
     image = image or site("brand/share-1200x630.png")
     meta = [
         f"<title>{escape(page_title)}</title>",
@@ -221,20 +242,25 @@ def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=Fal
         meta.append('<meta name="robots" content="noindex">')
     feed = feed or ("/feed.xml", f"{ORG} daily reports")
     meta.append(f'<link rel="alternate" type="application/rss+xml" title="{escape(feed[1])}" href="{feed[0]}">')
+    if markdown:
+        meta.append(f'<link rel="alternate" type="text/markdown" title="Markdown version" href="{markdown}">')
+    meta.append('<link rel="alternate" type="text/plain" title="Guide for AI assistants" href="/llms.txt">')
     lds = "".join(_ld(x) for x in (ld or []))
+    where_html = f'<span class="where">/ {escape(where)}</span>' if where else ""
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {chr(10).join(meta)}
 <meta name="theme-color" content="{mailer.ICE}">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
+<script src="/appearance.js"></script>
 <style>{CSS}</style>{lds}</head>
-<body><div class="wrap{' wide' if wide else ''}">
-<header class="top"><a href="/"><img src="/brand/frosted-logo-email.png" width="36" height="36" alt="">{ORG}</a>
-<a class="app" href="/">Open the app</a></header>
+<body><header class="topbar"><div class="top"><a href="/"><img src="/brand/frosted-logo-email.png" width="36" height="36" alt="">{ORG}</a>
+{where_html}<a class="app" href="{escape(app_href)}">Open in the app</a></div></header>
+<div class="wrap{' wide' if wide else ''}">
 {body}
 <footer><p>{DISCLAIMER} Grooming and snow totals come from each resort's own reports. Forecast data by
 Open-Meteo.com (CC BY 4.0), NWS and NRCS SNOTEL.</p>
-<p><a href="/resorts">All resorts</a> · <a href="/">0xSnow app</a> · <a href="/#help">Help</a></p></footer>
+<p><a href="/resorts">All resorts</a> · <a href="/">0xSnow app</a> · <a href="/#help">Help</a> · <a href="/llms.txt">For AI assistants</a>{f' · <a href="{markdown}">Markdown version</a>' if markdown else ""}</p></footer>
 </div></body></html>"""
 
 
@@ -292,7 +318,9 @@ def resort_page(slug, day, dates, dated=False):
         {"@type": "ListItem", "position": 2, "name": name, "item": site(resort_path(slug))}]
         + ([{"@type": "ListItem", "position": 3, "name": report.mmdd(d), "item": canonical}] if dated else [])}
     return shell(page_title=t, desc=desc, canonical=canonical, body=body, ld=[article, crumbs_ld], image=map_url,
-                 feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"), wide=True)
+                 feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"), wide=True,
+                 where=name, app_href=f"/?resort={slug}",
+                 markdown=f"/resorts/{slug}/{day_str}.md" if dated else f"/resorts/{slug}.md")
 
 
 def empty_resort_page(slug):
@@ -319,7 +347,7 @@ def hub_page():
         body += (f"<h2>{escape(region)}</h2><p style=\"margin:0 0 6px\"><a href=\"{resort_path(region.lower())}\">"
                  f"{escape(region)} snow report today: every resort in one table</a></p><ul class=\"list\">") + "".join(
             f'<li><a href="{resort_path(r["slug"])}">{escape(r["name"])} grooming report</a> '
-            f'<span style="color:{mailer.INK2};font-size:13px">({escape(r["pass"])} pass)</span></li>'
+            f'<span style="color:var(--ink2);font-size:13px">({escape(r["pass"])} pass)</span></li>'
             for r in sorted(groups[region], key=lambda r: r["name"])) + "</ul>"
     body += _cta(resorts.DEFAULT, "morning")
     ld = {"@context": "https://schema.org", "@type": "CollectionPage", "name": "Ski resort grooming reports",
@@ -407,21 +435,21 @@ def region_page(store, region, today=None):
     big = sorted(fresh, key=lambda r: -(r["next5"] or 0))[:1]
     if big and (big[0]["next5"] or 0) >= 1:
         lead += f' Biggest 5-day forecast: {big[0]["name"]}, {_n(big[0]["next5"])}.'
-    cell = 'style="padding:6px 8px;border-bottom:1px solid #c3d3e0;text-align:right;font-family:\'IBM Plex Mono\',monospace;font-size:13px"'
-    head = 'style="padding:6px 8px;border-bottom:1px solid #c3d3e0;text-align:right;font-size:12px;color:#52677b"'
+    cell = 'style="padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;font-family:\'IBM Plex Mono\',monospace;font-size:13px"'
+    head = 'style="padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;font-size:12px;color:var(--ink2)"'
     trs = ""
     for r in rows:
         stale = "" if r["date"] == today else ' style="opacity:.6"'
-        trs += (f"<tr{stale}><td style=\"padding:6px 8px;border-bottom:1px solid #c3d3e0\"><a href=\"{resort_path(r['slug'])}\">"
-                f"{escape(r['name'])}</a> <span style=\"font-size:11px;color:#52677b\">{escape(r['pass'])}</span></td>"
+        trs += (f"<tr{stale}><td style=\"padding:6px 8px;border-bottom:1px solid var(--line)\"><a href=\"{resort_path(r['slug'])}\">"
+                f"{escape(r['name'])}</a> <span style=\"font-size:11px;color:var(--ink2)\">{escape(r['pass'])}</span></td>"
                 f"<td {cell}>{_n(r['new'])}</td><td {cell}>{_n(r['base'])}</td>"
                 f"<td {cell}>{r['groomed'] if r['groomed'] is not None else '–'}</td><td {cell}>{_n(r['next5'])}</td></tr>")
-    table = (f'<div style="overflow-x:auto;background:#f5f9fc;border:1px solid #fff;border-radius:20px;padding:8px">'
+    table = (f'<div style="overflow-x:auto;background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:8px">'
              f'<table style="width:100%;border-collapse:collapse"><thead><tr>'
-             f'<th style="padding:6px 8px;border-bottom:1px solid #c3d3e0;text-align:left;font-size:12px;color:#52677b">Resort</th>'
+             f'<th style="padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;color:var(--ink2)">Resort</th>'
              f'<th {head}>New 24 hr</th><th {head}>Base</th><th {head}>Groomed</th><th {head}>Next 5 days</th></tr></thead>'
              f'<tbody>{trs}</tbody></table></div>'
-             f'<p style="font-size:12px;color:#52677b">Sorted by new snow. Groomed counts only where the resort publishes '
+             f'<p style="font-size:12px;color:var(--ink2)">Sorted by new snow. Groomed counts only where the resort publishes '
              f'groomed runs. Faded rows have no report for {report.mmdd(d)} yet. Updated through the morning.</p>')
     other = [k for k in REGIONS if k != region]
     body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › {label}</p>'
@@ -431,7 +459,8 @@ def region_page(store, region, today=None):
     ld = {"@context": "https://schema.org", "@type": "WebPage", "name": f"{label} snow report today",
           "url": site(resort_path(region)), "dateModified": today, "publisher": _org(), "description": lead}
     return shell(page_title=f"{label} snow report today: new snow and grooming at {len(rows)} resorts | {ORG}",
-                 desc=lead[:300], canonical=site(resort_path(region)), body=body, ld=[ld])
+                 desc=lead[:300], canonical=site(resort_path(region)), body=body, ld=[ld], where=label,
+                 markdown=f"/resorts/{region}.md")
 
 
 # ---------- RSS ----------
@@ -529,13 +558,13 @@ def guide_page(slug, summary=None):
         ("Snow station", f'{r["snotel_label"]} SNOTEL' if r.get("snotel_label") else "Resort report only"),
         ("Cams in the app", str(len(r.get("cams") or [])) if r.get("cams") else "Not yet"),
     ]
-    rows = "".join(f'<tr><td style="padding:6px 8px;border-bottom:1px solid #c3d3e0;color:#52677b">{escape(k)}</td>'
-                   f'<td style="padding:6px 8px;border-bottom:1px solid #c3d3e0">{escape(v)}</td></tr>' for k, v in facts)
+    rows = "".join(f'<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line);color:var(--ink2)">{escape(k)}</td>'
+                   f'<td style="padding:6px 8px;border-bottom:1px solid var(--line)">{escape(v)}</td></tr>' for k, v in facts)
     info, faq = _facts_section(slug, name)
     if info:
         facts = [f for f in facts if f[0] not in ("Opening day", "Scheduled opening")]
-        rows = "".join(f'<tr><td style="padding:6px 8px;border-bottom:1px solid #c3d3e0;color:#52677b">{escape(k)}</td>'
-                       f'<td style="padding:6px 8px;border-bottom:1px solid #c3d3e0">{escape(v)}</td></tr>' for k, v in facts)
+        rows = "".join(f'<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line);color:var(--ink2)">{escape(k)}</td>'
+                       f'<td style="padding:6px 8px;border-bottom:1px solid var(--line)">{escape(v)}</td></tr>' for k, v in facts)
     h1 = (f"{name}: hours, opening and closing day, trail map" if info
           else f"How the {name} grooming and snow report works")
     body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › <a href="{resort_path(slug)}">{escape(name)}</a> › Guide</p>'
@@ -551,7 +580,7 @@ def guide_page(slug, summary=None):
             f'it posts, or the nearest SNOTEL station otherwise. The forecast blends public weather models and the '
             f'National Weather Service at base, mid-mountain and summit, and is graded every day against what fell '
             f'(see the <a href="/audit/{slug}">Snow Audit</a>).</p>'
-            f'<h2>At a glance</h2><div style="background:#f5f9fc;border:1px solid #fff;border-radius:20px;padding:8px">'
+            f'<h2>At a glance</h2><div style="background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:8px">'
             f'<table style="width:100%;border-collapse:collapse;font-size:14px">{rows}</table></div>'
             + _cta(slug, name))
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": f"How the {name} grooming and snow report works",
@@ -567,7 +596,8 @@ def guide_page(slug, summary=None):
             f"and how to get the {name} report free every day.")
     return shell(page_title=title, desc=desc,
                  canonical=site(resort_path(slug, "guide")), body=body, ld=[ld] + ([faq] if faq else []),
-                 feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"))
+                 feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"), where=name, app_href=f"/?resort={slug}",
+                 markdown=f"/resorts/{slug}/guide.md")
 
 
 def _fact_date(iso):
@@ -613,21 +643,21 @@ def _facts_section(slug, name, today=None):
         note = f'<div style="font-size:13px;margin-top:2px">{escape(f["note"])}</div>' if f.get("note") and v else ""
         if f.get("note") and not v and kind != "lift_hours":
             note = f'<div style="font-size:13px;margin-top:2px">{escape(f["note"])}</div>'
-        flag = ' · <b style="color:#7b1e2e">re-checking</b>' if F.stale(f, kind, today) else ""
-        row = (f'<div style="padding:10px 4px;border-bottom:1px solid #c3d3e0">'
-                  f'<div style="font:600 11px/1.3 \'IBM Plex Mono\',monospace;letter-spacing:.05em;text-transform:uppercase;color:#52677b">{F.LABELS[kind]}</div>'
+        flag = ' · <b style="color:var(--accent-ink)">re-checking</b>' if F.stale(f, kind, today) else ""
+        row = (f'<div style="padding:10px 4px;border-bottom:1px solid var(--line)">'
+                  f'<div style="font:600 11px/1.3 \'IBM Plex Mono\',monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2)">{F.LABELS[kind]}</div>'
                   f'<div style="font-size:16px;margin-top:2px">{shown}</div>{note}'
-                  f'<div style="font-size:12px;color:#52677b;margin-top:4px">Source: <a href="{escape(f["source"])}" rel="nofollow">'
+                  f'<div style="font-size:12px;color:var(--ink2);margin-top:4px">Source: <a href="{escape(f["source"])}" rel="nofollow">'
                   f'{escape(f.get("source_name") or f["source"])}</a> · checked {report.mmdd(f["checked"])}{flag}</div></div>')
         if kind in ("passes", "blackout_dates", "lift_tickets", "lessons"):
             more += row
         else:
             items += row
         qa.append({"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": ans}})
-    box = '<div style="background:#f5f9fc;border:1px solid #fff;border-radius:20px;padding:6px 12px">{}</div>'
+    box = '<div style="background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:6px 12px">{}</div>'
     html_ = (f'<h2>Hours, dates and trail map</h2>' + box.format(items)
              + (f'<h2>Passes, tickets and lessons</h2>' + box.format(more) if more else "")
-             + f'<p style="font-size:12px;color:#52677b">Every fact links to the resort page it came from. Dates and hours '
+             + f'<p style="font-size:12px;color:var(--ink2)">Every fact links to the resort page it came from. Dates and hours '
              f'can change with conditions and prices change by date, so check the source before you go. 0xSnow re-checks '
              f'closing dates, passes and blackout dates every 2 days from March, opening dates every 2 days in the fall '
              f'and ticket prices weekly in season.</p>')

@@ -421,6 +421,7 @@
         ${weather.status === "past" ? '<p class="weather-note">Current hour unavailable; showing the last saved forecast hour.</p>' : ""}
         ${mountainLine(L.mountain)}
         ${weather.later.length ? `<div class="hours" aria-label="Upcoming hourly temperature in Fahrenheit and wind in miles per hour">${weather.later.map((h) => `<div class="hour"><span class="t">${hourLabel(h.time)}</span><span class="temp">${UI.number(h.temp) ? h.temp + "°" : "–"}</span><span class="small">${esc(h.dir || "")} ${UI.number(h.wind) ? h.wind : "–"}</span>${h.snow ? `<span class="num small">${h.snow}"</span>` : ""}</div>`).join("")}</div>` : ""}
+        <p class="resort-links"><a class="link" href="/resorts/${encodeURIComponent(R.slug)}/guide">${esc(resortInfo().name || "Resort")} guide and resort info</a><span aria-hidden="true">·</span><a class="link" href="/resorts/${encodeURIComponent(R.slug)}">Report page</a></p>
       </section>
       ${outlook.available ? `<a href="#forecast" class="snow-outlook" aria-label="Expected snow; open full forecast">
         <span class="outlook-eyebrow">Expected snow <span aria-hidden="true">↗</span></span>
@@ -513,6 +514,7 @@
         <div class="card-head"><h2 id="h-feed">Grooming reports</h2><span class="muted small">Newest first</span></div>
         <div class="feed" id="feed"></div>
         <button class="btn secondary block" type="button" id="more">Show earlier reports</button>
+        <p class="resort-links"><a class="link" href="/resorts/${encodeURIComponent(R.slug)}">Past reports as web pages</a><span aria-hidden="true">·</span><a class="link" href="/resorts/${encodeURIComponent(R.slug)}/guide">Resort info</a></p>
       </section>`;
     v.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => { C.mode = b.dataset.mode; route(); }));
 

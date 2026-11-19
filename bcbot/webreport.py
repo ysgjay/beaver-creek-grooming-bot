@@ -8,50 +8,50 @@ from datetime import date
 from html import escape
 
 from . import mailer, report
-from .mailer import BURGUNDY, BURGUNDY_TINT, DISPLAY, FROST, INK, INK2, LINE, MONO, QUIET, SNOW, WHITE
+from .mailer import DISPLAY, MONO
 
 CSS = f"""
 .wrap.wide{{max-width:1040px}}
 .wrap.wide .lead,.wrap.wide .cta{{max-width:760px}}
-.rp .card{{background:{FROST};border:1px solid {WHITE};border-radius:20px;box-shadow:0 2px 8px rgba(12,42,74,.08);padding:16px;margin:0 0 14px}}
+.rp .card{{background:var(--paper);border:1px solid var(--edge);border-radius:20px;box-shadow:var(--shadow);padding:16px;margin:0 0 14px}}
 .rp h2{{margin:0 0 10px}}
-.rp .kick{{margin:0 0 6px;font:600 11px/1.3 {MONO};letter-spacing:.05em;text-transform:uppercase;color:{INK2}}}
-.rp .sub{{margin:6px 0 0;color:{INK2};font-size:14px}}
+.rp .kick{{margin:0 0 6px;font:600 11px/1.3 {MONO};letter-spacing:.05em;text-transform:uppercase;color:var(--ink2)}}
+.rp .sub{{margin:6px 0 0;color:var(--ink2);font-size:14px}}
 .ticket{{display:flex;padding:0!important;overflow:hidden}}
 .ticket .tk-main{{flex:1;padding:16px}}
-.ticket .tk-stub{{width:112px;flex:none;border-left:2px dashed {LINE};background:{WHITE};text-align:center;padding:16px 6px;display:flex;flex-direction:column;justify-content:center}}
-.tk-stub .dow{{font:400 13px/1.2 {MONO};color:{INK2}}}
+.ticket .tk-stub{{width:112px;flex:none;border-left:2px dashed var(--line);background:var(--surface);text-align:center;padding:16px 6px;display:flex;flex-direction:column;justify-content:center}}
+.tk-stub .dow{{font:400 13px/1.2 {MONO};color:var(--ink2)}}
 .tk-stub .md{{font:600 24px/1.2 {DISPLAY}}}
-.tk-stub .new{{margin-top:10px;font:600 32px/1 {DISPLAY};color:{SNOW}}}
-.tk-stub .cap{{font-size:11px;color:{INK2}}}
+.tk-stub .new{{margin-top:10px;font:600 32px/1 {DISPLAY};color:var(--snow)}}
+.tk-stub .cap{{font-size:11px;color:var(--ink2)}}
 dl.stats{{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin:4px 0 0}}
-dl.stats div{{background:{WHITE};border:1px solid {LINE};border-radius:12px;padding:8px 10px}}
-dl.stats dt{{font:600 10px/1.3 {MONO};letter-spacing:.05em;text-transform:uppercase;color:{INK2}}}
+dl.stats div{{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px}}
+dl.stats dt{{font:600 10px/1.3 {MONO};letter-spacing:.05em;text-transform:uppercase;color:var(--ink2)}}
 dl.stats dd{{margin:2px 0 0;font:600 20px/1.2 {DISPLAY}}}
-.powder{{margin:12px 0 0;padding:6px 10px;border-left:3px solid {BURGUNDY};background:{BURGUNDY_TINT};border-radius:6px;font-size:14px}}
+.powder{{margin:12px 0 0;padding:6px 10px;border-left:3px solid var(--btn);background:var(--accent-soft);border-radius:6px;font-size:14px}}
 .map figure{{margin:0}}
-.map img{{display:block;width:100%;height:auto;border:1px solid {LINE};border-radius:12px;background:{WHITE}}}
-.map figcaption{{display:flex;justify-content:space-between;gap:10px;margin:8px 2px 0;font-size:13px;color:{INK2}}}
-.runs h3{{margin:14px 0 6px;font:600 11px/1.3 {MONO};letter-spacing:.05em;text-transform:uppercase;color:{INK2}}}
+.map img{{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}}
+.map figcaption{{display:flex;justify-content:space-between;gap:10px;margin:8px 2px 0;font-size:13px;color:var(--ink2)}}
+.runs h3{{margin:14px 0 6px;font:600 11px/1.3 {MONO};letter-spacing:.05em;text-transform:uppercase;color:var(--ink2)}}
 .runs ul{{margin:0;padding-left:18px;columns:3 170px;column-gap:20px}}
 .runs li{{break-inside:avoid;padding:1px 0}}
 .runs ul.gotd{{list-style:none;padding:0;columns:auto;display:flex;flex-wrap:wrap;gap:6px}}
-.runs ul.gotd li{{padding:3px 10px;border-radius:8px;background:{BURGUNDY_TINT};border:1px solid #e3c9cf;color:{BURGUNDY};font-weight:600}}
+.runs ul.gotd li{{padding:3px 10px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--chip-line);color:var(--accent-ink);font-weight:600}}
 .scroll{{overflow-x:auto;-webkit-overflow-scrolling:touch}}
 table.hours{{width:100%;min-width:300px;border-collapse:separate;border-spacing:2px;font:400 12px {MONO};text-align:center}}
-table.hours th{{font:600 10px/1.2 {MONO};letter-spacing:.03em;text-transform:uppercase;color:{INK2};text-align:left;padding-right:6px}}
+table.hours th{{font:600 10px/1.2 {MONO};letter-spacing:.03em;text-transform:uppercase;color:var(--ink2);text-align:left;padding-right:6px}}
 table.hours thead th{{text-align:center;text-transform:none;font:400 12px {MONO}}}
-table.hours td.t{{font-weight:600;color:{INK}}}
-table.hours td.f{{color:{INK2}}}
-table.hours td.g span{{display:block;border-radius:6px;padding:4px 0;font-weight:600}}
+table.hours td.t{{font-weight:600;color:var(--ink)}}
+table.hours td.f{{color:var(--ink2)}}
+table.hours td.g span{{display:block;border-radius:6px;padding:4px 0;font-weight:600;color:#0c2a4a}}
 .fc-head{{margin:0 0 10px;font-size:15px}}
 ol.days{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}}
-ol.days li{{text-align:center;font-size:11px;color:{INK2};line-height:1.25}}
-ol.days .v{{display:block;border:1px solid #dce8f2;border-radius:8px;padding:8px 0;margin-bottom:3px;font:600 14px {MONO};color:{INK}}}
-ol.days .r{{display:block;color:{SNOW};min-height:1.25em}}
+ol.days li{{text-align:center;font-size:11px;color:var(--ink2);line-height:1.25}}
+ol.days .v{{display:block;border:1px solid var(--tile-line);border-radius:8px;padding:8px 0;margin-bottom:3px;font:600 14px {MONO};color:#0c2a4a}}
+ol.days .r{{display:block;color:var(--snow);min-height:1.25em}}
 .actions{{margin:4px 0 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center}}
-.actions a.btn{{background:{BURGUNDY};color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600}}
-.actions a{{color:{QUIET}}}
+.actions a.btn{{background:var(--btn);color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600}}
+.actions a{{color:var(--action)}}
 @media (min-width:900px){{
  .rp .cols{{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}}
  .rp .cols .card{{margin:0}}
