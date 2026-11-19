@@ -1,9 +1,10 @@
 """Open-Meteo: one free API that serves the same raw model output OpenSnow starts from
 (GFS, HRRR, NBM, ECMWF, ICON, GEM, UKMO) at a point, plus ensembles for a forecast range."""
 import logging
+import os
 
 from .. import config
-from ..util import get
+from ..util import get as _http_get
 
 log = logging.getLogger(__name__)
 
@@ -11,6 +12,36 @@ FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 ENSEMBLE_URL = "https://ensemble-api.open-meteo.com/v1/ensemble"
 HISTORY_URL = "https://historical-forecast-api.open-meteo.com/v1/forecast"
 PREVIOUS_RUNS_URL = "https://previous-runs-api.open-meteo.com/v1/forecast"
+
+
+def self_hosted_base():
+    """Our own Open-Meteo server (Render, docs/RENDER.md), if configured: OPEN_METEO_URL
+    (e.g. http://snow-meteo:8080) or OPEN_METEO_HOSTPORT (what a Render blueprint hands out)."""
+    url = os.environ.get("OPEN_METEO_URL", "").strip().rstrip("/")
+    if not url and os.environ.get("OPEN_METEO_HOSTPORT", "").strip():
+        url = "http://" + os.environ["OPEN_METEO_HOSTPORT"].strip()
+    return url or None
+
+
+_SELF_PATHS = {FORECAST_URL: "/v1/forecast", ENSEMBLE_URL: "/v1/ensemble"}
+
+
+def get(url, **opts):
+    """Forecast and ensemble calls go to our own server first when one is configured, and fall
+    back to the public API if it errors or refuses (a model it can't serve yet, a cold start).
+    History and previous-runs stay on the public API: they run once a season or in backfill."""
+    base = self_hosted_base()
+    path = _SELF_PATHS.get(url)
+    if base and path:
+        try:
+            r = _http_get(base + path, **(opts | {"retries": 0}))
+            if r.ok:
+                return r
+            log.warning("self-hosted Open-Meteo %s returned %s; using the public API: %s",
+                        path, r.status_code, r.text[:160])
+        except Exception as e:
+            log.warning("self-hosted Open-Meteo %s failed (%s); using the public API", path, e)
+    return _http_get(url, **opts)
 
 HOURLY_VARS = [
     "temperature_2m",
