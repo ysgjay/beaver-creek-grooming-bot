@@ -43,8 +43,13 @@
   }
   const dateKey = (now = Date.now(), zone) => zoned(now, zone)?.day || null;
   const hourKey = (p) => p?.day && p.hour !== null ? `${p.day}T${pad(p.hour)}` : null;
+  // By region, not abbreviation: British Columbia keeps daylight time year-round from 11/2026,
+  // which Intl reports as "MST", but it's still Pacific time there.
+  const ZONES = { "America/Los_Angeles": "PT", "America/Vancouver": "PT", "America/Denver": "MT", "America/Boise": "MT",
+    "America/Edmonton": "MT", "America/Phoenix": "MT", "America/Chicago": "CT", "America/New_York": "ET",
+    "America/Toronto": "ET", "America/Detroit": "ET", "America/Montreal": "ET", "America/Halifax": "AT" };
   function zoneLabel(zone = DEFAULT_ZONE) {
-    if (zone === "America/Denver") return "MT";
+    if (ZONES[zone]) return ZONES[zone];
     try { return new Intl.DateTimeFormat("en", { timeZone: zone, timeZoneName: "short" }).formatToParts(new Date()).find((p) => p.type === "timeZoneName").value.replace(/([PMCE])[SD]T/, "$1T"); }
     catch (_) { return "local time"; }
   }

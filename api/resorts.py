@@ -27,7 +27,7 @@ class handler(Handler):
         return PAGE.format(body=(
             f'<h1 style="margin:0 0 6px;font-size:22px">Your morning emails</h1>'
             f'<p style="margin:0 0 12px;color:#4a6382">Pick one resort for its full daily report, or several for one '
-            f'combined email by 6:30 AM MT.</p>{note}'
+            f'combined email by 6:30 AM, in the time zone most of your resorts are in.</p>{note}'
             f'<form method="post" action="/api/resorts?t={escape(token)}">{boxes}'
             f'<label style="display:flex;gap:10px;align-items:center;padding:14px 0 4px;font-weight:600">'
             f'<input type="checkbox" name="maps" value="1"{" checked" if maps else ""} style="width:20px;height:20px">'

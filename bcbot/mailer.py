@@ -85,7 +85,7 @@ def send_confirmation(email, token, slugs=("beaver-creek",)):
     html = _shell(_card(f"""
       {_brand_row()}
       <h1 style="margin:14px 0 8px;font:600 22px/1.25 {DISPLAY};color:{INK}">Confirm your {names} report{"s" if many else ""}</h1>
-      <p style="margin:0 0 16px">Tap the button to get the grooming map, snow report and forecast by email every morning{", all your resorts in one email by 6:30 AM MT" if many else ""}.</p>
+      <p style="margin:0 0 16px">Tap the button to get the grooming map, snow report and forecast by email every morning{", all your resorts in one email by 6:30 AM local time" if many else ""}.</p>
       <p style="margin:0 0 20px"><a href="{link}" style="{BUTTON}">Confirm my email</a></p>
       <p style="margin:0;color:{INK2};font-size:13px">If you didn't ask for this, ignore this email and nothing will be sent.</p>"""))
     return _post("/emails", {
@@ -572,7 +572,9 @@ def next_7(fc):
 
 def _clock_now(now):
     h = now.hour
-    return f"{(h % 12) or 12}:{now.minute:02d} {'AM' if h < 12 else 'PM'} MT"
+    from . import resorts
+    zone = resorts.zone_names(getattr(now.tzinfo, "key", "America/Denver"))[0]
+    return f"{(h % 12) or 12}:{now.minute:02d} {'AM' if h < 12 else 'PM'} {zone}"
 
 
 SNOW_HEAT = "#88b2d5"

@@ -72,7 +72,7 @@ DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "https://snow.0xm.studio/")
 SEND_ENABLED = os.environ.get("SEND_ENABLED") == "1"
 # A run with no new grooming map still refreshes the forecast when it's older than this.
 REFRESH_HOURS = float(os.environ.get("REFRESH_HOURS", "6"))
-# Daily send timing (local, America/Denver):
+# Daily send timing (in each resort's own time zone, resorts.py "tz"):
 #   before OPENING_DAY: every morning at SEND_TIME, grooming map or not;
 #   in season: as soon as a new map AND today's resort snow report are confirmed, from
 #   SEND_EARLIEST; at SEND_LATEST whatever is available goes out.

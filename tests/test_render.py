@@ -55,10 +55,16 @@ def test_history_and_unset_server_stay_public(monkeypatch):
     assert calls == [openmeteo.FORECAST_URL, openmeteo.HISTORY_URL]
 
 
-def test_worker_ticks_match_cloudflare_crons():
-    at = lambda h, m: worker.is_tick(datetime(2026, 12, 1, h, m, tzinfo=timezone.utc))
-    assert at(11, 5) and at(13, 55) and at(9, 15) and at(17, 45) and at(21, 0)
-    assert not at(11, 7) and not at(9, 5) and not at(18, 0) and not at(21, 15) and not at(3, 0)
+def test_worker_schedule_is_in_each_resorts_local_time():
+    utc = lambda h, m: datetime(2026, 12, 1, h, m, tzinfo=timezone.utc)
+    assert worker.is_tick(utc(11, 5)) and not worker.is_tick(utc(11, 7))
+    den, ny, la = "America/Denver", "America/New_York", "America/Los_Angeles"
+    # 11:05 UTC = 4:05 MT, 6:05 ET, 3:05 PT
+    assert worker.local_due(den, utc(11, 5)) and worker.local_due(ny, utc(11, 5)) and not worker.local_due(la, utc(11, 5))
+    # 13:35 UTC = 5:35 AM PT, 8:35 ET: Pacific every 5 min, East off the 15-minute marks
+    assert worker.local_due(la, utc(13, 35)) and not worker.local_due(ny, utc(13, 35))
+    assert worker.local_due(den, utc(21, 0)) and worker.local_due(ny, utc(19, 0)) and worker.local_due(la, utc(22, 0))
+    assert not worker.local_due(den, utc(3, 0))
 
 
 def test_worker_defaults_to_shadow(monkeypatch):

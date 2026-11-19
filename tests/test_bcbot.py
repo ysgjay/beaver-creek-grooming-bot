@@ -1474,7 +1474,7 @@ def test_digest_respects_send_switch_noon_and_deadline(monkeypatch):
     monkeypatch.setenv("SEND_ENABLED", "0")
     assert digest.run(now=datetime(2026, 11, 20, 6, 30, tzinfo=digest.TZ))["status"] == "skipped (sending off)"
     monkeypatch.setenv("SEND_ENABLED", "1")
-    assert digest.run(now=datetime(2026, 11, 20, 12, 5, tzinfo=digest.TZ))["status"] == "skipped (past noon)"
+    assert digest.run(now=datetime(2026, 11, 20, 13, 5, tzinfo=digest.TZ))["status"] == "skipped (past noon)"
     assert "no time left" in digest.run(deadline=time.monotonic() + 3)["status"]
 
 
@@ -1502,3 +1502,20 @@ def test_digest_hands_back_claims_when_the_send_fails(monkeypatch):
     with pytest.raises(RuntimeError):
         digest.run(now=datetime(2026, 11, 16, 6, 30, tzinfo=digest.TZ), store=object())
     assert released == [("2026-11-16", ["ta"])]
+
+
+def test_digest_cutoff_is_in_each_subscribers_home_zone():
+    from zoneinfo import ZoneInfo
+    from bcbot import digest
+    east = ["stowe", "killington"]
+    assert digest.home_zone(east).key == "America/New_York"
+    assert digest.home_zone(["vail", "stowe"]).key == "America/Denver"          # tie: first picked
+    assert digest.home_zone(["heavenly", "northstar", "vail"]).key == "America/Los_Angeles"
+    days = {s: _digest_day(s, s, 1, []) for s in east + ["heavenly", "northstar"]}
+    subs = [("e@x.com", "te", east), ("w@x.com", "tw", ["heavenly", "northstar"])]
+    at_630_et = datetime(2026, 11, 16, 6, 30, tzinfo=ZoneInfo("America/New_York"))
+    assert [t for _, t, *_ in digest.plan(subs, set(), days, at_630_et)] == ["te"]   # 3:30 AM Pacific: West waits
+    at_630_pt = datetime(2026, 11, 16, 6, 30, tzinfo=ZoneInfo("America/Los_Angeles"))
+    assert [t for _, t, *_ in digest.plan(subs, set(), days, at_630_pt)] == ["te", "tw"]   # East still due if unsent
+    noon_et = datetime(2026, 11, 16, 12, 0, tzinfo=ZoneInfo("America/New_York"))
+    assert [t for _, t, *_ in digest.plan(subs, set(), days, noon_et)] == ["tw"]   # noon Eastern: too late for East
