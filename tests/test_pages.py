@@ -178,3 +178,15 @@ def test_pass_pages_answer_is_today_blacked_out():
     html = pages.pass_page("ikon-blackout-dates", date(2026, 12, 27))
     assert "Yes. Today (12/27) is a blackout date for the Ikon Base Pass." in html
     assert 'href="/resorts/copper"' in html
+
+
+def test_pass_calendar_marks_blackout_days_and_ics_has_one_event_per_range():
+    from datetime import date
+    html = pages.pass_page("epic-blackout-dates", date(2026, 11, 19))
+    assert html.count('class="m"') == 4 and "November 2026" in html and "February 2027" in html
+    assert 'aria-label="Fri 11/27, blackout date"' in html and 'class="t p"' not in html
+    assert '<td class="t"><span>19</span></td>' in html
+    assert 'href="/passes/epic-blackout-dates.ics"' in html
+    ics = pages.pass_ics("ikon-blackout-dates")
+    assert ics.count("BEGIN:VEVENT") == 3
+    assert "DTSTART;VALUE=DATE:20261226\r\nDTEND;VALUE=DATE:20261231" in ics

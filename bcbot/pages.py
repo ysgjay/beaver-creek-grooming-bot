@@ -749,6 +749,79 @@ def pass_status(key, today=None):
     return False, None
 
 
+CAL_CSS = """
+.cal{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:4px 0 6px}
+@media (min-width:760px){.cal{grid-template-columns:repeat(4,1fr)}}
+.cal .m{background:var(--paper);border:1px solid var(--edge);border-radius:16px;padding:10px 10px 8px}
+.cal .mt{font:600 13px/1.2 Outfit,sans-serif;margin:0 0 6px}
+.cal table{width:100%;border-collapse:collapse;table-layout:fixed}
+.cal th{font:600 10px/1 'IBM Plex Mono',monospace;color:var(--ink2);padding:0 0 4px}
+.cal td{text-align:center;padding:1px 0}
+.cal td span{display:inline-block;width:24px;height:24px;line-height:24px;border-radius:7px;font:400 12px/24px 'IBM Plex Mono',monospace;color:var(--ink)}
+.cal td.b span{background:var(--btn);color:#fff;font-weight:600}
+.cal td.t span{box-shadow:inset 0 0 0 2px var(--action)}
+.cal td.p span{opacity:.45}
+.calkey{font-size:12px;color:var(--ink2);margin:0 0 16px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.calkey i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+"""
+
+
+def blackout_days(key):
+    from datetime import timedelta
+    out = set()
+    for a, b, _ in PASSES[key]["ranges"]:
+        d, end = date.fromisoformat(a), date.fromisoformat(b)
+        while d <= end:
+            out.add(d)
+            d += timedelta(days=1)
+    return out
+
+
+def pass_calendar(key, today=None):
+    """Small month grids for every month with a blackout date: days filled, today ringed, past days faded."""
+    import calendar
+    today = today or _today_mt()
+    days = blackout_days(key)
+    months = sorted({(d.year, d.month) for d in days})
+    cal = calendar.Calendar(firstweekday=6)
+    out = ""
+    for y, m in months:
+        rows = ""
+        for week in cal.monthdatescalendar(y, m):
+            cells = ""
+            for d in week:
+                if d.month != m:
+                    cells += "<td></td>"
+                    continue
+                cls = " ".join(c for c, on in (("b", d in days), ("t", d == today), ("p", d < today)) if on)
+                label = f' aria-label="{d.strftime("%a")} {report.mmdd(d)}, blackout date"' if d in days else ""
+                cells += f'<td class="{cls}"{label}><span>{d.day}</span></td>'
+            rows += f"<tr>{cells}</tr>"
+        out += (f'<div class="m"><p class="mt">{calendar.month_name[m]} {y}</p><table><thead><tr>'
+                + "".join(f"<th>{w}</th>" for w in "SMTWTFS") + f"</tr></thead><tbody>{rows}</tbody></table></div>")
+    key_html = ('<p class="calkey"><span><i style="background:var(--btn)"></i>Blackout date</span>'
+                '<span><i style="box-shadow:inset 0 0 0 2px var(--action)"></i>Today</span>'
+                f'<a href="/passes/{key}.ics">Add these dates to your calendar</a></p>')
+    return f'<style>{CAL_CSS}</style><div class="cal">{out}</div>' + key_html
+
+
+def pass_ics(key):
+    """All-day events, one per blackout range, for phone calendars."""
+    from datetime import timedelta
+    p = PASSES[key]
+    ev = []
+    for a, b, label in p["ranges"]:
+        end = date.fromisoformat(b) + timedelta(days=1)
+        ev += ["BEGIN:VEVENT", f"UID:{key}-{a}@snow.0xm.studio", "DTSTAMP:20261119T000000Z",
+               f"DTSTART;VALUE=DATE:{a.replace('-', '')}", f"DTEND;VALUE=DATE:{end.isoformat().replace('-', '')}",
+               f"SUMMARY:{p['pass']} Pass blackout ({label})",
+               f"DESCRIPTION:Blackout date for {p['who'].replace(',', chr(92) + ',')}. {site('passes/' + key)}",
+               "TRANSP:TRANSPARENT", "END:VEVENT"]
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", f"PRODID:-//{ORG}//Blackout dates//EN", "CALSCALE:GREGORIAN",
+             f"X-WR-CALNAME:{p['h1']}"] + ev + ["END:VCALENDAR"]
+    return "\r\n".join(lines) + "\r\n"
+
+
 def pass_page(key, today=None):
     from . import facts as F
     p = PASSES[key]
@@ -791,7 +864,8 @@ def pass_page(key, today=None):
     body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › Passes</p>'
             f'<h1 class="page">{escape(p["h1"])}</h1>'
             f'<div class="cta" style="margin-top:8px"><b>Is today a blackout date?</b> {escape(answer)}</div>'
-            f'<p class="lead">{escape(lead)}</p>'
+            + pass_calendar(key, today)
+            + f'<p class="lead">{escape(lead)}</p>'
             f'<h2>2026/27 dates</h2>' + box.format(f'<table style="width:100%;border-collapse:collapse"><tbody>{rows}</tbody></table>')
             + f'<h2>{p["pass"]} resorts we cover</h2>'
             + box.format(f'<table style="width:100%;border-collapse:collapse"><thead><tr><th {th}>Resort</th>'
