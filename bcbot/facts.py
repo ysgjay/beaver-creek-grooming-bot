@@ -830,36 +830,92 @@ KEY_LINE = re.compile(r"(open|clos|hours|season|\b\d{1,2}(:\d\d)?\s?(am|pm)\b|\b
                       r"january|february|march|april|may|june|november|december)", re.I)
 
 
-def fingerprint(page_html):
-    """Hash only the lines that carry dates and hours, so menus and promos don't trip it."""
+# Bot walls and empty JavaScript shells come back as a 200 but carry none of the page: treat them as a failed read.
+BLOCKED = re.compile(r"(just a moment\.\.\.|cf-chl|challenge-platform|captcha|access denied|attention required|"
+                     r"enable javascript to|request unsuccessful|incapsula|are you a robot)", re.I)
+MAX_LINES = 60  # key lines kept per page for the re-check diff
+
+
+def key_lines(page_html):
+    """The page's lines that carry dates and hours, sorted, without menus, scripts or promos."""
     text = re.sub(r"(?is)<(script|style|noscript)\b.*?</\1>", " ", page_html or "")
     text = html.unescape(re.sub(r"(?s)<[^>]+>", "\n", text))
-    lines = sorted({ln.strip() for ln in text.splitlines() if ln.strip() and len(ln.strip()) < 300 and KEY_LINE.search(ln)})
-    return hashlib.sha256("\n".join(lines).encode()).hexdigest()[:16]
+    return sorted({ln.strip() for ln in text.splitlines() if ln.strip() and len(ln.strip()) < 300 and KEY_LINE.search(ln)})
+
+
+def fingerprint(page_html):
+    """Hash only the lines that carry dates and hours, so menus and promos don't trip it."""
+    return hashlib.sha256("\n".join(key_lines(page_html)).encode()).hexdigest()[:16]
+
+
+def blocked(page_html):
+    """A read that didn't get the real page: a bot wall, a challenge, or a shell with no dates or hours at all."""
+    return not key_lines(page_html) or bool(BLOCKED.search((page_html or "")[:20000]))
 
 
 def watch(store, fetch, now=None):
-    """Read every source page once, compare with the last fingerprint, and write the status file.
-    `fetch(url) -> html or None`. Returns the status written."""
+    """Read every source page once and write data/facts/status.json. `fetch(url) -> html or None`.
+
+    A page counts as changed only when the new text is still there on the next read (one-off promos,
+    countdowns and A/B tests don't flag it). Bot walls and empty shells count as errors, not changes.
+    The status carries a work queue for the re-check task: every fact that is due, plus every fact
+    whose source changed, with the lines that were added and removed. Returns the status written."""
     now = now or datetime.now()
+    stamp = now.isoformat(timespec="minutes")
     prev = store.get_json("data/facts/status.json", {}) or {}
     seen = dict(prev.get("pages") or {})
-    changed = []
-    for url in sorted({f["source"] for kinds in FACTS.values() for f in kinds.values()}):
-        page = fetch(url)
-        if page is None:
-            seen.setdefault(url, {})["error_at"] = now.isoformat(timespec="minutes")
+    changed, failing = [], []
+    urls = sorted({f["source"] for kinds in FACTS.values() for f in kinds.values()})
+    # 170+ pages won't fit a 60 s function one at a time: read them in parallel.
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=32) as pool:
+        pages = dict(zip(urls, pool.map(fetch, urls)))
+    for url in urls:
+        page = pages[url]
+        entry = dict(seen.get(url) or {})
+        if page is None or blocked(page):
+            entry["error_at"] = stamp
+            entry["errors"] = entry.get("errors", 0) + 1
+            entry["error"] = "no response" if page is None else "blocked or empty page"
+            if entry["errors"] >= 3:
+                failing.append(url)
+            seen[url] = entry
             continue
+        lines = key_lines(page)[:MAX_LINES]
         fp = fingerprint(page)
-        old = (seen.get(url) or {}).get("fp")
-        entry = {"fp": fp, "read_at": now.isoformat(timespec="minutes"),
-                 "changed_at": (seen.get(url) or {}).get("changed_at")}
-        if old and old != fp:
-            entry["changed_at"] = now.isoformat(timespec="minutes")
+        entry.update(read_at=stamp, errors=0)
+        entry.pop("error", None)
+        if not entry.get("fp"):
+            entry.update(fp=fp, lines=lines)
+        elif fp == entry["fp"]:
+            entry.pop("pending_fp", None)
+            entry["lines"] = lines
+        elif entry.get("pending_fp") == fp:  # second read in a row with the new text: a real change
+            entry.update(prev_lines=entry.get("lines") or [], lines=lines, fp=fp, changed_at=stamp)
+            entry.pop("pending_fp", None)
             changed.append(url)
+        else:
+            entry["pending_fp"] = fp
         seen[url] = entry
-    status = {"generated": now.isoformat(timespec="minutes"), "pages": seen, "changed_today": changed,
-              "due": [{"resort": s, "fact": k, "overdue_days": d} for s, k, d in due(now.date())]}
+    # A change stays in the queue until the facts on that page are re-checked after it.
+    queue = []
+    due_now = {(s, k): d for s, k, d in due(now.date())}
+    for slug, kinds in FACTS.items():
+        for kind, f in kinds.items():
+            page = seen.get(f["source"]) or {}
+            moved = page.get("changed_at") and page["changed_at"][:10] > f["checked"]
+            if not moved and (slug, kind) not in due_now:
+                continue
+            item = {"resort": slug, "fact": kind, "source": f["source"], "value": f.get("value"),
+                    "checked": f["checked"], "reason": "changed" if moved else "due",
+                    "overdue_days": due_now.get((slug, kind), 0)}
+            if moved:
+                old, new = set(page.get("prev_lines") or []), set(page.get("lines") or [])
+                item.update(changed_at=page["changed_at"], added=sorted(new - old)[:10], removed=sorted(old - new)[:10])
+            queue.append(item)
+    queue.sort(key=lambda q: (q["reason"] != "changed", -q["overdue_days"], q["resort"], q["fact"]))
+    status = {"generated": stamp, "pages": seen, "changed_today": changed, "failing": failing,
+              "due": [{"resort": s, "fact": k, "overdue_days": d} for (s, k), d in due_now.items()], "queue": queue}
     store.put_json("data/facts/status.json", status)
     return status
 

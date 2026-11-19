@@ -71,3 +71,20 @@ from 9/15 to 11/30, passes and blackout dates every 2 days from 3/1 to 4/30, tic
 every 2 weeks in early season, otherwise monthly. The daily `/api/facts` cron fingerprints every source page and
 alerts when a page changes or a fact is overdue. `python -m bcbot.facts due` lists overdue facts. Nothing changes on
 the site automatically: a person (or Claude) re-reads the page and updates the table.
+
+## The daily watch and the re-check queue
+
+`watch()` (run by the `/api/facts` cron at 14:30 UTC) reads every source page in parallel and writes
+`data/facts/status.json`:
+
+- **Changes need two reads.** A page counts as changed only when its date and hour lines differ from the last confirmed
+  read on two runs in a row, so one-day promos and countdowns don't flag it. `prev_lines` and `lines` keep the before
+  and after.
+- **Bot walls are errors.** A challenge page, a captcha or a page with no date or hour lines at all counts as a failed
+  read (`errors`, `error_at`), never as a change. After 3 failed days the URL is listed in `failing` and the alert
+  names it.
+- **`queue` is the work list.** It holds every due fact plus every fact whose page changed after its `checked` date,
+  with the lines `added` and `removed`. Changes sort first. A fact leaves the queue once it is re-checked (its
+  `checked` date moves past the change).
+- **Read-only access:** `GET /api/facts?queue=1` returns `queue` and `failing` without a key. The scheduled re-check
+  task reads it from there. It holds public page text only.
