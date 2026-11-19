@@ -1,9 +1,11 @@
-"""Sourced resort facts for the public info pages: hours, opening and closing day, trail map.
+"""Sourced resort facts for the public info pages: hours, opening and closing day, trail map, passes,
+blackout dates, lift tickets and lessons.
 
 Every fact carries the official page it came from and the date it was last checked. Facts are
 re-checked on a seasonal schedule (Young, 11/19/2026): a fact is checked often in the weeks it
 changes and gets searched, and monthly otherwise. Closing dates every 2 days from March 1,
-opening dates every 2 days from mid-September.
+opening dates every 2 days from mid-September, passes and blackout dates every 2 days
+in March and April (when next season goes on sale), ticket prices weekly in season.
 
 `watch()` runs once a day (/api/facts): it reads each source page, notes when the relevant
 text changed, and writes data/facts/status.json listing what is due for a re-check. A changed
@@ -34,6 +36,23 @@ FACTS = {
                       "label": "Winter 2026/27 trail map (PDF, on beavercreek.com)", "checked": "2026-11-19",
                       "source": "https://www.beavercreek.com/the-mountain/about-the-mountain/trail-map.aspx",
                       "source_name": "Beaver Creek: Trail and Mountain Maps"},
+        "passes": {"value": "Epic Pass: unlimited, no blackout dates. Epic Local Pass: 10 days total, shared with Vail "
+                            "and Whistler Blackcomb, not valid on peak dates. Epic Day Pass: not valid on peak dates.",
+                   "checked": "2026-11-19", "source": "https://www.epicpass.com/passes/epic-local-pass.aspx",
+                   "source_name": "Epic Pass: Epic Local Pass"},
+        "blackout_dates": {"value": "11/27 to 11/28/2026, 12/26 to 12/31/2026, 1/16/2027 and 2/13 to 2/14/2027. "
+                                    "These apply to the Epic Local Pass and Epic Day Pass. The full Epic Pass has none.",
+                           "checked": "2026-11-19", "source": "https://www.epicpass.com/info/peak-restricted-dates.aspx",
+                           "source_name": "Epic Pass: Restricted Peak Dates"},
+        "lift_tickets": {"value": "$211 online for a 1-day adult ticket (ages 13 to 64) on opening day, 11/25, against $250 "
+                                  "full price. Child (5 to 12): $146. Prices change by date, and buying 4+ weeks ahead saves the most.",
+                         "checked": "2026-11-19", "source": "https://www.beavercreek.com/plan-your-trip/lift-access/tickets.aspx",
+                         "source_name": "Beaver Creek: Lift Tickets"},
+        "lessons": {"value": "Child group lessons, adult group lessons (including first-time lessons) and Epic Ascent "
+                             "private lessons. Kids save 20% on the third straight day of group lessons and every day after, "
+                             "and Epic pass holders get 20% off group lessons.",
+                    "checked": "2026-11-19", "source": "https://www.beavercreek.com/plan-your-trip/ski-and-ride-lessons.aspx",
+                    "source_name": "Beaver Creek: Ski & Snowboard Lessons"},
     },
     "copper": {
         "opening_day": {"value": "2026-11-08", "checked": "2026-11-19",
@@ -54,10 +73,29 @@ FACTS = {
                       "checked": "2026-11-19",
                       "source": "https://www.coppercolorado.com/the-mountain/trail-area-maps/winter-trail-map/",
                       "source_name": "Copper Mountain: Winter Trail Map"},
+        "passes": {"value": "Ikon Pass: unlimited, no blackout dates. Ikon Base Pass: unlimited, with blackout dates. "
+                            "Ikon Session Pass: 2, 3 or 4 days total. Copper also sells its own Copper Season Pass.",
+                   "checked": "2026-11-19", "source": "https://www.ikonpass.com/en/compare-passes",
+                   "source_name": "Ikon Pass: Compare 26/27 Passes"},
+        "blackout_dates": {"value": "12/26 to 12/30/2026, 1/16 to 1/17/2027 and 2/13 to 2/14/2027 on the Ikon Base Pass. "
+                                    "The full Ikon Pass has none.",
+                           "checked": "2026-11-19",
+                           "source": "https://www.ikonpass.com/en/help/blackout-dates/what-are-the-ikon-base-pass-blackout-dates",
+                           "source_name": "Ikon Pass: Ikon Base Pass blackout dates"},
+        "lift_tickets": {"value": None, "note": "Copper prices tickets by date and doesn't list a fixed price. Buy online at "
+                                                "least 1 day ahead for the online price; walk-up window rates may be higher.",
+                         "checked": "2026-11-19", "source": "https://www.coppercolorado.com/tickets-passes/lift-tickets/tickets/",
+                         "source_name": "Copper Mountain: Lift Tickets"},
+        "lessons": {"value": "Adult group lessons (18+), youth group lessons (3 to 17), private and family private lessons, "
+                             "adult and youth seasonal programs, Copper Guides, Woodward park privates, adult clinics and "
+                             "adaptive lessons.",
+                    "checked": "2026-11-19", "source": "https://www.coppercolorado.com/lessons-rentals/lessons/",
+                    "source_name": "Copper Mountain: Lessons & Programs"},
     },
 }
 
-LABELS = {"opening_day": "Opening day", "closing_day": "Closing day", "lift_hours": "Lift hours", "trail_map": "Trail map"}
+LABELS = {"opening_day": "Opening day", "closing_day": "Closing day", "lift_hours": "Lift hours", "trail_map": "Trail map",
+          "passes": "Passes", "blackout_dates": "Blackout dates", "lift_tickets": "Lift tickets", "lessons": "Lessons"}
 
 
 def _in(today, start, end):
@@ -76,6 +114,13 @@ def interval_days(kind, today):
         return 7 if _in(today, (11, 1), (4, 30)) else 30
     if kind == "trail_map":
         return 7 if _in(today, (10, 15), (12, 15)) else 30
+    if kind in ("passes", "blackout_dates"):
+        # Next season's passes and their blackout dates are announced and go on sale in March.
+        return 2 if _in(today, (3, 1), (4, 30)) else 30
+    if kind == "lift_tickets":
+        return 7 if _in(today, (11, 1), (4, 30)) else 30
+    if kind == "lessons":
+        return 14 if _in(today, (10, 1), (12, 31)) else 30
     return 30
 
 

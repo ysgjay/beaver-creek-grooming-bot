@@ -561,8 +561,8 @@ def guide_page(slug, summary=None):
         ld["headline"] = h1
     title = (f"{name} hours, opening day, closing day and trail map | {ORG}" if info
              else f"When does the {name} grooming report come out? | {ORG}")
-    desc = (f"{name} lift hours, opening and closing day and the official trail map, each with its source and the "
-            f"date we checked it. Plus when the {name} grooming report posts." if info else
+    desc = (f"{name} lift hours, opening and closing day, trail map, pass blackout dates, lift ticket prices and "
+            f"lessons, each with its source and the date we checked it." if info else
             f"When {name} posts its grooming and snow report each morning, where the numbers come from, "
             f"and how to get the {name} report free every day.")
     return shell(page_title=title, desc=desc,
@@ -582,8 +582,8 @@ def _facts_section(slug, name, today=None):
     if not kinds:
         return "", None
     today = today or date.today()
-    items, qa = "", []
-    for kind in ("opening_day", "closing_day", "lift_hours", "trail_map"):
+    items, more, qa = "", "", []
+    for kind in ("opening_day", "closing_day", "lift_hours", "trail_map", "passes", "blackout_dates", "lift_tickets", "lessons"):
         f = kinds.get(kind)
         if not f:
             continue
@@ -600,24 +600,37 @@ def _facts_section(slug, name, today=None):
         elif kind == "lift_hours":
             q, ans = f"What are {name}'s lift hours?", (v or f.get("note") or "Not posted yet.")
             shown = escape(v or "Not posted yet")
-        else:
+        elif kind == "trail_map":
             q, ans = f"Where is the {name} trail map?", f"The official map is on the resort's site: {v}"
             shown = f'<a href="{escape(v)}" rel="nofollow">{escape(f.get("label") or "Official trail map")}</a>'
+        else:
+            q = {"passes": f"Which ski passes work at {name}?",
+                 "blackout_dates": f"What are the {name} blackout dates for 2026/27?",
+                 "lift_tickets": f"How much is a lift ticket at {name}?",
+                 "lessons": f"What ski and snowboard lessons does {name} offer?"}[kind]
+            ans = v or f.get("note") or "Not posted yet."
+            shown = escape(v or "No fixed price posted")
         note = f'<div style="font-size:13px;margin-top:2px">{escape(f["note"])}</div>' if f.get("note") and v else ""
         if f.get("note") and not v and kind != "lift_hours":
             note = f'<div style="font-size:13px;margin-top:2px">{escape(f["note"])}</div>'
         flag = ' · <b style="color:#7b1e2e">re-checking</b>' if F.stale(f, kind, today) else ""
-        items += (f'<div style="padding:10px 4px;border-bottom:1px solid #c3d3e0">'
+        row = (f'<div style="padding:10px 4px;border-bottom:1px solid #c3d3e0">'
                   f'<div style="font:600 11px/1.3 \'IBM Plex Mono\',monospace;letter-spacing:.05em;text-transform:uppercase;color:#52677b">{F.LABELS[kind]}</div>'
                   f'<div style="font-size:16px;margin-top:2px">{shown}</div>{note}'
                   f'<div style="font-size:12px;color:#52677b;margin-top:4px">Source: <a href="{escape(f["source"])}" rel="nofollow">'
                   f'{escape(f.get("source_name") or f["source"])}</a> · checked {report.mmdd(f["checked"])}{flag}</div></div>')
+        if kind in ("passes", "blackout_dates", "lift_tickets", "lessons"):
+            more += row
+        else:
+            items += row
         qa.append({"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": ans}})
-    html_ = (f'<h2>Hours, dates and trail map</h2>'
-             f'<div style="background:#f5f9fc;border:1px solid #fff;border-radius:20px;padding:6px 12px">{items}</div>'
-             f'<p style="font-size:12px;color:#52677b">Every fact links to the resort page it came from. Dates and hours '
-             f'can change with conditions, so check the source before you go. 0xSnow re-checks closing dates every 2 days '
-             f'from March and opening dates every 2 days in the fall.</p>')
+    box = '<div style="background:#f5f9fc;border:1px solid #fff;border-radius:20px;padding:6px 12px">{}</div>'
+    html_ = (f'<h2>Hours, dates and trail map</h2>' + box.format(items)
+             + (f'<h2>Passes, tickets and lessons</h2>' + box.format(more) if more else "")
+             + f'<p style="font-size:12px;color:#52677b">Every fact links to the resort page it came from. Dates and hours '
+             f'can change with conditions and prices change by date, so check the source before you go. 0xSnow re-checks '
+             f'closing dates, passes and blackout dates every 2 days from March, opening dates every 2 days in the fall '
+             f'and ticket prices weekly in season.</p>')
     faq = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": qa}
     return html_, faq
 

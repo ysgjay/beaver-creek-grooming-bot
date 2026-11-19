@@ -58,3 +58,16 @@ def test_guide_shows_sourced_facts_and_faq():
     bc = pages.guide_page("beaver-creek", {})
     assert "Winter 2026/27 trail map (PDF, on beavercreek.com)" in bc and "Wednesday 11/25/2026" in bc
     assert "When does the Vail grooming report come out?" in pages.guide_page("vail", {})  # no facts yet
+
+
+def test_passes_tickets_and_lessons_section():
+    assert facts.interval_days("blackout_dates", date(2027, 3, 10)) == 2
+    assert facts.interval_days("passes", date(2027, 1, 10)) == 30
+    assert facts.interval_days("lift_tickets", date(2027, 1, 10)) == 7
+    bc = pages.guide_page("beaver-creek", {})
+    assert "<h2>Passes, tickets and lessons</h2>" in bc
+    assert "12/26 to 12/31/2026" in bc and "$211 online" in bc and "Epic Ascent" in bc
+    assert "What are the Beaver Creek blackout dates for 2026/27?" in bc
+    cu = pages.guide_page("copper", {})
+    assert "No fixed price posted" in cu and "at least 1 day ahead" in cu and "Ikon Base Pass" in cu
+    assert "How much is a lift ticket at Copper Mountain?" in cu
