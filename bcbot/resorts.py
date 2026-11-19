@@ -432,6 +432,144 @@ RESORTS = {
         "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04",
         "enabled": False, "stage": "shadow",
     },
+    # ---------- Wave 2 (11/19/2026): shadow mode only ----------
+    # Top independents and the Alterra group. Alterra's mountain report loads from a keyed feed (mtnpowder.com) that
+    # we don't use without permission, and the independents' reports need the page reader that isn't built yet, so
+    # these run like Steamboat and Winter Park today: our forecast, the nearest SNOTEL (US) and NOAA snow depths.
+    # Points are approximate on-mountain spots; check them against the trail map when tuning. Opening days marked
+    # "est." are typical-season estimates (not announced or not checked 11/19); confirm before launch.
+    "jackson-hole": {
+        "name": "Jackson Hole", "region": "Wyoming", "pass": "Ikon",
+        "site": "https://www.jacksonhole.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 43.5925, "lon": -110.8480, "elevation_ft": 9095,
+        "bands": _bands((43.5875, -110.8279, 6311, "Teton Village"), (43.5925, -110.8480, 9095, "Bridger Gondola top"),
+                        (43.5980, -110.8700, 10450, "Rendezvous summit")),
+        "snotel": ["689:WY:SNTL", "1082:WY:SNTL"], "snotel_label": "Phillips Bench",
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-28",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "big-sky": {
+        "name": "Big Sky", "region": "Montana", "pass": "Ikon",
+        "site": "https://www.bigskyresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 45.2780, "lon": -111.4250, "elevation_ft": 8800,
+        "bands": _bands((45.2860, -111.4010, 7500, "Mountain Village"), (45.2780, -111.4250, 8800, "mid-mountain"),
+                        (45.2785, -111.4500, 11166, "Lone Peak")),
+        "snotel": ["590:MT:SNTL", "385:MT:SNTL"], "snotel_label": "Lone Mountain",
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "banff-sunshine": {
+        "name": "Banff Sunshine", "region": "Alberta", "pass": "Ikon",
+        "site": "https://www.skibanff.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 51.0790, "lon": -115.7820, "elevation_ft": 7082,
+        "bands": _bands((51.1150, -115.7630, 5440, "Gondola base"), (51.0790, -115.7820, 7082, "Sunshine Village"),
+                        (51.0650, -115.7700, 8954, "Lookout Mountain")),
+        "snotel": [], "snotel_label": None,  # no SNOTEL in Canada
+        "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-07",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "lake-louise": {
+        "name": "Lake Louise", "region": "Alberta", "pass": "Ikon",
+        "site": "https://www.skilouise.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 51.4500, "lon": -116.1500, "elevation_ft": 6800,
+        "bands": _bands((51.4420, -116.1620, 5400, "base"), (51.4500, -116.1500, 6800, "Whitehorn"),
+                        (51.4630, -116.1330, 8650, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-06",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "sun-valley": {
+        "name": "Sun Valley", "region": "Idaho", "pass": "Ikon",
+        "site": "https://www.sunvalley.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 43.6670, "lon": -114.3880, "elevation_ft": 7500,
+        "bands": _bands((43.6750, -114.3700, 5750, "River Run"), (43.6670, -114.3880, 7500, "mid-mountain"),
+                        (43.6597, -114.4033, 9150, "Bald Mountain summit")),
+        "snotel": ["895:ID:SNTL", "537:ID:SNTL"], "snotel_label": "Chocolate Gulch",
+        "cams": [], "patrol": None, "tz": "America/Boise", "opening_day": "2026-11-26",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    # Alterra Mountain Company
+    "mammoth": {
+        "name": "Mammoth Mountain", "region": "California", "pass": "Ikon",
+        "site": "https://www.mammothmountain.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 37.6440, "lon": -119.0390, "elevation_ft": 9600,
+        "bands": _bands((37.6510, -119.0270, 8900, "Main Lodge"), (37.6440, -119.0390, 9600, "McCoy Station"),
+                        (37.6310, -119.0330, 11053, "summit")),
+        "snotel": ["846:CA:SNTL"], "snotel_label": "Virginia Lakes Ridge",  # nearest SNOTEL is 51 km north
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-13",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "palisades-tahoe": {
+        "name": "Palisades Tahoe", "region": "California", "pass": "Ikon",
+        "site": "https://www.palisadestahoe.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 39.1880, "lon": -120.2620, "elevation_ft": 8200,
+        "bands": _bands((39.1970, -120.2350, 6200, "Olympic Valley"), (39.1880, -120.2620, 8200, "High Camp"),
+                        (39.1965, -120.2830, 9006, "Granite Chief")),
+        "snotel": ["784:CA:SNTL", "848:CA:SNTL"], "snotel_label": "Palisades Tahoe",
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-26",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "big-bear": {
+        "name": "Big Bear Mountain", "region": "California", "pass": "Ikon",
+        "site": "https://www.bigbearmountainresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 34.2260, "lon": -116.8900, "elevation_ft": 7600,
+        "bands": _bands((34.2365, -116.8895, 7000, "Snow Summit base"), (34.2260, -116.8900, 7600, "mid-mountain"),
+                        (34.2180, -116.8920, 8200, "Snow Summit summit")),
+        "snotel": [], "snotel_label": None,  # no SNOTEL in Southern California (nearest is 250 km away)
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-20",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "crystal-mountain": {
+        "name": "Crystal Mountain", "region": "Washington", "pass": "Ikon",
+        "site": "https://www.crystalmountainresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 46.9300, "lon": -121.4900, "elevation_ft": 5800,
+        "bands": _bands((46.9350, -121.4750, 4400, "base"), (46.9300, -121.4900, 5800, "mid-mountain"),
+                        (46.9280, -121.5040, 7012, "summit")),
+        "snotel": ["642:WA:SNTL", "1085:WA:SNTL"], "snotel_label": "Morse Lake",
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "tremblant": {
+        "name": "Tremblant", "region": "Quebec", "pass": "Ikon",
+        "site": "https://www.tremblant.ca", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 46.2140, "lon": -74.5900, "elevation_ft": 2000,
+        "bands": _bands((46.2090, -74.5850, 870, "Village"), (46.2140, -74.5900, 2000, "mid-mountain"),
+                        (46.2180, -74.5950, 2871, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/Toronto", "opening_day": "2026-11-27",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "sugarbush": {
+        "name": "Sugarbush", "region": "Vermont", "pass": "Ikon",
+        "site": "https://www.sugarbush.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.1400, "lon": -72.9100, "elevation_ft": 2500,
+        "bands": _bands((44.1360, -72.8940, 1483, "Lincoln Peak base"), (44.1400, -72.9100, 2500, "mid-mountain"),
+                        (44.1440, -72.9300, 3975, "Lincoln Peak")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "stratton": {
+        "name": "Stratton", "region": "Vermont", "pass": "Ikon",
+        "site": "https://www.stratton.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 43.1080, "lon": -72.9150, "elevation_ft": 2900,
+        "bands": _bands((43.1130, -72.9070, 1872, "base"), (43.1080, -72.9150, 2900, "mid-mountain"),
+                        (43.1010, -72.9240, 3875, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "snowshoe": {
+        "name": "Snowshoe", "region": "West Virginia", "pass": "Ikon",
+        "site": "https://www.snowshoemtn.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 38.4100, "lon": -80.0020, "elevation_ft": 4100,
+        # Upside down: the village sits at the top and the runs drop below it.
+        "bands": _bands((38.4080, -80.0080, 3348, "base"), (38.4100, -80.0020, 4100, "mid-mountain"),
+                        (38.4110, -79.9940, 4848, "Village")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-26",  # est.
+        "enabled": False, "stage": "shadow",
+    },
 }
 
 SNOW_REPORT_PATH = "/the-mountain/mountain-conditions/snow-and-weather-report.aspx"
