@@ -492,6 +492,180 @@ LIFT_HOURS = {
 TELLURIDE_HOURS = "Base lifts 9 AM to 4 PM. The free gondola runs 6:30 AM to midnight, 7 days a week."
 
 
+# ---------- 11/19/2026 batch 2: the 50 shadow resorts (Epic and Ikon pages, then each resort's own pages) ----------
+def _src(url, page):
+    return (url, page)
+
+
+EPIC_ACCESS.update({
+    "whistler-blackcomb": ("unlimited, no blackout dates", "10 days total, shared with Vail and Beaver Creek, not valid on peak dates"),
+    "heavenly": ("unlimited, no blackout dates", "unlimited, not valid on peak dates"),
+    "northstar": ("unlimited, no blackout dates", "unlimited, not valid on peak dates"),
+    "kirkwood": ("unlimited, no blackout dates", "unlimited, not valid on peak dates"),
+    "stowe": ("unlimited, no blackout dates", "unlimited, not valid on peak dates"),
+    "stevens-pass": ("unlimited, no blackout dates", "unlimited, including peak dates"),
+    "okemo": ("unlimited, no blackout dates", "unlimited, including peak dates"),
+    "mount-snow": ("unlimited, no blackout dates", "unlimited, including peak dates"),
+    "seven-springs": ("unlimited, no blackout dates", "unlimited, including peak dates"),
+})
+_IKON_UNL = ("unlimited", "unlimited", "2, 3 or 4 days")
+_IKON_7 = ("7 days", "5 days", "2, 3 or 4 days")
+IKON_ACCESS.update({
+    "mammoth": _IKON_UNL, "palisades-tahoe": _IKON_UNL, "big-bear": _IKON_UNL, "tremblant": _IKON_UNL,
+    "sugarbush": _IKON_UNL, "stratton": _IKON_UNL, "snowshoe": _IKON_UNL,
+    "crystal-mountain": ("unlimited", "5 days", "2, 3 or 4 days"),
+    "mt-bachelor": _IKON_7, "sugarloaf": _IKON_7, "sunday-river": _IKON_7, "loon": _IKON_7, "taos": _IKON_7,
+    "revelstoke": _IKON_7, "sun-peaks": _IKON_7,
+    "killington": ("7 days, shared with Pico", "5 days, shared with Pico", "2, 3 or 4 days"),
+    "big-sky": ("7 days, tram not included", "5 days, tram not included", "2, 3 or 4 days"),
+    "banff-sunshine": ("7 days, shared with Lake Louise and Mt. Norquay", "5 days, shared with Lake Louise and Mt. Norquay", "2, 3 or 4 days"),
+    "lake-louise": ("7 days, shared with Banff Sunshine and Mt. Norquay", "5 days, shared with Banff Sunshine and Mt. Norquay", "2, 3 or 4 days"),
+    "jackson-hole": ("7 days", None, None),
+    "sun-valley": ("7 days, shared with Dollar Mountain", None, None),
+})
+ANNOUNCED.update({
+    "jackson-hole": ("2026-11-27", None, IKON_DATES), "crystal-mountain": ("2026-11-27", None, IKON_DATES),
+    "sugarbush": ("2026-11-21", None, IKON_DATES), "stratton": ("2026-11-25", None, IKON_DATES),
+    "sugarloaf": ("2026-11-20", None, IKON_DATES), "sunday-river": ("2026-11-15", None, IKON_DATES),
+    "taos": ("2026-11-26", None, IKON_DATES),
+    "heavenly": ("2026-11-20", None, _src("https://www.skiheavenly.com/explore-the-resort/about-the-resort/hours-of-operation.aspx", "Heavenly: Hours of Operation")),
+    "big-sky": ("2026-11-25", None, _src("https://www.bigskyresort.com", "Big Sky: Home")),
+    "sun-valley": ("2026-11-26", None, _src("https://www.sunvalley.com/The-Mountain/Opening-Day", "Sun Valley: Opening Day")),
+    "palisades-tahoe": ("2026-11-21", None, _src("https://www.palisadestahoe.com/events-and-activities/events-calendar/opening-day", "Palisades Tahoe: Opening Day")),
+    "tremblant": ("2026-11-26", "2027-04-18", _src("https://www.tremblant.ca/mountain-village/opening-hours", "Tremblant: Opening Hours")),
+    "snowshoe": ("2026-12-04", "2027-03-21", _src("https://www.snowshoemtn.com/mountain-info/hours-of-operation", "Snowshoe: Hours of Operation")),
+    "revelstoke": ("2026-12-05", None, _src("https://www.revelstokemountainresort.com/mountain/hours-of-operations/", "Revelstoke: Hours of Operation")),
+    "sun-peaks": ("2026-11-26", "2027-04-04", _src("https://www.sunpeaksresort.com/ski-ride/the-mountain/winter-hours-of-operation", "Sun Peaks: Winter Hours of Operation")),
+    "big-white": ("2026-11-26", "2027-04-04", _src("https://www.bigwhite.com/explore/mountain-info/winter-hours-operation", "Big White: Winter Hours of Operation")),
+    "whitefish": ("2026-12-04", "2027-04-04", _src("https://skiwhitefish.com/hours-and-dates/", "Whitefish: Hours & Dates")),
+    "wolf-creek": ("2026-11-21", None, _src("https://wolfcreekski.com", "Wolf Creek: Home")),
+    "purgatory": ("2026-11-20", None, _src("https://www.purgatory.ski", "Purgatory: Home")),
+    "saddleback": ("2026-12-04", None, _src("https://www.saddlebackmaine.com", "Saddleback: Home")),
+    "holiday-valley": ("2026-11-27", None, _src("https://www.holidayvalley.com/event/opening-day-2026-27/", "Holiday Valley: Opening Day 2026-27")),
+    "waterville-valley": ("2026-11-28", None, _src("https://www.waterville.com", "Waterville Valley: Home")),
+    "jay-peak": ("2026-11-27", None, _src("https://jaypeakresort.com", "Jay Peak: Home")),
+})
+_VR = "/explore-the-resort/about-the-resort/hours-of-operation.aspx"
+LIFT_HOURS.update({
+    "whistler-blackcomb": ("Base area lifts 9 AM to 3:30 PM from 11/20 to 1/15, 9 AM to 4 PM from 1/16 to 2/12, and 8:30 AM to 4 PM from 2/13 to closing day.",
+                           _src("https://www.whistlerblackcomb.com" + _VR, "Whistler Blackcomb: Hours of Operation")),
+    "heavenly": ("Opening day hours 9 AM to 4 PM on the Tram, Gun Barrel Express, Patsy's and Powderbowl (California side only).",
+                 _src("https://www.skiheavenly.com" + _VR, "Heavenly: Hours of Operation")),
+    "northstar": ("Most lifts 9 AM to 4 PM. Big Springs Gondola 8:30 AM to 4 PM, Village Express 8:30 AM to 1 PM, Promised Land and Rendezvous 10 AM to 3 PM. Highlands Gondola 7:45 AM to 8 PM.",
+                  _src("https://www.northstarcalifornia.com" + _VR, "Northstar: Hours of Operation")),
+    "mount-snow": ("Main lifts 9 AM to 4 PM on weekdays and 8 AM to 4 PM on weekends and holidays. Grand Summit Express 9 AM to 3:30 PM (Fridays, weekends and holidays); North Face lifts close at 3:30 PM.",
+                   _src("https://www.mountsnow.com" + _VR, "Mount Snow: Hours of Operation")),
+    "mammoth": ("Scheduled lift hours 8:30 AM to 4 PM daily.", _src("https://www.mammothmountain.com/on-the-mountain/hours-of-operation", "Mammoth: Hours of Operation")),
+    "killington": ("9 AM to 4 PM Monday to Friday, 8 AM to 4 PM weekends and peak days (11/26 to 11/29, 12/25 to 1/3, 1/16 to 1/18 and 2/13 to 2/15).",
+                   _src("https://killington.com/hours", "Killington: Hours")),
+    "jackson-hole": ("Most lifts, including the Bridger Gondola, 9 AM to 4 PM. Aerial Tram 9 AM to 3:30 PM, Sublette and Thunder 9:15 AM to 3:40 PM. Apres Vous, Teewinot and the Sweetwater Gondola open at 8:30 AM on weekends and holidays.",
+                     _src("https://www.jacksonhole.com/lift-tickets", "Jackson Hole: Lift Tickets")),
+    "big-sky": ("9 AM to 4 PM on all open lifts.", _src("https://www.bigskyresort.com/winter-tickets/lift-ticket", "Big Sky: Lift Tickets")),
+    "banff-sunshine": ("Chairs 9:30 AM to 4:30 PM, Jackrabbit to 5 PM. Gondola 8:30 AM to 6 PM, to 10:30 PM on Fridays.",
+                       _src("https://www.skibanff.com/the-mountain/mountain-report/hours-of-operation", "Banff Sunshine: Hours of Operation")),
+    "lake-louise": ("9:30 AM to 4:30 PM daily.", _src("https://www.skilouise.com/hours-of-operation/", "Lake Louise: Hours of Operation")),
+    "stratton": ("9 AM to 4 PM Monday to Friday, 8:30 AM to 4 PM weekends and holidays. Summit lifts (Gondola, Ursa, Shooting Star, Snow Bowl) close at 3:30 PM until 1/15.",
+                 _src("https://www.stratton.com/the-mountain/hours-of-operation", "Stratton: Hours of Operation")),
+    "snowshoe": ("Snowshoe Basin 9 AM to 4:30 PM and Western Territory 9 AM to 4:15 PM daily. Silver Creek 12 to 9 PM Monday to Thursday and 9 AM to 9 PM Friday to Sunday.",
+                 _src("https://www.snowshoemtn.com/mountain-info/hours-of-operation", "Snowshoe: Hours of Operation")),
+    "revelstoke": ("Early season: Lower Gondola 9 AM to 3 PM, Upper Gondola to 3:10 PM, Stoke and Stellar chairs to 3:30 PM. Closing times move later in mid and late season.",
+                   _src("https://www.revelstokemountainresort.com/mountain/hours-of-operations/", "Revelstoke: Hours of Operation")),
+    "loon": ("Lifts open at 9 AM Monday to Friday and 8 AM weekends and holidays (12/28 to 1/1, 1/16 to 1/18, 2/13 to 2/21). Closing times vary by lift.",
+             _src("https://www.loonmtn.com/hours", "Loon: Hours")),
+    "sun-peaks": ("Most chairs 9:30 AM to 4 PM (9 AM from 2/1). Sundance Express 9 AM to 4:15 PM and Morrisey Express 9 AM to 4 PM (8:30 AM from 2/1). West Bowl Express 10 AM to 3:45 PM.",
+                  _src("https://www.sunpeaksresort.com/ski-ride/the-mountain/winter-hours-of-operation", "Sun Peaks: Winter Hours of Operation")),
+    "whitefish": ("Most chairs 9 AM to 4 PM. Big Mountain Express 9:30 AM to 4 PM, Base Lodge chair 8:45 AM to 4:30 PM, Big Creek Express 9:45 AM to 3:30 PM. Night skiing on Chairs 2, 3 and 6.",
+                  _src("https://skiwhitefish.com/hours-and-dates/", "Whitefish: Hours & Dates")),
+    "loveland": ("9 AM to 4 PM Monday to Friday, 8:30 AM to 4 PM weekends and designated holidays.",
+                 _src("https://skiloveland.com/the-mountain/hours-of-operation/", "Loveland: Hours of Operation")),
+    "wolf-creek": ("9 AM to 4 PM on all lifts from 11/21. Normally 8:30 AM to 4 PM.", _src("https://wolfcreekski.com", "Wolf Creek: Home")),
+    "big-white": ("Lara's Gondola 7:45 AM to 10 PM Sunday to Thursday and to 11 PM Friday and Saturday. Night skiing 3:30 to 8 PM on the Bullet Express, Plaza Chair and TELUS Park from 12/18 to 1/2 (not 12/24 or 12/31). Daytime chair hours aren't listed.",
+                  _src("https://www.bigwhite.com/explore/mountain-info/winter-hours-operation", "Big White: Winter Hours of Operation")),
+    "mad-river-glen": ("Main lifts 8:30 AM to 4 PM on weekends and holidays and 9 AM to 4 PM midweek. Birdland Double 9:30 AM to 3 PM.",
+                       _src("https://www.madriverglen.com/hours/", "Mad River Glen: Hours of Operation")),
+    "bretton-woods": ("9 AM to 3:30 PM.", _src("https://www.brettonwoods.com", "Bretton Woods: Home")),
+})
+TRAIL_MAPS.update({
+    "heavenly": ("https://www.skiheavenly.com/the-mountain/about-the-mountain/trail-map.aspx", "Trail map page (the winter map shown is still 2024/25, on skiheavenly.com)"),
+    "northstar": ("https://www.northstarcalifornia.com/the-mountain/about-the-mountain/trail-map.aspx", "Winter trail map (2025/26 file, on northstarcalifornia.com)"),
+    "kirkwood": ("https://www.kirkwood.com/the-mountain/about-the-mountain/trail-map.aspx", "Winter trail map (2025/26 file, on kirkwood.com)"),
+    "stowe": ("https://www.stowe.com/the-mountain/about-the-mountain/trail-map.aspx", "Winter 2026/27 trail map and base area map (on stowe.com)"),
+    "seven-springs": ("https://www.7springs.com/the-mountain/about-the-mountain/trail-map.aspx", "Winter trail map (2025/26 file, on 7springs.com)"),
+    "sun-valley": ("https://www.sunvalley.com/the-mountain/maps-guides", "Winter 2026/27 maps: Bald Mountain and Dollar Mountain (on sunvalley.com)"),
+    "mammoth": ("https://www.mammothmountain.com/on-the-mountain/winter-trail-map", "Winter trail map (on mammothmountain.com)"),
+    "killington": ("https://killington.com/winter-trail-map", "Winter trail map (on killington.com)"),
+    "palisades-tahoe": ("https://www.palisadestahoe.com/mountain-information/trail-maps", "Trail maps, Palisades and Alpine (on palisadestahoe.com)"),
+    "crystal-mountain": ("https://www.crystalmountainresort.com/the-mountain/trail-maps", "Trail maps (on crystalmountainresort.com)"),
+    "banff-sunshine": ("https://www.skibanff.com/the-mountain/lifts-terrain/trail-maps", "Trail maps (on skibanff.com)"),
+    "big-bear": ("https://www.bigbearmountainresort.com/mountain-information/trail-maps", "Trail maps, Bear Mountain, Snow Summit and Snow Valley (on bigbearmountainresort.com)"),
+    "tremblant": ("https://www.tremblant.ca/mountain-village/maps", "Ski trail maps (on tremblant.ca)"),
+    "sugarbush": ("https://www.sugarbush.com/mountain/terrain-and-maps", "Maps and terrain (on sugarbush.com)"),
+    "stratton": ("https://www.stratton.com/the-mountain/interactive-trail-map", "Interactive trail map (on stratton.com)"),
+    "snowshoe": ("https://www.snowshoemtn.com/mountain-info/maps", "Trail maps (on snowshoemtn.com)"),
+    "sugarloaf": ("https://www.sugarloaf.com/mountain-info#mountainmaps", "Mountain maps (on sugarloaf.com)"),
+    "revelstoke": ("https://www.revelstokemountainresort.com/discover/about/trail-maps/", "Trail maps (on revelstokemountainresort.com)"),
+    "sun-peaks": ("https://www.sunpeaksresort.com/ski-ride/the-mountain/trail-maps-terrain", "Trail maps and terrain (on sunpeaksresort.com)"),
+    "whitefish": ("https://skiwhitefish.com/trail-maps/", "Winter trail maps (on skiwhitefish.com)"),
+    "grand-targhee": ("https://www.grandtarghee.com/the-mountain/mountain-information/trail-maps", "Trail maps (on grandtarghee.com)"),
+    "jay-peak": ("https://jaypeakresort.com/skiing-riding/snow-report-maps/trail-map", "Trail map (on jaypeakresort.com)"),
+    "loveland": ("https://skiloveland.com/the-mountain/trail-map-mountain-stats/", "Trail map (on skiloveland.com)"),
+    "wolf-creek": ("https://wolfcreekski.com/area-maps/", "Area maps (on wolfcreekski.com)"),
+    "big-white": ("https://www.bigwhite.com/explore/mountain-info/maps", "Winter maps (on bigwhite.com)"),
+    "powder-mountain": ("https://powdermountain.com/trail-map", "Winter trail map (2025/26 file, on powdermountain.com)"),
+    "saddleback": ("https://www.saddlebackmaine.com/trail-maps/", "Trail maps (on saddlebackmaine.com)"),
+    "holiday-valley": ("https://www.holidayvalley.com/resort-maps/", "Resort maps (on holidayvalley.com)"),
+    "mad-river-glen": ("https://www.madriverglen.com/trail-maps/", "Trail maps (on madriverglen.com)"),
+    "tamarack": ("https://tamarackidaho.com/the-mountain/maps", "Resort maps (on tamarackidaho.com)"),
+    "mt-baker": ("https://www.mtbaker.us/the-mountain/trail-map/", "Trail map (on mtbaker.us)"),
+    "purgatory": ("https://www.purgatory.ski/mountain/purgatory-mountain/trail-maps/", "Trail maps (on purgatory.ski)"),
+    "bretton-woods": ("https://www.brettonwoods.com/plan-visit/maps/", "Alpine and Nordic trail maps (on brettonwoods.com)"),
+    "taos": ("https://www.skitaos.com/weather", "Resort trail map (on skitaos.com, Lifts & Trails page)"),
+})
+
+# Checked and not posted yet: the page says so, so the guide shows "Not posted" with the reason.
+_NOT_POSTED = {
+    "lift_hours": {
+        "kirkwood": ("https://www.kirkwood.com" + _VR, "Kirkwood: Hours of Operation", "Kirkwood hasn't posted 2026/27 lift hours. It plans to open 12/4."),
+        "stevens-pass": ("https://www.stevenspass.com" + _VR, "Stevens Pass: Hours of Operation", "Stevens Pass lists day and night lift hours as TBD."),
+        "stowe": ("https://www.stowe.com" + _VR, "Stowe: Hours of Operation", "Stowe's hours page still shows summer hours; opening dates are TBD."),
+        "okemo": ("https://www.okemo.com" + _VR, "Okemo: Hours of Operation", "Okemo says ski lift hours are coming soon."),
+        "seven-springs": ("https://www.7springs.com" + _VR, "Seven Springs: Hours of Operation", "Seven Springs says slope hours will be posted soon."),
+        "mt-bachelor": ("https://www.mtbachelor.com/the-mountain/hours-of-operation/", "Mt. Bachelor: Hours of Operation", "Mt. Bachelor says full winter 26/27 hours are coming soon. It plans to open 12/4."),
+        "palisades-tahoe": ("https://www.palisadestahoe.com/mountain-information/hours-of-operation", "Palisades Tahoe: Hours of Operation", "Palisades Tahoe hasn't posted winter lift hours. It opens 11/21."),
+        "crystal-mountain": ("https://www.crystalmountainresort.com/about/hours-of-operations", "Crystal Mountain: Hours of Operation", "Crystal says winter hours are coming soon."),
+        "sugarbush": ("https://www.sugarbush.com/mountain/hours", "Sugarbush: Hours", "Sugarbush's hours page still shows summer hours."),
+        "tremblant": ("https://www.tremblant.ca/mountain-village/opening-hours", "Tremblant: Opening Hours", "Tremblant lists season dates but points to the Ikon app for lift hours."),
+        "sunday-river": ("https://www.sundayriver.com/hours-of-operation", "Sunday River: Hours of Operation", "Sunday River's hours page still shows the 2025/26 schedule (9 AM to 4 PM weekdays, 8 AM to 4 PM weekends)."),
+        "grand-targhee": ("https://www.grandtarghee.com/the-mountain/cams-conditions/hours-of-operation", "Grand Targhee: Hours of Operation", "Grand Targhee hasn't posted winter lift hours."),
+        "jay-peak": ("https://jaypeakresort.com/resort/hours-operation", "Jay Peak: Hours of Operation", "Jay Peak hasn't posted 2026/27 lift hours."),
+        "saddleback": ("https://www.saddlebackmaine.com/hours-of-operation/", "Saddleback: Hours of Operation", "Saddleback hasn't posted lift hours. It opens 12/4."),
+        "cannon": ("https://www.cannonmt.com/hours", "Cannon: Hours of Operation", "Cannon hasn't posted lift or tram hours yet."),
+        "waterville-valley": ("https://www.waterville.com/hours-of-operation", "Waterville Valley: Hours of Operation", "Waterville Valley hasn't posted lift hours. It opens 11/28."),
+        "mt-baker": ("https://www.mtbaker.us/the-mountain/operations-hours/", "Mt. Baker: Operations Schedule", "Mt. Baker sets days and hours by conditions and posts them as a calendar image."),
+    },
+    "opening_day": {
+        "loon": ("https://www.loonmtn.com/hours", "Loon: Hours", "Loon says \"Opening Day TBD.\" It usually opens mid-November."),
+        "big-bear": ("https://www.bigbearmountainresort.com/hours", "Big Bear: Hours", "Big Bear hasn't confirmed opening day. 11/26 is the earliest date it may open."),
+        "grand-targhee": ("https://www.grandtarghee.com", "Grand Targhee: Home", "Grand Targhee planned 11/20 but is delaying opening day and hasn't set a new date."),
+        "cannon": ("https://www.cannonmt.com/hours", "Cannon: Hours of Operation", "Cannon hasn't announced 26/27 opening day."),
+        "seven-springs": ("https://www.7springs.com" + _VR, "Seven Springs: Hours of Operation", "Seven Springs hasn't announced opening day."),
+        "mad-river-glen": ("https://www.madriverglen.com/hours/", "Mad River Glen: Hours of Operation", "Mad River Glen usually opens the second Saturday in December, snow permitting."),
+    },
+}
+for _kind, _rows in _NOT_POSTED.items():
+    for _slug, (_url, _page, _note) in _rows.items():
+        CURATED.setdefault(_slug, {}).setdefault(_kind, _c(None, _url, _page, note=_note))
+for _slug in ("loon", "big-bear", "grand-targhee", "cannon", "seven-springs", "mad-river-glen"):
+    _o = CURATED[_slug]["opening_day"]
+    CURATED[_slug].setdefault("closing_day", _c(None, _o["source"], _o["source_name"], note="Not announced."))
+CURATED.setdefault("jackson-hole", {})["lift_tickets"] = _c(
+    "From $85 online for a 1-day adult ticket on select dates.", "https://www.jacksonhole.com/lift-tickets", "Jackson Hole: Lift Tickets",
+    note="The best rates are tiered and sold in limited numbers. Buying earlier, booking 3+ days and skiing non-peak dates save the most.")
+CURATED.setdefault("big-sky", {})["lift_tickets"] = _c(
+    None, "https://www.bigskyresort.com/winter-tickets/lift-ticket", "Big Sky: Lift Tickets",
+    note="Big Sky doesn't list a fixed 1-day price. Booking ahead gets the lowest price, multi-day tickets cost less per day, and kids 6 and under ski for $1 a day.")
+
+
 def _fact(value, src, **extra):
     return dict({"value": value, "checked": CHECKED_SHARED, "source": src[0], "source_name": src[1]}, **extra)
 
@@ -583,7 +757,9 @@ OPERATOR_PAGES = {
         "lessons": "/plan-your-trip/ski-and-ride-lessons.aspx",
     },
 }
-OPERATOR = {s: "vail-resorts" for s in ("beaver-creek", "vail", "breckenridge", "keystone", "crested-butte", "park-city")}
+OPERATOR = {s: "vail-resorts" for s in ("beaver-creek", "vail", "breckenridge", "keystone", "crested-butte", "park-city",
+                                        "whistler-blackcomb", "heavenly", "northstar", "kirkwood", "stevens-pass", "stowe",
+                                        "okemo", "mount-snow", "seven-springs")}
 
 
 def missing(slug):
@@ -654,36 +830,92 @@ KEY_LINE = re.compile(r"(open|clos|hours|season|\b\d{1,2}(:\d\d)?\s?(am|pm)\b|\b
                       r"january|february|march|april|may|june|november|december)", re.I)
 
 
-def fingerprint(page_html):
-    """Hash only the lines that carry dates and hours, so menus and promos don't trip it."""
+# Bot walls and empty JavaScript shells come back as a 200 but carry none of the page: treat them as a failed read.
+BLOCKED = re.compile(r"(just a moment\.\.\.|cf-chl|challenge-platform|captcha|access denied|attention required|"
+                     r"enable javascript to|request unsuccessful|incapsula|are you a robot)", re.I)
+MAX_LINES = 60  # key lines kept per page for the re-check diff
+
+
+def key_lines(page_html):
+    """The page's lines that carry dates and hours, sorted, without menus, scripts or promos."""
     text = re.sub(r"(?is)<(script|style|noscript)\b.*?</\1>", " ", page_html or "")
     text = html.unescape(re.sub(r"(?s)<[^>]+>", "\n", text))
-    lines = sorted({ln.strip() for ln in text.splitlines() if ln.strip() and len(ln.strip()) < 300 and KEY_LINE.search(ln)})
-    return hashlib.sha256("\n".join(lines).encode()).hexdigest()[:16]
+    return sorted({ln.strip() for ln in text.splitlines() if ln.strip() and len(ln.strip()) < 300 and KEY_LINE.search(ln)})
+
+
+def fingerprint(page_html):
+    """Hash only the lines that carry dates and hours, so menus and promos don't trip it."""
+    return hashlib.sha256("\n".join(key_lines(page_html)).encode()).hexdigest()[:16]
+
+
+def blocked(page_html):
+    """A read that didn't get the real page: a bot wall, a challenge, or a shell with no dates or hours at all."""
+    return not key_lines(page_html) or bool(BLOCKED.search((page_html or "")[:20000]))
 
 
 def watch(store, fetch, now=None):
-    """Read every source page once, compare with the last fingerprint, and write the status file.
-    `fetch(url) -> html or None`. Returns the status written."""
+    """Read every source page once and write data/facts/status.json. `fetch(url) -> html or None`.
+
+    A page counts as changed only when the new text is still there on the next read (one-off promos,
+    countdowns and A/B tests don't flag it). Bot walls and empty shells count as errors, not changes.
+    The status carries a work queue for the re-check task: every fact that is due, plus every fact
+    whose source changed, with the lines that were added and removed. Returns the status written."""
     now = now or datetime.now()
+    stamp = now.isoformat(timespec="minutes")
     prev = store.get_json("data/facts/status.json", {}) or {}
     seen = dict(prev.get("pages") or {})
-    changed = []
-    for url in sorted({f["source"] for kinds in FACTS.values() for f in kinds.values()}):
-        page = fetch(url)
-        if page is None:
-            seen.setdefault(url, {})["error_at"] = now.isoformat(timespec="minutes")
+    changed, failing = [], []
+    urls = sorted({f["source"] for kinds in FACTS.values() for f in kinds.values()})
+    # 170+ pages won't fit a 60 s function one at a time: read them in parallel.
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=32) as pool:
+        pages = dict(zip(urls, pool.map(fetch, urls)))
+    for url in urls:
+        page = pages[url]
+        entry = dict(seen.get(url) or {})
+        if page is None or blocked(page):
+            entry["error_at"] = stamp
+            entry["errors"] = entry.get("errors", 0) + 1
+            entry["error"] = "no response" if page is None else "blocked or empty page"
+            if entry["errors"] >= 3:
+                failing.append(url)
+            seen[url] = entry
             continue
+        lines = key_lines(page)[:MAX_LINES]
         fp = fingerprint(page)
-        old = (seen.get(url) or {}).get("fp")
-        entry = {"fp": fp, "read_at": now.isoformat(timespec="minutes"),
-                 "changed_at": (seen.get(url) or {}).get("changed_at")}
-        if old and old != fp:
-            entry["changed_at"] = now.isoformat(timespec="minutes")
+        entry.update(read_at=stamp, errors=0)
+        entry.pop("error", None)
+        if not entry.get("fp"):
+            entry.update(fp=fp, lines=lines)
+        elif fp == entry["fp"]:
+            entry.pop("pending_fp", None)
+            entry["lines"] = lines
+        elif entry.get("pending_fp") == fp:  # second read in a row with the new text: a real change
+            entry.update(prev_lines=entry.get("lines") or [], lines=lines, fp=fp, changed_at=stamp)
+            entry.pop("pending_fp", None)
             changed.append(url)
+        else:
+            entry["pending_fp"] = fp
         seen[url] = entry
-    status = {"generated": now.isoformat(timespec="minutes"), "pages": seen, "changed_today": changed,
-              "due": [{"resort": s, "fact": k, "overdue_days": d} for s, k, d in due(now.date())]}
+    # A change stays in the queue until the facts on that page are re-checked after it.
+    queue = []
+    due_now = {(s, k): d for s, k, d in due(now.date())}
+    for slug, kinds in FACTS.items():
+        for kind, f in kinds.items():
+            page = seen.get(f["source"]) or {}
+            moved = page.get("changed_at") and page["changed_at"][:10] > f["checked"]
+            if not moved and (slug, kind) not in due_now:
+                continue
+            item = {"resort": slug, "fact": kind, "source": f["source"], "value": f.get("value"),
+                    "checked": f["checked"], "reason": "changed" if moved else "due",
+                    "overdue_days": due_now.get((slug, kind), 0)}
+            if moved:
+                old, new = set(page.get("prev_lines") or []), set(page.get("lines") or [])
+                item.update(changed_at=page["changed_at"], added=sorted(new - old)[:10], removed=sorted(old - new)[:10])
+            queue.append(item)
+    queue.sort(key=lambda q: (q["reason"] != "changed", -q["overdue_days"], q["resort"], q["fact"]))
+    status = {"generated": stamp, "pages": seen, "changed_today": changed, "failing": failing,
+              "due": [{"resort": s, "fact": k, "overdue_days": d} for (s, k), d in due_now.items()], "queue": queue}
     store.put_json("data/facts/status.json", status)
     return status
 

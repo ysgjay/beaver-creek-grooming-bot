@@ -36,7 +36,7 @@ def test_fingerprint_ignores_menus_but_sees_dates():
     assert facts.fingerprint(a) == facts.fingerprint(b) != facts.fingerprint(c)
 
 
-def test_watch_flags_changed_pages(tmp_path):
+def test_watch_flags_changed_pages_after_two_reads(tmp_path):
     store = LocalStore(tmp_path)
     pages_now = {u: "<p>Opens November 25</p>" for kinds in facts.FACTS.values() for u in [f["source"] for f in kinds.values()]}
     s1 = facts.watch(store, pages_now.get, now=datetime(2026, 11, 20, 7, 30))
@@ -44,8 +44,39 @@ def test_watch_flags_changed_pages(tmp_path):
     url = next(iter(pages_now))
     pages_now[url] = "<p>Opens November 27</p>"
     s2 = facts.watch(store, pages_now.get, now=datetime(2026, 11, 21, 7, 30))
-    assert s2["changed_today"] == [url] and s2["pages"][url]["changed_at"] == "2026-11-21T07:30"
+    assert s2["changed_today"] == [] and s2["pages"][url].get("pending_fp")  # one read could be a promo
+    s3 = facts.watch(store, pages_now.get, now=datetime(2026, 11, 22, 7, 30))
+    assert s3["changed_today"] == [url] and s3["pages"][url]["changed_at"] == "2026-11-22T07:30"
     assert store.get_json("data/facts/status.json")["changed_today"] == [url]
+    item = next(q for q in s3["queue"] if q["source"] == url)
+    assert item["reason"] == "changed" and item["added"] == ["Opens November 27"] and item["removed"] == ["Opens November 25"]
+    assert s3["queue"][0]["reason"] == "changed"  # changes sort ahead of routine re-checks
+
+
+def test_watch_one_off_change_is_not_flagged(tmp_path):
+    store = LocalStore(tmp_path)
+    pages_now = {u: "<p>Opens November 25</p>" for kinds in facts.FACTS.values() for u in [f["source"] for f in kinds.values()]}
+    facts.watch(store, pages_now.get, now=datetime(2026, 11, 20, 7, 30))
+    url = next(iter(pages_now))
+    pages_now[url] = "<p>Opens November 25</p><p>Flash sale ends 11/21</p>"
+    facts.watch(store, pages_now.get, now=datetime(2026, 11, 21, 7, 30))
+    pages_now[url] = "<p>Opens November 25</p>"
+    s3 = facts.watch(store, pages_now.get, now=datetime(2026, 11, 22, 7, 30))
+    assert s3["changed_today"] == [] and "pending_fp" not in s3["pages"][url]
+
+
+def test_watch_treats_bot_walls_as_errors_and_flags_3_days(tmp_path):
+    store = LocalStore(tmp_path)
+    pages_now = {u: "<p>Opens November 25</p>" for kinds in facts.FACTS.values() for u in [f["source"] for f in kinds.values()]}
+    facts.watch(store, pages_now.get, now=datetime(2026, 11, 20, 7, 30))
+    url = next(iter(pages_now))
+    pages_now[url] = "<title>Just a moment...</title><p>Checking your browser</p>"
+    for day in (21, 22):
+        s = facts.watch(store, pages_now.get, now=datetime(2026, 11, day, 7, 30))
+        assert s["changed_today"] == [] and url not in s["failing"]
+    s = facts.watch(store, pages_now.get, now=datetime(2026, 11, 23, 7, 30))
+    assert url in s["failing"] and s["pages"][url]["errors"] == 3 and s["pages"][url]["fp"]
+    assert facts.blocked("<div id=root></div>") and not facts.blocked("<p>Lifts 9 AM to 4 PM</p>")
 
 
 def test_guide_shows_sourced_facts_and_faq():
@@ -170,3 +201,14 @@ def test_scene7_tiles_load_small_and_link_the_full_image():
     from bcbot import guide
     html = guide.map_gallery(facts.FACTS["vail"]["trail_map"])
     assert "wid=800" in html and "wid=4000" in html
+
+
+def test_coverage_lists_every_resort_with_cams_and_report_source():
+    from bcbot import resorts
+    cv = {r["resort"]: r for r in resorts.coverage()}
+    assert set(cv) == set(resorts.RESORTS)
+    assert cv["jackson-hole"]["cams"] == 11 and cv["jackson-hole"]["stake"] and cv["jackson-hole"]["report"] == "Resort feed"
+    assert cv["big-sky"]["report"] == "Boyne feed" and cv["big-sky"]["grooming"]
+    assert cv["copper"]["report"] == "POWDR feed" and cv["killington"]["report"] == "Report page"
+    assert cv["beaver-creek"]["report"] == "Vail page" and cv["mammoth"]["report"] == ""
+    assert cv["mammoth"]["stage"] == "shadow" and cv["vail"]["stage"] == "live"

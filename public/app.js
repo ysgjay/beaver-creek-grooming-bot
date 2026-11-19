@@ -454,7 +454,7 @@
   function renderCams(el, L) {
     const cams = (resortInfo().cams || (R.slug === DEFAULT_RESORT ? S.cfg?.cams : null) || []).slice();
     const minute = Math.floor(Date.now() / 60000);
-    const items = cams.map((c) => ({ label: c.label, src: `${c.image}?t=${minute}`, live: c.live }));
+    const items = cams.map((c) => ({ label: c.label, src: `${c.image}${c.image.includes("?") ? "&" : "?"}t=${minute}`, live: c.live }));
     if (L?.cam) items.splice(1, 0, { label: `Stake at ${(L.generated || "").slice(11, 16) || "report"}`, src: "/" + L.cam, live: null });
     if (!items.length) {
       const r = resortInfo();
