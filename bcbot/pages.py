@@ -179,15 +179,15 @@ def description(day):
 THEME = """
 :root{--bg:#dcebfa;--paper:#f5f9fc;--surface:#ffffff;--edge:#ffffff;--ink:#0c2a4a;--ink2:#52677b;--line:#c3d3e0;
 --action:#365c7d;--btn:#7b1e2e;--btn-hover:#651826;--accent-soft:#f2e6e9;--accent-ink:#7b1e2e;--chip-line:#e3c9cf;--snow:#376f9b;
---tile-line:#dce8f2;--sel:#dce8f2;--bar:#dcebfaee;--shadow:inset 0 1px 0 #fff,0 8px 24px rgba(12,42,74,.07),0 1px 3px rgba(12,42,74,.04);
+--tile-line:#dce8f2;--sel:#dce8f2;--ring:#9cc3e4;--bar:#dcebfaee;--shadow:inset 0 1px 0 #fff,0 8px 24px rgba(12,42,74,.07),0 1px 3px rgba(12,42,74,.04);
 --glow:radial-gradient(ellipse at 15% 0%,#ffffffd9,transparent 48%),linear-gradient(145deg,#eef5fc,#dcebfa 65%,#e8f1fa);color-scheme:light}
 html[data-appearance="dark"]{--bg:#071b2e;--paper:#102a40;--surface:#18384f;--edge:#365870;--ink:#e7f2fc;--ink2:#a9bfd2;--line:#32516a;
 --action:#b8dcf6;--btn:#8b2941;--btn-hover:#a13a53;--accent-soft:#402437;--accent-ink:#f0bfca;--chip-line:#6b3a4c;--snow:#8dc4eb;
---tile-line:#32516a;--sel:#24475e;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
+--tile-line:#32516a;--sel:#24475e;--ring:#b8dcf6;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
 --glow:radial-gradient(ellipse at 15% 0%,#24517166,transparent 48%),linear-gradient(145deg,#0b243b,#071b2e 65%,#0c2940);color-scheme:dark}
 @media (prefers-color-scheme:dark){html:not([data-appearance]){--bg:#071b2e;--paper:#102a40;--surface:#18384f;--edge:#365870;--ink:#e7f2fc;--ink2:#a9bfd2;--line:#32516a;
 --action:#b8dcf6;--btn:#8b2941;--btn-hover:#a13a53;--accent-soft:#402437;--accent-ink:#f0bfca;--chip-line:#6b3a4c;--snow:#8dc4eb;
---tile-line:#32516a;--sel:#24475e;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
+--tile-line:#32516a;--sel:#24475e;--ring:#b8dcf6;--bar:#0b2135f2;--shadow:inset 0 1px 0 #c5e8ff12,0 8px 24px #00000024,0 1px 3px #00000018;
 --glow:radial-gradient(ellipse at 15% 0%,#24517166,transparent 48%),linear-gradient(145deg,#0b243b,#071b2e 65%,#0c2940);color-scheme:dark}}
 html[data-appearance="dark"] :is(ol.days .v,table.hours td.g span){color:#e7f2fc;box-shadow:inset 0 0 0 99px rgba(7,27,46,.6)}
 """
@@ -219,17 +219,35 @@ footer{{margin-top:26px;font-size:12px;color:var(--ink2)}}
 .topbar.wide .top{{max-width:1680px;padding:8px 20px}}
 .wrap.wide{{max-width:1680px;padding:14px 20px 32px}}
 .top .resort{{font:600 20px/1 {mailer.DISPLAY};color:var(--ink);text-decoration:none;white-space:nowrap;padding-left:12px;border-left:1px solid var(--line)}}
-.rtabs{{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}}
-.rtabs::-webkit-scrollbar{{display:none}}
-.rtabs a{{flex:none;display:inline-flex;align-items:center;height:40px;padding:0 13px;border-radius:999px;
- font:500 15px/1 {mailer.SANS};color:var(--ink);text-decoration:none;white-space:nowrap}}
-.rtabs a:hover{{background:var(--paper)}}
-.rtabs a[aria-current="page"]{{background:var(--sel);font-weight:600}}
-.rtabs a:focus-visible{{outline:2px solid var(--btn);outline-offset:2px}}
-.subtabs{{display:none;max-width:1680px;margin:0 auto;padding:0 12px 8px}}
-@media (min-width:1100px){{.top .rtabs{{margin-left:6px;padding-left:10px;border-left:1px solid var(--line)}}}}
-@media (max-width:1099px){{.top .rtabs{{display:none}} .subtabs{{display:block}} .subtabs .rtabs a{{height:36px;padding:0 12px;font-size:14px}}}}
-@media (max-width:520px){{.top .resort{{display:none}}}}
+html{{scroll-padding-top:calc(var(--hdr,112px) + 12px)}}
+@media (prefers-reduced-motion:no-preference){{html{{scroll-behavior:smooth}}}}
+.rtabs,.chips{{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}}
+.rtabs::-webkit-scrollbar,.chips::-webkit-scrollbar{{display:none}}
+.rtabs a,.chips a{{flex:none;display:inline-flex;align-items:center;border-radius:999px;color:var(--ink);text-decoration:none;white-space:nowrap}}
+.top .rtabs a{{height:44px;padding:0 14px;font:500 15px/1 {mailer.SANS}}}
+.rtabs a:hover,.chips a:hover{{background:var(--paper)}}
+.rtabs a[aria-current="page"],.chips a[aria-current="true"]{{background:var(--sel);font-weight:600}}
+.rtabs a:focus-visible,.chips a:focus-visible{{outline:2px solid var(--btn);outline-offset:2px}}
+.top .rtabs{{margin-left:6px;padding-left:10px;border-left:1px solid var(--line)}}
+.chiprow{{max-width:1680px;margin:0 auto;padding:0 20px 4px}}
+.chips{{padding:4px 0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}}
+.chips a{{height:36px;padding:0 13px;font:500 14px/1 {mailer.SANS};border:1px solid var(--line)}}
+.chips a[aria-current="true"]{{border-color:transparent}}
+.gd section[id],.gd div[id]{{border-radius:20px}}
+.arrived>.card,section.arrived{{animation:arrive 1.4s ease-out}}
+@keyframes arrive{{0%,40%{{box-shadow:0 0 0 2px var(--ring),var(--shadow)}}100%{{box-shadow:0 0 0 2px transparent,var(--shadow)}}}}
+@media (prefers-reduced-motion:reduce){{.arrived>.card,section.arrived{{animation:none;outline:2px solid var(--ring);outline-offset:0}}}}
+.gd h2[tabindex]:focus:not(:focus-visible){{outline:none}}
+.hoursline{{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;width:fit-content;max-width:100%;box-sizing:border-box;background:var(--paper);border:1px solid var(--edge);
+ border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;margin:0 0 14px;font-size:15px}}
+.hoursline .k{{font:600 10px/1.3 {mailer.MONO};letter-spacing:.05em;text-transform:uppercase;color:var(--ink2)}}
+.hoursline span:nth-child(2){{font-weight:600}}
+.hoursline a{{font-size:13px}}
+@media (forced-colors:active){{.rtabs a[aria-current],.chips a[aria-current]{{outline:2px solid CanvasText}}}}
+.top .short{{display:none}}
+@media (max-width:820px){{.top .resort{{display:none}}}}
+@media (max-width:520px){{.top .full{{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}} .top .short{{display:inline}} .top .home span{{display:none}} .top .rtabs{{margin-left:0;padding-left:8px}} .top .rtabs a{{padding:0 10px;font-size:14px}}
+ .top .app{{padding:10px 12px}} .chiprow{{padding:0 12px 4px}}}}
 """ + webreport.CSS + guide_mod.CSS
 
 
@@ -239,18 +257,40 @@ def _ld(obj):
 
 
 def resort_tabs(slug, current):
-    """App-style section tabs for a resort's public pages. `current` is the tab key shown as selected."""
-    from . import facts as F
-    guide = resort_path(slug, "guide")
-    tabs = [("report", "Snow report", resort_path(slug)), ("hours", "Lift hours", f"{guide}#hours"),
-            ("blackout", "Blackout dates", f"{guide}#blackout-dates"), ("map", "Trail map and cams", f"{guide}#trail-map"),
-            ("grooming", "Grooming", f"{resort_path(slug)}#grooming"), ("guide", "Resort guide", guide)]
-    links = "".join(f'<a href="{h}"{" aria-current=\"page\"" if k == current else ""}>{escape(t)}</a>' for k, t, h in tabs)
-    return f'<nav class="rtabs" aria-label="{escape(resorts.get(slug)["name"])} sections">{links}</nav>'
+    """Level 1: the resort's two pages. `current` is "report" or "guide"."""
+    tabs = [("report", "Snow report", "Report", resort_path(slug)), ("guide", "Resort guide", "Guide", resort_path(slug, "guide"))]
+    links = "".join(f'<a href="{h}"{" aria-current=\"page\"" if k == current else ""}><span class="full">{escape(t)}</span>'
+                    f'<span class="short" aria-hidden="true">{escape(sh)}</span></a>' for k, t, sh, h in tabs)
+    return f'<nav class="rtabs" aria-label="{escape(resorts.get(slug)["name"])} pages">{links}</nav>'
+
+
+# Level 2 (guide page only): section chips with scroll-spy. Sets --hdr to the header height so anchor
+# jumps land below the sticky header, marks the chip for the section being read (aria-current="true"),
+# rings the section you jumped to, and moves focus to its heading. Never rewrites the URL hash.
+NAV_JS = """<script>(function(){
+var hdr=document.querySelector('.topbar'),root=document.documentElement;
+function setH(){root.style.setProperty('--hdr',hdr.offsetHeight+'px')}
+setH();if(window.ResizeObserver)new ResizeObserver(setH).observe(hdr);
+var nav=document.querySelector('.chips');if(!nav)return;
+var links=[].slice.call(nav.querySelectorAll('a')),secs=links.map(function(a){return document.getElementById(a.hash.slice(1))});
+var still=window.matchMedia('(prefers-reduced-motion: reduce)').matches,paused=0;
+function mark(i){links.forEach(function(a,j){if(j===i)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')});
+ if(i>=0){var c=links[i];nav.scrollTo({left:c.offsetLeft-16,behavior:still?'auto':'smooth'})}}
+function spy(){if(paused)return;var line=hdr.offsetHeight+24,cur=-1;
+ secs.forEach(function(s,i){if(s&&s.getBoundingClientRect().top<=line)cur=i});
+ if(innerHeight+scrollY>=document.documentElement.scrollHeight-2)cur=secs.length-1;mark(cur)}
+function arrive(s){if(!s)return;s.classList.remove('arrived');void s.offsetWidth;s.classList.add('arrived');
+ setTimeout(function(){s.classList.remove('arrived')},1600)}
+links.forEach(function(a,i){a.addEventListener('click',function(){mark(i);paused=1;var s=secs[i];
+ var done=function(){paused=0;removeEventListener('scrollend',done);spy()};addEventListener('scrollend',done);setTimeout(done,800);
+ setTimeout(function(){arrive(s);var h=s&&s.querySelector('h2');if(h)h.focus({preventScroll:true})},still?0:350)})});
+addEventListener('scroll',spy,{passive:true});addEventListener('resize',spy);
+if(location.hash){var t=document.getElementById(location.hash.slice(1));if(t)setTimeout(function(){arrive(t)},200)}
+spy()})()</script>"""
 
 
 def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=False, feed=None, wide=False,
-          app_href="/", where=None, markdown=None, tabs=None):
+          app_href="/", where=None, markdown=None, tabs=None, chips=""):
     image = image or site("brand/share-1200x630.png")
     meta = [
         f"<title>{escape(page_title)}</title>",
@@ -276,9 +316,10 @@ def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=Fal
     sub = ""
     if tabs:
         slug, current = tabs
-        nav = resort_tabs(slug, current)
-        where_html = f'<a class="resort" href="{resort_path(slug)}">{escape(resorts.get(slug)["name"])}</a>{nav}'
-        sub = f'<div class="subtabs">{nav}</div>'
+        where_html = (f'<a class="resort" href="{resort_path(slug)}">{escape(resorts.get(slug)["name"])}</a>'
+                      + resort_tabs(slug, current))
+    if chips:
+        sub = f'<div class="chiprow">{chips}</div>'
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {chr(10).join(meta)}
@@ -286,14 +327,14 @@ def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=Fal
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <script src="/appearance.js"></script>
 <style>{CSS}</style>{lds}</head>
-<body><header class="topbar{' wide' if wide else ''}"><div class="top"><a href="/"><img src="/brand/frosted-logo-email.png" width="36" height="36" alt="">{ORG}</a>
-{where_html}<a class="app" href="{escape(app_href)}">Open in the app</a></div>{sub}</header>
+<body><header class="topbar{' wide' if wide else ''}"><div class="top"><a class="home" href="/"><img src="/brand/frosted-logo-email.png" width="36" height="36" alt=""><span>{ORG}</span></a>
+{where_html}<a class="app" href="{escape(app_href)}"><span class="full">Open in the app</span><span class="short" aria-hidden="true">App</span></a></div>{sub}</header>
 <div class="wrap{' wide' if wide else ''}">
 {body}
 <footer><p>{DISCLAIMER} Grooming and snow totals come from each resort's own reports. Forecast data by
 Open-Meteo.com (CC BY 4.0), NWS and NRCS SNOTEL.</p>
 <p><a href="/resorts">All resorts</a> · <a href="/">0xSnow app</a> · <a href="/#help">Help</a> · <a href="/llms.txt">For AI assistants</a>{f' · <a href="{markdown}">Markdown version</a>' if markdown else ""}</p></footer>
-</div></body></html>"""
+</div>{NAV_JS if tabs else ""}</body></html>"""
 
 
 def _cta(slug, name):
@@ -331,7 +372,7 @@ def resort_page(slug, day, dates, dated=False):
         for x in others) + "</ul>") if others else ""
     body = (crumbs + f'<h1 class="page">{escape(h1)}</h1>'
             + f'<p class="lead">{escape(" ".join(words))}</p>'
-            + _quick_links(slug, name)
+            + _quick_links(slug, name) + _hours_line(slug, name)
             + webreport.render(day, map_url)
             + _cta(slug, name) + past + _more(slug, name))
     article = {
@@ -419,6 +460,17 @@ def sitemap(store):
                    + f"<changefreq>{f}</changefreq></url>" for u, m, f in urls)
     return ('<?xml version="1.0" encoding="UTF-8"?>'
             f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{rows}</urlset>')
+
+
+def _hours_line(slug, name):
+    """Lift hours on the report page too: one of the most asked questions (links to the guide's hours card)."""
+    from . import facts as F
+    f = (F.FACTS.get(slug) or {}).get("lift_hours")
+    if not f:
+        return ""
+    shown = f.get("value") or "Not posted yet"
+    return (f'<p class="hoursline"><span class="k">Lift hours</span><span>{escape(shown)}</span>'
+            f'<a href="{resort_path(slug, "guide")}#hours">Details and source</a></p>')
 
 
 def _quick_links(slug, name):
@@ -591,7 +643,8 @@ def guide_page(slug, summary=None, day=None, today=None):
     name = resorts.get(slug)["name"]
     return shell(page_title=title, desc=desc, canonical=site(resort_path(slug, "guide")), body=body, ld=ld,
                  feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"), wide=True, where=name,
-                 app_href=f"/?resort={slug}", markdown=f"/resorts/{slug}/guide.md", tabs=(slug, "guide"))
+                 app_href=f"/?resort={slug}", markdown=f"/resorts/{slug}/guide.md", tabs=(slug, "guide"),
+                 chips=guide.chips(slug))
 
 
 def _guide_label(slug, name):

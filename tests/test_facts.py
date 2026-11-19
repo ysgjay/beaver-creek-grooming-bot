@@ -65,7 +65,7 @@ def test_passes_tickets_and_lessons_section():
     assert facts.interval_days("passes", date(2027, 1, 10)) == 30
     assert facts.interval_days("lift_tickets", date(2027, 1, 10)) == 7
     bc = pages.guide_page("beaver-creek", {})
-    assert "<h2>Beaver Creek blackout dates and passes</h2>" in bc and "<h2>Beaver Creek lift tickets and lessons</h2>" in bc
+    assert "Beaver Creek blackout dates and passes</h2>" in bc and "Beaver Creek lift tickets and lessons</h2>" in bc
     assert "Sat 12/26 to Thu 12/31" in bc and 'href="/passes/epic-blackout-dates"' in bc and "$211 online" in bc and "Epic Ascent" in bc
     assert "What are the Beaver Creek blackout dates for 2026/27?" in bc
     cu = pages.guide_page("copper", {})
@@ -113,6 +113,8 @@ def test_todo_points_at_operator_pages():
 def test_lift_hours_sit_in_the_top_row():
     html = pages.guide_page("alta", {}, None, today=date(2026, 11, 19))
     assert html.index('id="hours"') < html.index("Quick answers") and "Collins and Sunnyside run to 4:30 PM" in html
-    assert 'href="/resorts/alta/guide#hours">Lift hours</a>' in html
+    assert '<nav class="chips" aria-label="On this page"><a href="#hours">Lift hours</a>' in html
+    assert 'aria-current="page"><span class="full">Resort guide</span>' in html and "scroll-padding-top" in html
+    assert 'href="/resorts/alta/guide" aria-current="page"><span class="full">Resort guide' in html
     assert "hasn&#x27;t checked Snowbird" in pages.guide_page("snowbird", {}, None, today=date(2026, 11, 19)) or \
         "hasn't checked Snowbird" in pages.guide_page("snowbird", {}, None, today=date(2026, 11, 19))
