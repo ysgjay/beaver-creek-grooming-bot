@@ -1377,5 +1377,10 @@ def test_wave_2_resorts_are_in_shadow_and_read_no_resort_page_yet():
 
 def test_wave_3_and_4_resorts_are_in_shadow():
     later = [k for k, r in resorts.RESORTS.items() if r.get("stage") == "shadow"]
-    for slug in ("sugarloaf", "whiteface", "taos", "revelstoke", "wolf-creek", "big-white"):
+    for slug in ("sugarloaf", "whiteface", "taos", "revelstoke", "wolf-creek", "big-white",
+                 "powder-mountain", "saddleback", "mad-river-glen", "sun-peaks", "mt-baker"):
         assert slug in later and slug in resorts.shadow() and slug not in resorts.enabled(), slug
+
+
+def test_the_next_50_are_all_registered():
+    assert len(resorts.RESORTS) == 72 and len(resorts.shadow()) == 50

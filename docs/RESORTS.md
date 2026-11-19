@@ -101,6 +101,13 @@ Stryker Basin 1311, 30 km), Grand Targhee (Grand Targhee 1082), Revelstoke, Jay 
 Wolf Creek (Wolf Creek Summit 874), Mt. Hood Meadows (Mt Hood Test Site 651) and Big White. Same setup as Wave 2: no
 resort page read yet, opening days and independent pass labels are estimates to confirm before launch.
 
+### Wave 4 (added 11/19/2026, shadow mode)
+
+Smaller independents: Powder Mountain (SNOTEL Powder Mountain 1300), Saddleback, Holiday Valley, Bretton Woods,
+Smugglers' Notch, Mad River Glen, Cannon, Waterville Valley, Purgatory (Cascade #2 387), Tamarack (Long Valley 1016),
+Sun Peaks and Mt. Baker (Wells Creek 909). Same setup as Waves 2 and 3. With Wave 4 all 50 resorts in the plan are
+registered: 22 live, 50 in shadow.
+
 ## What differs between resorts
 - **Grooming map layouts.** Beaver Creek's PDF has "Groomers of the day", "Last night's grooming" and
   "Morning grooming" sections with number and name on alternating lines. Vail's lists runs under area
