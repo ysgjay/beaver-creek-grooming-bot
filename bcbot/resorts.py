@@ -846,6 +846,10 @@ SNOW_REPORT_PATH = "/the-mountain/mountain-conditions/snow-and-weather-report.as
 CAMS_PATH = "/the-mountain/mountain-conditions/mountain-cams.aspx"
 
 
+# Provinces of the Canadian resorts. NWS (api.weather.gov) covers only the US, so these skip it.
+CANADA_REGIONS = {"British Columbia", "Alberta", "Quebec", "Ontario", "Nova Scotia", "New Brunswick", "Newfoundland"}
+
+
 def enabled():
     """Slugs the scheduler runs and the app offers, in display order."""
     env = [s.strip() for s in os.environ.get("RESORTS", "").split(",") if s.strip() in RESORTS]
@@ -869,6 +873,7 @@ def get(slug):
     r.setdefault("region", "Colorado")
     r.setdefault("pass", "Epic")
     r.setdefault("dor_api", None)
+    r["country"] = "CA" if r["region"] in CANADA_REGIONS else "US"
     if r["dor_api"]:  # POWDR's open JSON feed (sources/dor.py): snow report and groomed runs
         r["snow_report"] = r["dor_api"] + "/api/v1/dor/drupal/snow-reports"
     elif "snow_report_path" in r and r["snow_report_path"] is None:

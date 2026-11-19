@@ -32,6 +32,12 @@ app. The server code is AGPL; we run it unmodified.
 
 Smoke test: `python -m bcbot.worker --once` (one forced tick of every enabled resort).
 
+Memory (Starter, 512 MB): the worker runs 2 resorts at a time (`WORKER_CONCURRENCY`), gives memory back
+after each tick (the tick log line ends with its MB), and runs the forced start-up tick once per deploy,
+not after every restart. Shadow mode doesn't keep map, cam or radar images. On 11/19/2026, with 72 resorts
+at 4 at a time and a forced tick on every restart, it ran out of memory 18 times in a row. Canadian
+resorts skip NWS (US only).
+
 ## Setup steps
 1. Young creates the 0xM Studio workspace (billing card = 0xM) and reconnects the Render connector to it.
 2. Claude applies the blueprint from `main` (Render → Blueprints → New, or the connector).

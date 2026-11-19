@@ -101,7 +101,7 @@ USER_AGENT = "beaver-creek-grooming-bot (github.com/ysgjay/beaver-creek-grooming
 
 _PER_RESORT = ("RESORT", "RESORT_NAME", "TZ", "OPENING_DAY", "LAT", "LON", "ELEVATION_FT", "ELEVATION_M",
                "GROOMING_PDF_URL", "RESORT_SNOW_REPORT_URL", "SNOTEL_STATIONS", "ELEVATION_BANDS", "CAMS",
-               "STAKE_SNAPSHOT_URL", "DOR_API")
+               "STAKE_SNAPSHOT_URL", "DOR_API", "IN_US")
 _current = contextvars.ContextVar("snow_desk_resort", default=None)
 _defaults = {}
 
@@ -120,6 +120,7 @@ def _settings(slug):
         "GROOMING_PDF_URL": r["grooming_pdf"], "RESORT_SNOW_REPORT_URL": r["snow_report"],
         "SNOTEL_STATIONS": r["snotel"], "ELEVATION_BANDS": r["bands"],
         "CAMS": cams, "STAKE_SNAPSHOT_URL": stake, "DOR_API": r.get("dor_api"),
+        "IN_US": r["country"] == "US",  # NWS only covers the US
     }
 
 

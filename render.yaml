@@ -40,7 +40,7 @@ services:
       - key: WORKER_MODE
         value: shadow
       - key: WORKER_CONCURRENCY
-        value: "4"
+        value: "2"
       - key: OPEN_METEO_HOST
         fromService:
           type: pserv
