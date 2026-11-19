@@ -214,8 +214,9 @@ def save_weights(cur, slug, day, verification):
 
 def record(slug, fc, obs, resort_report, verification, now, fresh):
     """Called by every full run. Never raises: the audit must not cost a morning report."""
+    import os
     from . import db
-    if not db.url():
+    if not db.url() or os.environ.get("STORE_MODE") == "shadow":  # shadow runs never write to Neon
         return None
     try:
         with db.connect() as conn:
