@@ -57,7 +57,18 @@ def get(url, **opts):
                         path, r.status_code, r.text[:160])
         except Exception as e:
             log.warning("self-hosted Open-Meteo %s failed (%s); using the public API", path, e)
-    return _http_get(url, **opts)
+    r = _http_get(url, **opts)
+    if r.status_code == 429:  # the free public API's per-minute limit: wait it out once, with jitter
+        import random
+        import time
+        try:
+            wait = float(r.headers.get("Retry-After") or 0)
+        except (TypeError, ValueError, AttributeError):
+            wait = 0
+        time.sleep(min(max(wait, 3.0), 8.0) + random.uniform(0, 2))
+        log.warning("Open-Meteo 429 on %s; trying once more", url)
+        r = _http_get(url, **opts)
+    return r
 
 HOURLY_VARS = [
     "temperature_2m",
@@ -148,6 +159,8 @@ def fetch_ensemble():
         "models": ",".join(config.ENSEMBLE_MODELS),
     }
     r = get(ENSEMBLE_URL, params=params, timeout=30, retries=0)
+    if r.status_code == 429:  # rate limited even after waiting: smaller asks would only add to it
+        r.raise_for_status()
     if not r.ok:  # one extra ensemble being down must not cost the core two
         log.warning("Open-Meteo full ensemble failed (%s); retrying with the core models", r.status_code)
         r = get(ENSEMBLE_URL, params=params | {"models": ",".join(config.ENSEMBLE_CORE)}, timeout=30)

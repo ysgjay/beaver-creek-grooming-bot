@@ -184,3 +184,15 @@ def test_live_mode_refuses_a_local_store(monkeypatch):
         store.get_store()
     monkeypatch.setenv("WORKER_MODE", "shadow")
     assert isinstance(store.get_store(), store.LocalStore)
+
+
+def test_public_api_429_waits_once_then_retries(monkeypatch):
+    import time
+    monkeypatch.delenv("OPEN_METEO_URL", raising=False)
+    monkeypatch.delenv("OPEN_METEO_HOST", raising=False)
+    answers = iter([Resp(429, "{}"), Resp()])
+    calls, waits = [], []
+    monkeypatch.setattr(openmeteo, "_http_get", lambda url, **o: calls.append(url) or next(answers))
+    monkeypatch.setattr(time, "sleep", lambda s: waits.append(s))
+    assert openmeteo.get(openmeteo.ENSEMBLE_URL, params={}).ok
+    assert len(calls) == 2 and len(waits) == 1 and 3 <= waits[0] <= 10
