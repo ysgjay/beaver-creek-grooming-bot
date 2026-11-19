@@ -79,7 +79,7 @@ Naming (11/18/2026): the app is **0xSnow** everywhere (title, Home Screen label,
 
 ## Public report pages and SEO (`/resorts`, `bcbot/pages.py`, `api/page.py`)
 
-- `/resorts` lists every resort; `/resorts/<slug>` is today's report and `/resorts/<slug>/<YYYY-MM-DD>` is an archive post. Each is plain HTML: a short summary from the day's numbers, then the single-resort Day Ticket email body (`mailer.daily_html`).
+- `/resorts` lists every resort; `/resorts/<slug>` is today's report and `/resorts/<slug>/<YYYY-MM-DD>` is an archive post. Each is plain HTML: a short summary from the day's numbers, then the Day Ticket laid out for the web (`bcbot/webreport.py`: section headings, groomed runs as lists, full-width map, two columns on desktop). The email (`mailer.daily_html`) is separate and unchanged.
 - Pages read the stored day JSON in Blob. The archive index is `data/<slug>/posts.json`, appended on each daily send; if missing it is rebuilt from the Blob listing of `data/<slug>/days/`.
 - `/sitemap.xml` (dynamic) and `public/robots.txt`. Google Search Console and Bing Webmaster Tools are verified with a DNS TXT record on 0xm.studio.
 - Each sent report is frozen at `data/<slug>/posts/<date>.json`, so a post (and the resort page once today's report is out) stays the morning report while the day's data keeps refreshing.

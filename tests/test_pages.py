@@ -140,3 +140,23 @@ def test_guide_uses_posting_study_medians():
     assert "When does the Vail grooming report come out?" in html
     assert "usually lands around 5:20 AM" in html and "grooming map each night as a PDF" in html
     assert "still measuring" in pages.guide_page("alta", {})
+
+
+def test_report_page_is_laid_out_for_the_web():
+    day = dict(DAY, grooming=dict(DAY["grooming"], runs=dict(DAY["grooming"]["runs"], areas=None)))
+    html = pages.resort_page("vail", day, ["2026-11-18"])
+    assert 'class="wrap wide"' in html and '<article class="rp">' in html
+    for h in ("<h2>Grooming</h2>", "<h2>First chair to last</h2>", "<h2>Snow forecast</h2>"):
+        assert h in html
+    assert '<ul class="gotd"><li>Born Free</li><li>Riva Ridge</li></ul>' in html
+    assert "<h3>Groomed overnight</h3><ul><li>Born Free</li><li>Riva Ridge</li><li>Swingsville</li></ul>" in html
+    assert "<h3>Groomed this morning</h3><ul><li>Lodgepole</li></ul>" in html
+    assert 'Open full size</a>' in html and 'alt="Grooming map for Vail, 11/18"' in html
+    assert '<th scope="row">Gust</th>' in html and "<dt>Base</dt><dd>18&quot;</dd>" not in html and "<dt>Base</dt><dd>18\"</dd>" in html
+    assert "role=\"presentation\"" not in html  # no email layout tables on the web
+
+
+def test_report_page_without_map_or_grooming():
+    day = {"date": "2026-11-18", "resort": {"last_24h_in": 0}}
+    html = pages.resort_page("alta", day, ["2026-11-18"])
+    assert "hasn't posted grooming for this day" in html and "First chair to last" not in html
