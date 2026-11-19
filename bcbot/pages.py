@@ -179,7 +179,7 @@ def description(day):
 THEME = """
 :root{--bg:#dcebfa;--paper:#f5f9fc;--surface:#ffffff;--edge:#ffffff;--ink:#0c2a4a;--ink2:#52677b;--line:#c3d3e0;
 --action:#365c7d;--btn:#7b1e2e;--btn-hover:#651826;--accent-soft:#f2e6e9;--accent-ink:#7b1e2e;--chip-line:#e3c9cf;--snow:#376f9b;
---tile-line:#dce8f2;--sel:#dce8f2;--ring:#9cc3e4;--bar:#dcebfaee;--shadow:inset 0 1px 0 #fff,0 8px 24px rgba(12,42,74,.07),0 1px 3px rgba(12,42,74,.04);
+--tile-line:#dce8f2;--sel:#dce8f2;--ring:#9cc3e4;--bar:#edf4fbf2;--shadow:inset 0 1px 0 #fff,0 8px 24px rgba(12,42,74,.07),0 1px 3px rgba(12,42,74,.04);
 --glow:radial-gradient(ellipse at 15% 0%,#ffffffd9,transparent 48%),linear-gradient(145deg,#eef5fc,#dcebfa 65%,#e8f1fa);color-scheme:light}
 html[data-appearance="dark"]{--bg:#071b2e;--paper:#102a40;--surface:#18384f;--edge:#365870;--ink:#e7f2fc;--ink2:#a9bfd2;--line:#32516a;
 --action:#b8dcf6;--btn:#8b2941;--btn-hover:#a13a53;--accent-soft:#402437;--accent-ink:#f0bfca;--chip-line:#6b3a4c;--snow:#8dc4eb;
@@ -199,7 +199,7 @@ CSS = THEME + f"""
 body{{margin:0;background-color:var(--bg);background-image:var(--glow);min-height:100vh;color:var(--ink);font:16px/1.55 {mailer.SANS}}}
 .wrap{{max-width:680px;margin:0 auto;padding:14px 16px 32px}}
 a{{color:var(--action)}}
-.topbar{{position:sticky;top:0;z-index:5;background:var(--bar);border-bottom:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}}
+.topbar{{position:sticky;top:0;z-index:5;background:var(--bar);border-bottom:1px solid var(--edge);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}}
 .top{{display:flex;align-items:center;gap:10px;max-width:1040px;margin:0 auto;padding:10px 16px}}
 .top .where{{color:var(--ink2);font:500 15px/1 {mailer.SANS};white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 .top a{{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font:600 17px/1 {mailer.DISPLAY}}}
@@ -213,7 +213,7 @@ h2{{font:600 18px/1.3 {mailer.DISPLAY};margin:22px 0 8px}}
 ul.dates{{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}}
 ul.dates a{{display:inline-block;padding:4px 10px;border-radius:8px;background:var(--paper);border:1px solid var(--line);text-decoration:none;color:var(--ink);font:400 13px {mailer.MONO}}}
 ul.list{{padding-left:18px}}
-.cta{{background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:16px;margin:16px 0}}
+.cta{{background:var(--paper);border:1px solid var(--edge);border-radius:24px;padding:16px;margin:16px 0}}
 .cta a.btn{{background:var(--btn);color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600;display:inline-block}}
 footer{{margin-top:26px;font-size:12px;color:var(--ink2)}}
 .topbar.wide .top{{max-width:1680px;padding:8px 20px}}
@@ -233,7 +233,7 @@ html{{scroll-padding-top:calc(var(--hdr,112px) + 12px)}}
 .chips{{padding:4px 0;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}}
 .chips a{{height:36px;padding:0 13px;font:500 14px/1 {mailer.SANS};border:1px solid var(--line)}}
 .chips a[aria-current="true"]{{border-color:transparent}}
-.gd section[id],.gd div[id]{{border-radius:20px}}
+.gd section[id],.gd div[id]{{border-radius:24px}}
 .arrived>.card,section.arrived{{animation:arrive 1.4s ease-out}}
 @keyframes arrive{{0%,40%{{box-shadow:0 0 0 2px var(--ring),var(--shadow)}}100%{{box-shadow:0 0 0 2px transparent,var(--shadow)}}}}
 @media (prefers-reduced-motion:reduce){{.arrived>.card,section.arrived{{animation:none;outline:2px solid var(--ring);outline-offset:0}}}}
@@ -552,7 +552,7 @@ def region_page(store, region, today=None):
                 f"{escape(r['name'])}</a> <span style=\"font-size:11px;color:var(--ink2)\">{escape(r['pass'])}</span></td>"
                 f"<td {cell}>{_n(r['new'])}</td><td {cell}>{_n(r['base'])}</td>"
                 f"<td {cell}>{r['groomed'] if r['groomed'] is not None else '–'}</td><td {cell}>{_n(r['next5'])}</td></tr>")
-    table = (f'<div style="overflow-x:auto;background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:8px">'
+    table = (f'<div style="overflow-x:auto;background:var(--paper);border:1px solid var(--edge);border-radius:24px;padding:8px">'
              f'<table style="width:100%;border-collapse:collapse"><thead><tr>'
              f'<th style="padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;color:var(--ink2)">Resort</th>'
              f'<th {head}>New 24 hr</th><th {head}>Base</th><th {head}>Groomed</th><th {head}>Next 5 days</th></tr></thead>'
@@ -813,7 +813,7 @@ def pass_page(key, today=None):
                 + "".join(f'<td style="padding:6px 8px;border-bottom:1px solid var(--line);font-size:14px">{c}</td>' for c in cols) + "</tr>")
     lesser = "Epic Local Pass" if p["pass"] == "Epic" else "Ikon Base Pass"
     th = 'style="padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;color:var(--ink2)"'
-    box = '<div style="overflow-x:auto;background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:8px">{}</div>'
+    box = '<div style="overflow-x:auto;background:var(--paper);border:1px solid var(--edge);border-radius:24px;padding:8px">{}</div>'
     other = [k for k in PASSES if k != key][0]
     body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › Passes</p>'
             f'<h1 class="page">{escape(p["h1"])}</h1>'
