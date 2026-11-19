@@ -68,7 +68,11 @@
   function newSnow(slug) {
     if (!snowBy[slug]) {
       snowBy[slug] = fetch(slug === DEFAULT_RESORT ? "/data/latest.json" : `/data/${slug}/latest.json`)
-        .then((r) => (r.ok ? r.json() : null)).then((L) => (L ? (L.resort || {}).last_24h_in ?? (L.observed || {}).snow_in ?? null : null)).catch(() => null);
+        .then((r) => (r.ok ? r.json() : null)).then((L) => {
+          if (!L) return null;
+          const r = (L.resort || {}).last_24h_in, o = (L.observed || {}).snow_in;
+          return r != null ? { v: r, est: false } : o != null ? { v: o, est: true } : null;
+        }).catch(() => null);
     }
     return snowBy[slug];
   }
@@ -76,8 +80,8 @@
     root.querySelectorAll("[data-snow]").forEach(async (el) => {
       const x = await newSnow(el.dataset.snow);
       if (x == null || !el.isConnected) return;
-      el.textContent = inch(x);
-      el.title = "New snow, last 24 hours";
+      el.textContent = (x.est ? "~" : "") + inch(x.v);
+      el.title = x.est ? "New snow, last 24 hours (nearby SNOTEL station estimate, not the resort's report)" : "New snow, last 24 hours";
     });
   }
   function renderFavs() {

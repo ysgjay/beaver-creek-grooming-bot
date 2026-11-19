@@ -102,17 +102,16 @@ def subject(day):
 
     No date: the inbox shows it. At most three facts, in order of what matters most that morning.
     """
-    from .mailer import groomed_runs, ski_hours
+    from .mailer import groomed_runs, ski_hours, snow_24h
     fc = day.get("forecast") or {}
     g = day.get("grooming") or {}
-    rs = day.get("resort") or {}
     n = len(groomed_runs(g.get("runs") or {}))
-    r24 = rs.get("last_24h_in", (day.get("observed") or {}).get("snow_in"))
+    r24, src = snow_24h(day)
     parts = []
     if day.get("preseason") and not n:
         parts.append(f"Opens {mmdd(config.OPENING_DAY)}")
     if r24 is not None and r24 >= 0.5:
-        parts.append(f"{_in(r24)} new")
+        parts.append(f"{'~' if src == 'station' else ''}{_in(r24)} new")
     if n:
         parts.append(f"{n} groomed")
     elif not g.get("none") and not g.get("new_map", True) and not day.get("preseason"):
@@ -132,14 +131,14 @@ def push_payload(day, map_url):
     fc = day.get("forecast") or {}
     runs = (day.get("grooming") or {}).get("runs") or {}
     groomed = runs.get("groomers_of_the_day", []) + runs.get("overnight", []) + runs.get("morning", []) + runs.get("groomed", [])
-    rs = day.get("resort") or {}
-    r24 = rs.get("last_24h_in", (day.get("observed") or {}).get("snow_in"))
+    from .mailer import snow_24h
+    r24, src = snow_24h(day)
     body = []
     if day.get("powder"):
         body.append(day["powder"])
     if groomed:
         body.append("Groomed: " + ", ".join(groomed[:6]) + ("…" if len(groomed) > 6 else ""))
-    body.append(f"New snow {_in(r24)} · Next 5 days {_in(fc.get('next_1_5'))}")
+    body.append(f"New snow {_in(r24)}{' (station est.)' if src == 'station' else ''} · Next 5 days {_in(fc.get('next_1_5'))}")
     payload = {"title": ("Test · " if day.get("test") else "") + f"{resort_name(day)} · {short_date(day['date'])}", "body": "\n".join(body),
                "url": app_url(day), "tag": f"report-{day.get('resort_slug') or 'beaver-creek'}-{day['date']}"}
     if map_url:

@@ -215,10 +215,9 @@ def daily_html(day, map_url, hidden_preheader=True):
     from datetime import date as _date
     fc = day.get("forecast") or {}
     rs = day.get("resort") or {}
-    obs = day.get("observed") or {}
     g = day.get("grooming") or {}
     runs = g.get("runs") or {}
-    r24 = rs.get("last_24h_in", obs.get("snow_in"))
+    r24 = new_snow(day)
     d = _date.fromisoformat(day["date"])
     app = report.app_url(day)
     sub = f"margin:2px 0 0;color:{INK2};font-size:13px"
@@ -253,7 +252,7 @@ def daily_html(day, map_url, hidden_preheader=True):
         <div style="font:400 12px/1.2 {MONO};color:{INK2}">{d.strftime('%a')}</div>
         <div style="font:600 23px/1.2 {DISPLAY};color:{INK}">{report.mmdd(d)}</div>
         <div style="margin-top:10px;font:600 30px/1 {DISPLAY};color:{SNOW}">{_inch(r24)}</div>
-        <div style="font-size:11px;color:{INK2}">new, 24 hr</div></td></tr></table>""", pad="0", extra="overflow:hidden")
+        <div style="font-size:11px;color:{INK2}">{new_snow_caption(day)}</div></td></tr></table>""", pad="0", extra="overflow:hidden")
 
     # 2. Grooming: the full-resolution map every day it exists, then groomers of the day.
     all_runs = groomed_runs(runs)
@@ -349,9 +348,28 @@ def daily_html(day, map_url, hidden_preheader=True):
 
 # ---------- combined email: one per subscriber with two or more resorts ----------
 
+def snow_24h(day):
+    """(inches, source) for the last 24 hours of new snow. source is "resort" when the resort's
+    own snow report gave the number, "station" when it is a nearby SNOTEL station's estimate
+    (depth change), or None when neither has one. Never present a station number as the resort's."""
+    rs = (day or {}).get("resort") or {}
+    if rs.get("last_24h_in") is not None:
+        return rs["last_24h_in"], "resort"
+    v = ((day or {}).get("observed") or {}).get("snow_in")
+    return (v, "station") if v is not None else (None, None)
+
+
 def new_snow(day):
-    rs = day.get("resort") or {}
-    return rs.get("last_24h_in", (day.get("observed") or {}).get("snow_in"))
+    return snow_24h(day)[0]
+
+
+def new_snow_is_estimate(day):
+    return snow_24h(day)[1] == "station"
+
+
+def new_snow_caption(day):
+    """Short label under the new-snow number: the resort's report, or a station estimate."""
+    return "station est., 24 hr" if new_snow_is_estimate(day) else "new, 24 hr"
 
 
 def _resort_name(slug, day=None):
@@ -372,7 +390,7 @@ def _fact(day):
     s = new_snow(day)
     n = len(groomed_runs((day.get("grooming") or {}).get("runs") or {}))
     if s is not None and s >= 0.5:
-        return f'{_inch(s)} new'
+        return f'{"~" if new_snow_is_estimate(day) else ""}{_inch(s)} new'
     if n:
         return f"{n} groomed"
     return "report in"
@@ -402,7 +420,7 @@ def digest_text(picked, pending):
         rs = d.get("resort") or {}
         runs = (d.get("grooming") or {}).get("runs") or {}
         fc = d.get("forecast") or {}
-        lines.append(f"{_resort_name(s, d)}: new {_inch(new_snow(d))}, base {_inch(rs.get('base_in'))}, "
+        lines.append(f"{_resort_name(s, d)}: new {_inch(new_snow(d))}{' (station est.)' if new_snow_is_estimate(d) else ''}, base {_inch(rs.get('base_in'))}, "
                      f"{len(groomed_runs(runs))} groomed, next 5 days {_inch(fc.get('next_1_5'))}, "
                      f"next 7 days {_inch(next_7(fc))}")
         if runs.get("groomers_of_the_day"):
@@ -434,7 +452,8 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
         first = hrs[0] if hrs else None
         gust = _peak_gust(d)
         small = " · ".join(x for x in [f"report {escape(rs['updated_time'])}" if rs.get("updated_time") else "",
-                                        f"gusts {gust} mph" if gust else ""] if x)
+                                        f"gusts {gust} mph" if gust else "",
+                                        "new snow is a station est." if new_snow_is_estimate(d) else ""] if x)
         snow = new_snow(d)
         temp = f"{first['temp']}°" if first and first.get("temp") is not None else "–"
         small_div = f'<div style="color:{INK2};font-size:11px">{small}</div>' if small else ""

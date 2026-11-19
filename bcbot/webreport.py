@@ -76,10 +76,9 @@ def _inch(x):
 
 def _ticket(day):
     rs = day.get("resort") or {}
-    obs = day.get("observed") or {}
     d = date.fromisoformat(day["date"])
-    r24 = rs.get("last_24h_in", obs.get("snow_in"))
-    stats = [("New, 24 hr", r24), ("Base", rs.get("base_in")), ("Last 7 days", rs.get("last_7d_in")),
+    r24, src = mailer.snow_24h(day)
+    stats = [("New, 24 hr" + (" (station est.)" if src == "station" else ""), r24), ("Base", rs.get("base_in")), ("Last 7 days", rs.get("last_7d_in")),
              ("Season", rs.get("season_in"))]
     cells = "".join(f"<div><dt>{k}</dt><dd>{_inch(v)}</dd></div>" for k, v in stats if v is not None)
     kick = f"{d.strftime('%A')} {report.mmdd(d)}"
@@ -95,7 +94,7 @@ def _ticket(day):
             + (f'<dl class="stats">{cells}</dl>' if cells else '<p class="sub">The snow report hasn\'t posted yet.</p>')
             + note)
     stub = (f'<div class="dow">{d.strftime("%a")}</div><div class="md">{report.mmdd(d)}</div>'
-            f'<div class="new">{_inch(r24)}</div><div class="cap">new, 24 hr</div>')
+            f'<div class="new">{_inch(r24)}</div><div class="cap">{mailer.new_snow_caption(day)}</div>')
     return f'<section class="card ticket" aria-label="Snow totals"><div class="tk-main">{main}</div><div class="tk-stub">{stub}</div></section>'
 
 

@@ -100,7 +100,9 @@ def report_md(slug, day, dated=False):
            f"Source page: {html}  ",
            f"Region: {r['region']} · Pass: {r['pass']} · Report generated: {day.get('generated') or day['date']} (Mountain time)", ""]
     out += ["## Snow", ""]
-    rows = [("New snow, 24 hours", mailer.new_snow(day)), ("Base depth", rs.get("base_in")),
+    r24, src = mailer.snow_24h(day)
+    rows = [("New snow, 24 hours" + (" (nearby SNOTEL station estimate, not the resort's report)" if src == "station" else ""), r24),
+            ("Base depth", rs.get("base_in")),
             ("Last 7 days", rs.get("last_7d_in")), ("Season total", rs.get("season_in"))]
     rows = [(k, v) for k, v in rows if v is not None]
     if rows:
@@ -141,7 +143,8 @@ def report_md(slug, day, dated=False):
             f"- {r['region']} resorts today: {_site('resorts/' + r['region'].lower() + '.md')}",
             f"- Get this report free every morning: {_site('?resort=' + slug)}", "",
             f"_{ORG} is independent and not affiliated with any resort. Snow totals and grooming come from the resort's own "
-            "reports; forecast data from Open-Meteo (CC BY 4.0), NWS and NRCS SNOTEL._"]
+            "reports" + (", except new snow marked as a SNOTEL station estimate" if src == "station" else "")
+            + "; forecast data from Open-Meteo (CC BY 4.0), NWS and NRCS SNOTEL._"]
     return "\n".join(out) + "\n"
 
 
@@ -158,7 +161,9 @@ def report_json(slug, day, dated=False):
                    "lat": r["lat"], "lon": r["lon"]},
         "date": day["date"], "generated": day.get("generated"), "url": html,
         "summary": " ".join(pages.summary(day)),
-        "snow_in": {"new_24h": mailer.new_snow(day), "base": rs.get("base_in"), "last_7d": rs.get("last_7d_in"),
+        "snow_in": {"new_24h": mailer.new_snow(day), "new_24h_source": mailer.snow_24h(day)[1],
+                    "new_24h_station": (day.get("observed") or {}).get("station") if mailer.new_snow_is_estimate(day) else None,
+                    "base": rs.get("base_in"), "last_7d": rs.get("last_7d_in"),
                     "season": rs.get("season_in"), "report_posted": rs.get("updated_time")},
         "grooming": {"groomers_of_the_day": runs.get("groomers_of_the_day") or [],
                      "overnight": runs.get("overnight") or [], "morning": runs.get("morning") or [],
@@ -216,8 +221,9 @@ def region_md(store, region):
     out = [f"# {label} snow report today, {_day_label(today)}", "", f"Source page: {_site('resorts/' + region)}", "",
            "| Resort | Pass | New 24 hr | Base | Groomed runs | Next 5 days | Report date |", "|---|---|---|---|---|---|---|"]
     for x in rows:
-        out.append(f"| [{x['name']}]({_site('resorts/' + x['slug'] + '.md')}) | {x['pass']} | {_inch(x['new'])} | "
+        out.append(f"| [{x['name']}]({_site('resorts/' + x['slug'] + '.md')}) | {x['pass']} | {'~' if x.get('new_est') else ''}{_inch(x['new'])} | "
                    f"{_inch(x['base'])} | {x['groomed'] if x['groomed'] is not None else '–'} | {_inch(x['next5'])} | "
                    f"{_day_label(x['date']) if x['date'] else '–'} |")
-    out += ["", "Sorted by new snow. Groomed counts only where the resort publishes groomed runs."]
+    out += ["", "Sorted by new snow. ~ marks a nearby SNOTEL station estimate where the resort has no number. "
+            "Groomed counts only where the resort publishes groomed runs."]
     return "\n".join(out) + "\n"

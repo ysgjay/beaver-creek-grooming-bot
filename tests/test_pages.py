@@ -200,3 +200,26 @@ def test_guide_article_ld_has_date_and_resort_details():
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", art["dateModified"])
     assert art["about"]["geo"]["latitude"] and art["about"]["url"].startswith("https://")
     assert "Not read yet" not in pages.guide_page("alta", None, None)
+
+
+def test_station_snow_is_never_credited_to_the_resort():
+    """No resort report: the SNOTEL depth change is labeled as a station estimate everywhere."""
+    from bcbot import llm, mailer, report, webreport
+    day = dict(DAY, resort={}, observed={"snow_in": 2, "station": "842:CO:SNTL"}, resort_name="Vail")
+    assert mailer.snow_24h(day) == (2, "station")
+    s = " ".join(pages.summary(day))
+    assert "The resort reports" not in s
+    assert 'A nearby SNOTEL weather station measured about 2" of new snow' in s
+    assert "station est." in mailer.daily_html(day, None)
+    assert "station est." in webreport._ticket(day)
+    assert report.subject(day).startswith("Vail: ~2")
+    assert "(station est.)" in report.push_payload(day, None)["body"]
+    md = llm.report_md("vail", day)
+    assert "station estimate" in md
+    js = llm.report_json("vail", day)["snow_in"]
+    assert js["new_24h_source"] == "station" and js["new_24h_station"] == "842:CO:SNTL"
+    # With the resort's own number, it wins and keeps the resort wording.
+    both = dict(day, resort={"last_24h_in": 3})
+    assert mailer.snow_24h(both) == (3, "resort")
+    assert 'The resort reports 3" of new snow' in " ".join(pages.summary(both))
+    assert "station" not in mailer.new_snow_caption(both)
