@@ -473,9 +473,9 @@ RESORTS = {
     "lake-louise": {
         "name": "Lake Louise", "region": "Alberta", "pass": "Ikon",
         "site": "https://www.skilouise.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 51.4679, "lon": -116.1642, "elevation_ft": 6800,
-        "bands": _bands((51.4409, -116.1642, 5400, "base"), (51.4679, -116.1642, 6800, "Whitehorn"),
-                        (51.4922, -116.1353, 8650, "summit")),
+        "lat": 51.4530, "lon": -116.1400, "elevation_ft": 6800,
+        "bands": _bands((51.4409, -116.1642, 5400, "base"), (51.4530, -116.1400, 6800, "Whitehorn"),
+                        (51.4676, -116.1417, 8650, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-01",  # opened
         "enabled": False, "stage": "shadow",
@@ -534,9 +534,9 @@ RESORTS = {
     "tremblant": {
         "name": "Tremblant", "region": "Quebec", "pass": "Ikon",
         "site": "https://www.tremblant.ca", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 46.2180, "lon": -74.5700, "elevation_ft": 2000,
-        "bands": _bands((46.2090, -74.5850, 755, "Village"), (46.2180, -74.5700, 2000, "mid-mountain"),
-                        (46.2265, -74.5560, 2871, "summit")),
+        "lat": 46.2160, "lon": -74.5670, "elevation_ft": 2000,
+        "bands": _bands((46.2090, -74.5850, 755, "Village"), (46.2160, -74.5670, 2000, "mid-mountain"),
+                        (46.2200, -74.5525, 2871, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/Toronto", "opening_day": "2026-11-26",  # announced
         "enabled": False, "stage": "shadow",
@@ -544,9 +544,9 @@ RESORTS = {
     "sugarbush": {
         "name": "Sugarbush", "region": "Vermont", "pass": "Ikon",
         "site": "https://www.sugarbush.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 44.1400, "lon": -72.9100, "elevation_ft": 2500,
-        "bands": _bands((44.1360, -72.8940, 1483, "Lincoln Peak base"), (44.1400, -72.9100, 2500, "mid-mountain"),
-                        (44.1440, -72.9300, 3975, "Lincoln Peak")),
+        "lat": 44.1315, "lon": -72.9112, "elevation_ft": 2500,
+        "bands": _bands((44.1360, -72.8940, 1483, "Lincoln Peak base"), (44.1315, -72.9112, 2500, "mid-mountain"),
+                        (44.1269, -72.9281, 3975, "Lincoln Peak")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
         "enabled": False, "stage": "shadow",
@@ -554,8 +554,8 @@ RESORTS = {
     "stratton": {
         "name": "Stratton", "region": "Vermont", "pass": "Ikon",
         "site": "https://www.stratton.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 43.1080, "lon": -72.9150, "elevation_ft": 2900,
-        "bands": _bands((43.1130, -72.9070, 1872, "base"), (43.1080, -72.9150, 2900, "mid-mountain"),
+        "lat": 43.1041, "lon": -72.9200, "elevation_ft": 2900,
+        "bands": _bands((43.1130, -72.9070, 1872, "base"), (43.1041, -72.9200, 2900, "mid-mountain"),
                         (43.1010, -72.9240, 3370, "upper mountain")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-18",  # announced
@@ -566,7 +566,7 @@ RESORTS = {
         "site": "https://www.snowshoemtn.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 38.4100, "lon": -80.0020, "elevation_ft": 4100,
         # Upside down: the village sits at the top and the runs drop below it.
-        "bands": _bands((38.4080, -80.0080, 3348, "base"), (38.4100, -80.0020, 4100, "mid-mountain"),
+        "bands": _bands((38.4059, -80.0210, 3348, "base"), (38.4100, -80.0020, 4100, "mid-mountain"),
                         (38.4110, -79.9940, 4848, "Village")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-25",  # announced
