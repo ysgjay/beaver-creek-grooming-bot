@@ -442,11 +442,11 @@ RESORTS = {
     "jackson-hole": {
         "name": "Jackson Hole", "region": "Wyoming", "pass": "Ikon",
         "site": "https://www.jacksonhole.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 43.5925, "lon": -110.8480, "elevation_ft": 9095,
-        "bands": _bands((43.5875, -110.8279, 6311, "Teton Village"), (43.5925, -110.8480, 9095, "Bridger Gondola top"),
+        "lat": 43.5925, "lon": -110.8480, "elevation_ft": 7835,
+        "bands": _bands((43.5875, -110.8279, 6311, "Teton Village"), (43.5925, -110.8480, 7835, "mid-mountain"),
                         (43.5980, -110.8700, 10450, "Rendezvous summit")),
         "snotel": ["689:WY:SNTL", "1082:WY:SNTL"], "snotel_label": "Phillips Bench",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-28",  # est.
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27",  # announced
         "enabled": False, "stage": "shadow",
     },
     "big-sky": {
@@ -456,7 +456,7 @@ RESORTS = {
         "bands": _bands((45.2860, -111.4010, 7500, "Mountain Village"), (45.2780, -111.4250, 8800, "mid-mountain"),
                         (45.2785, -111.4500, 11166, "Lone Peak")),
         "snotel": ["590:MT:SNTL", "385:MT:SNTL"], "snotel_label": "Lone Mountain",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26",  # est.
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-25",  # announced
         "enabled": False, "stage": "shadow",
     },
     "banff-sunshine": {
@@ -464,9 +464,9 @@ RESORTS = {
         "site": "https://www.skibanff.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 51.0790, "lon": -115.7820, "elevation_ft": 7082,
         "bands": _bands((51.1150, -115.7630, 5440, "Gondola base"), (51.0790, -115.7820, 7082, "Sunshine Village"),
-                        (51.0650, -115.7700, 8954, "Lookout Mountain")),
+                        (51.0650, -115.7700, 7595, "upper mountain")),
         "snotel": [], "snotel_label": None,  # no SNOTEL in Canada
-        "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-07",  # est.
+        "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-06",  # reported, not confirmed
         "enabled": False, "stage": "shadow",
     },
     "lake-louise": {
@@ -476,7 +476,7 @@ RESORTS = {
         "bands": _bands((51.4420, -116.1620, 5400, "base"), (51.4500, -116.1500, 6800, "Whitehorn"),
                         (51.4630, -116.1330, 8650, "summit")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-06",  # est.
+        "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-01",  # opened
         "enabled": False, "stage": "shadow",
     },
     "sun-valley": {
@@ -496,8 +496,8 @@ RESORTS = {
         "lat": 37.6440, "lon": -119.0390, "elevation_ft": 9600,
         "bands": _bands((37.6510, -119.0270, 8900, "Main Lodge"), (37.6440, -119.0390, 9600, "McCoy Station"),
                         (37.6310, -119.0330, 11053, "summit")),
-        "snotel": ["846:CA:SNTL"], "snotel_label": "Virginia Lakes Ridge",  # nearest SNOTEL is 51 km north
-        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-13",  # est.
+        "snotel": [], "snotel_label": None,  # nearest SNOTEL (Virginia Lakes Ridge) is 51 km away: too far to count as truth
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-05",  # opened early
         "enabled": False, "stage": "shadow",
     },
     "palisades-tahoe": {
@@ -507,7 +507,7 @@ RESORTS = {
         "bands": _bands((39.1970, -120.2350, 6200, "Olympic Valley"), (39.1880, -120.2620, 8200, "High Camp"),
                         (39.1965, -120.2830, 9006, "Granite Chief")),
         "snotel": ["784:CA:SNTL", "848:CA:SNTL"], "snotel_label": "Palisades Tahoe",
-        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-26",  # est.
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-25",  # announced
         "enabled": False, "stage": "shadow",
     },
     "big-bear": {
@@ -527,17 +527,17 @@ RESORTS = {
         "bands": _bands((46.9350, -121.4750, 4400, "base"), (46.9300, -121.4900, 5800, "mid-mountain"),
                         (46.9280, -121.5040, 7012, "summit")),
         "snotel": ["642:WA:SNTL", "1085:WA:SNTL"], "snotel_label": "Morse Lake",
-        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04",  # est.
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-27",  # announced
         "enabled": False, "stage": "shadow",
     },
     "tremblant": {
         "name": "Tremblant", "region": "Quebec", "pass": "Ikon",
         "site": "https://www.tremblant.ca", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 46.2140, "lon": -74.5900, "elevation_ft": 2000,
-        "bands": _bands((46.2090, -74.5850, 870, "Village"), (46.2140, -74.5900, 2000, "mid-mountain"),
-                        (46.2180, -74.5950, 2871, "summit")),
+        "lat": 46.2180, "lon": -74.5700, "elevation_ft": 2000,
+        "bands": _bands((46.2090, -74.5850, 755, "Village"), (46.2180, -74.5700, 2000, "mid-mountain"),
+                        (46.2265, -74.5560, 2871, "summit")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/Toronto", "opening_day": "2026-11-27",  # est.
+        "cams": [], "patrol": None, "tz": "America/Toronto", "opening_day": "2026-11-26",  # announced
         "enabled": False, "stage": "shadow",
     },
     "sugarbush": {
@@ -555,9 +555,9 @@ RESORTS = {
         "site": "https://www.stratton.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 43.1080, "lon": -72.9150, "elevation_ft": 2900,
         "bands": _bands((43.1130, -72.9070, 1872, "base"), (43.1080, -72.9150, 2900, "mid-mountain"),
-                        (43.1010, -72.9240, 3875, "summit")),
+                        (43.1010, -72.9240, 3370, "upper mountain")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-18",  # announced
         "enabled": False, "stage": "shadow",
     },
     "snowshoe": {
@@ -568,7 +568,7 @@ RESORTS = {
         "bands": _bands((38.4080, -80.0080, 3348, "base"), (38.4100, -80.0020, 4100, "mid-mountain"),
                         (38.4110, -79.9940, 4848, "Village")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-26",  # est.
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-25",  # announced
         "enabled": False, "stage": "shadow",
     },
 }

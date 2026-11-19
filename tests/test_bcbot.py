@@ -999,19 +999,27 @@ NO_SNOTEL = ("British Columbia", "Alberta", "Quebec", "Vermont", "New Hampshire"
              "West Virginia")
 
 
+REGION_TZ = {
+    "Colorado": "America/Denver", "Utah": "America/Denver", "Wyoming": "America/Denver", "Montana": "America/Denver",
+    "New Mexico": "America/Denver", "Idaho": "America/Boise", "California": "America/Los_Angeles",
+    "Washington": "America/Los_Angeles", "Oregon": "America/Los_Angeles", "British Columbia": "America/Vancouver",
+    "Alberta": "America/Edmonton", "Quebec": "America/Toronto", "Vermont": "America/New_York",
+    "New Hampshire": "America/New_York", "Maine": "America/New_York", "New York": "America/New_York",
+    "Pennsylvania": "America/New_York", "West Virginia": "America/New_York",
+}
+
+
 def test_every_resort_is_complete():
     for slug in resorts.RESORTS:
         r = resorts.get(slug)
         fts = [b["elevation_ft"] for b in r["bands"]]
         assert [b["key"] for b in r["bands"]] == ["base", "mid", "peak"] and fts == sorted(fts), slug
         assert fts[0] < r["elevation_ft"] <= fts[2], slug          # forecast point is on the mountain
-        # SNOTEL covers the western US only (and not Southern California's Big Bear)
-        no_snotel = r["region"] in NO_SNOTEL or slug == "big-bear"
+        # SNOTEL covers the western US only; Big Bear and Mammoth have none close enough
+        no_snotel = r["region"] in NO_SNOTEL or slug in ("big-bear", "mammoth")
         assert (r["snotel"] or no_snotel) and r["opening_day"], slug
         from zoneinfo import ZoneInfo
-        assert ZoneInfo(r["tz"]), slug
-        if r["region"] in ("Colorado", "Utah", "Wyoming", "Montana", "New Mexico"):
-            assert r["tz"] == "America/Denver", slug
+        assert ZoneInfo(r["tz"]) and r["tz"] == REGION_TZ[r["region"]], slug
         assert r["pass"] in ("Epic", "Ikon", "Mountain Collective", "Indy", "Independent"), slug
         assert r["enabled"] or r.get("stage") == "shadow", slug  # new resorts start in shadow mode
         if r["dor_api"]:  # POWDR open feed
