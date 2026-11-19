@@ -1,6 +1,6 @@
 // Offline support: app shell cache-first; data network-first with the last copy as fallback,
 // so the morning report still opens on a chairlift with no signal.
-const SHELL = "shell-v26-resort-links";
+const SHELL = "shell-v27-resort-menu";
 const DATA = "data-v1";
 const SHELL_FILES = [
   "/", "/index.html", "/appearance.js", "/report-ui.js", "/app.js", "/app.css", "/themes.css", "/frost.css", "/dark.css", "/frost-surfaces.css",

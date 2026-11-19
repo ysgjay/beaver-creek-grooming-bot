@@ -1419,10 +1419,35 @@ ${tell}
     route();
   }
 
-  // The resort menu: a themed pop-up under the resort name. Pick a resort, or star it as a favorite.
+  // The resort menu: a wide panel under the resort name (a full-screen sheet on phones). Resorts are
+  // grouped by region, then state or province, in columns. Search filters by name or state; starred
+  // resorts are pinned in a Favorites group at the top.
+  const REGIONS = [
+    ["Rockies", ["Colorado", "Utah", "Wyoming", "Montana", "Idaho", "New Mexico"]],
+    ["West Coast", ["California", "Nevada", "Washington", "Oregon", "Alaska"]],
+    ["Northeast", ["Vermont", "New Hampshire", "Maine", "New York", "Massachusetts", "Connecticut"]],
+    ["Mid-Atlantic and South", ["Pennsylvania", "West Virginia", "Virginia", "Maryland", "North Carolina"]],
+    ["Midwest", ["Michigan", "Minnesota", "Wisconsin"]],
+    ["Western Canada", ["British Columbia", "Alberta"]],
+    ["Eastern Canada", ["Quebec", "Ontario"]],
+  ];
+  const regionOf = (state) => (REGIONS.find(([, states]) => states.includes(state)) || ["Other"])[0];
+  // [[region, [[state, resorts], ...]], ...] in REGIONS order; states keep REGIONS order too.
+  function byArea(list) {
+    const order = REGIONS.flatMap(([, st]) => st), out = [];
+    for (const [state, rs] of byRegion(list).sort((a, b) => ((order.indexOf(a[0]) + 1) || 99) - ((order.indexOf(b[0]) + 1) || 99))) {
+      const reg = regionOf(state); let g = out.find((x) => x[0] === reg);
+      if (!g) out.push(g = [reg, []]);
+      g[1].push([state, rs]);
+    }
+    const ro = REGIONS.map(([r]) => r);
+    return out.sort((a, b) => ((ro.indexOf(a[0]) + 1) || 99) - ((ro.indexOf(b[0]) + 1) || 99));
+  }
+  const phoneMenu = () => matchMedia("(max-width: 899px)").matches;
   function closeResortMenu() {
     const m = $("#resort-menu"); if (!m) return;
     m.remove(); $("#resort-btn").setAttribute("aria-expanded", "false");
+    document.documentElement.classList.remove("rm-open");
     document.removeEventListener("keydown", menuKey); document.removeEventListener("pointerdown", menuOutside);
   }
   const menuKey = (e) => { if (e.key === "Escape") { closeResortMenu(); $("#resort-btn").focus(); } };
@@ -1430,26 +1455,59 @@ ${tell}
   function openResortMenu() {
     const btn = $("#resort-btn"), m = document.createElement("div");
     m.id = "resort-menu"; m.className = "resort-menu"; m.setAttribute("role", "dialog"); m.setAttribute("aria-label", "Resorts");
-    const row = (r) => `<div class="rm-row">
+    const row = (r) => `<div class="rm-row" data-find="${esc((r.name + " " + (r.region || "")).toLowerCase())}">
         <button class="rm-pick" type="button" data-resort="${r.slug}"${r.slug === R.slug ? ' aria-current="true"' : ""}><span>${esc(r.name)}</span><strong class="num" data-snow="${r.slug}"></strong></button>
         <button class="rm-star" type="button" data-star="${r.slug}" aria-pressed="${isFav(r.slug)}" aria-label="${isFav(r.slug) ? "Remove" : "Add"} ${esc(r.name)} ${isFav(r.slug) ? "from" : "to"} favorites">${STAR}</button>
       </div>`;
-    const rows = () => byRegion(R.list).map(([region, list]) => `<h3 class="rm-region label">${esc(region)}</h3>${list.map(row).join("")}`).join("")
-      + `<p class="small muted">Starred resorts stay in the top bar. The number is new snow in the last 24 hours.</p>`;
-    m.innerHTML = rows(); fillSnow(m);
+    const area = byArea(R.list), favs = R.list.filter((r) => isFav(r.slug));
+    const group = (id, title, states) => `<section class="rm-group" data-group="${id}"><h3 class="rm-area">${esc(title)}</h3><div class="rm-cols">${
+      states.map(([state, rs]) => `<div class="rm-state">${state ? `<h4 class="rm-region label">${esc(state)}</h4>` : ""}${rs.map(row).join("")}</div>`).join("")}</div></section>`;
+    const body = () => (favs.length ? group("fav", "Favorites", [["", favs]]) : "")
+      + area.map(([reg, states]) => group(reg, reg, states)).join("")
+      + `<p class="rm-empty small muted" hidden>No resorts match.</p>`;
+    const chips = (favs.length ? [["fav", "Favorites"]] : []).concat(area.map(([reg]) => [reg, reg]));
+    m.innerHTML = `<div class="rm-head">
+        <div class="rm-top"><h2>Resorts</h2><button class="rm-close" type="button" aria-label="Close">×</button></div>
+        <input class="rm-search" type="search" placeholder="Search ${R.list.length} resorts or a state" aria-label="Search resorts" autocomplete="off" spellcheck="false">
+        ${chips.length > 2 ? `<div class="rm-chips">${chips.map(([id, t]) => `<button type="button" class="rm-chip" data-jump="${esc(id)}">${esc(t)}</button>`).join("")}</div>` : ""}
+      </div>
+      <div class="rm-body">${body()}</div>
+      <p class="rm-foot small muted">Star a resort to keep it in the top bar. The number is new snow in the last 24 hours.</p>`;
+    const list = m.querySelector(".rm-body"), q = m.querySelector(".rm-search");
+    const filter = () => {
+      const t = q.value.trim().toLowerCase();
+      list.querySelectorAll(".rm-row").forEach((r) => { r.hidden = !!t && !r.dataset.find.includes(t); });
+      list.querySelectorAll(".rm-state, .rm-group").forEach((g) => { g.hidden = !g.querySelector(".rm-row:not([hidden])"); });
+      list.querySelector(".rm-empty").hidden = !!list.querySelector(".rm-row:not([hidden])");
+    };
+    fillSnow(m);
+    q.addEventListener("input", filter);
+    q.addEventListener("keydown", (e) => { if (e.key === "Enter") { const first = list.querySelector(".rm-row:not([hidden]) .rm-pick"); if (first) first.click(); } });
     m.addEventListener("click", (e) => {
-      const star = e.target.closest("[data-star]"), pick = e.target.closest("[data-resort]");
-      if (star) { toggleFav(star.dataset.star); const at = star.dataset.star; m.innerHTML = rows(); fillSnow(m); m.querySelector(`[data-star="${at}"]`)?.focus(); }
+      const star = e.target.closest("[data-star]"), pick = e.target.closest("[data-resort]"), jump = e.target.closest("[data-jump]");
+      if (e.target.closest(".rm-close")) { closeResortMenu(); btn.focus(); }
+      else if (jump) { const g = list.querySelector(`[data-group="${CSS.escape(jump.dataset.jump)}"]`); if (g) { q.value = ""; filter(); list.scrollTo({ top: g.offsetTop - 4, behavior: "smooth" }); } }
+      else if (star) {
+        toggleFav(star.dataset.star); const at = star.dataset.star, top = list.scrollTop;
+        favs.splice(0, favs.length, ...R.list.filter((r) => isFav(r.slug)));
+        list.innerHTML = body(); fillSnow(list); filter(); list.scrollTop = top;
+        list.querySelector(`.rm-group:not([data-group="fav"]) [data-star="${at}"]`)?.focus();
+      }
       else if (pick) { closeResortMenu(); switchResort(pick.dataset.resort); }
     });
     // Fixed to the page rather than inside the top bar, so its frosted blur shows the page behind it.
     document.body.appendChild(m);
-    const br = btn.getBoundingClientRect();
-    m.style.top = `${Math.round(br.bottom + 8)}px`;
-    m.style.left = `${Math.round(Math.max(8, Math.min(br.left - 6, innerWidth - m.offsetWidth - 8)))}px`;
+    if (phoneMenu()) document.documentElement.classList.add("rm-open");
+    else {
+      const br = btn.getBoundingClientRect();
+      m.style.top = `${Math.round(br.bottom + 8)}px`;
+      m.style.left = `${Math.round(Math.max(8, Math.min(br.left - 6, innerWidth - m.offsetWidth - 8)))}px`;
+    }
     btn.setAttribute("aria-expanded", "true");
     document.addEventListener("keydown", menuKey); document.addEventListener("pointerdown", menuOutside);
-    (m.querySelector('[aria-current="true"]') || m.querySelector(".rm-pick")).focus();
+    const cur = list.querySelector('.rm-group:not([data-group="fav"]) [aria-current="true"]');
+    if (phoneMenu()) { (cur || q).focus({ preventScroll: true }); cur?.scrollIntoView({ block: "center" }); }
+    else q.focus();
   }
   function wireResortMenu() {
     const btn = $("#resort-btn"), h1 = $(".brand h1");
