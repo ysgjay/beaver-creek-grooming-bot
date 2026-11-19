@@ -443,9 +443,9 @@ RESORTS = {
     "jackson-hole": {
         "name": "Jackson Hole", "region": "Wyoming", "pass": "Ikon",
         "site": "https://www.jacksonhole.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 43.5925, "lon": -110.8480, "elevation_ft": 7835,
-        "bands": _bands((43.5875, -110.8279, 6311, "Teton Village"), (43.5925, -110.8480, 7835, "mid-mountain"),
-                        (43.5980, -110.8700, 10450, "Rendezvous summit")),
+        "lat": 43.5873, "lon": -110.8511, "elevation_ft": 7835,
+        "bands": _bands((43.5864, -110.8262, 6311, "Teton Village"), (43.5873, -110.8511, 7835, "mid-mountain"),
+                        (43.5882, -110.8909, 10450, "Rendezvous summit")),
         "snotel": ["689:WY:SNTL", "1082:WY:SNTL"], "snotel_label": "Phillips Bench",
         "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27",  # announced
         "enabled": False, "stage": "shadow",
@@ -453,9 +453,9 @@ RESORTS = {
     "big-sky": {
         "name": "Big Sky", "region": "Montana", "pass": "Ikon",
         "site": "https://www.bigskyresort.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 45.2780, "lon": -111.4250, "elevation_ft": 8800,
-        "bands": _bands((45.2860, -111.4010, 7500, "Mountain Village"), (45.2780, -111.4250, 8800, "mid-mountain"),
-                        (45.2785, -111.4500, 11166, "Lone Peak")),
+        "lat": 45.2889, "lon": -111.4292, "elevation_ft": 8800,
+        "bands": _bands((45.2871, -111.3997, 7500, "Mountain Village"), (45.2889, -111.4292, 8800, "mid-mountain"),
+                        (45.2772, -111.4509, 11166, "Lone Peak")),
         "snotel": ["590:MT:SNTL", "385:MT:SNTL"], "snotel_label": "Lone Mountain",
         "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-25",  # announced
         "enabled": False, "stage": "shadow",
@@ -463,9 +463,9 @@ RESORTS = {
     "banff-sunshine": {
         "name": "Banff Sunshine", "region": "Alberta", "pass": "Ikon",
         "site": "https://www.skibanff.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 51.0790, "lon": -115.7820, "elevation_ft": 7082,
-        "bands": _bands((51.1150, -115.7630, 5440, "Gondola base"), (51.0790, -115.7820, 7082, "Sunshine Village"),
-                        (51.0650, -115.7700, 7595, "upper mountain")),
+        "lat": 51.0899, "lon": -115.7645, "elevation_ft": 7082,
+        "bands": _bands((51.1170, -115.7545, 5440, "Gondola base"), (51.0899, -115.7645, 7082, "Sunshine Village"),
+                        (51.0647, -115.7688, 7595, "upper mountain")),
         "snotel": [], "snotel_label": None,  # no SNOTEL in Canada
         "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-06",  # reported, not confirmed
         "enabled": False, "stage": "shadow",
@@ -473,9 +473,9 @@ RESORTS = {
     "lake-louise": {
         "name": "Lake Louise", "region": "Alberta", "pass": "Ikon",
         "site": "https://www.skilouise.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 51.4500, "lon": -116.1500, "elevation_ft": 6800,
-        "bands": _bands((51.4420, -116.1620, 5400, "base"), (51.4500, -116.1500, 6800, "Whitehorn"),
-                        (51.4630, -116.1330, 8650, "summit")),
+        "lat": 51.4679, "lon": -116.1642, "elevation_ft": 6800,
+        "bands": _bands((51.4409, -116.1642, 5400, "base"), (51.4679, -116.1642, 6800, "Whitehorn"),
+                        (51.4922, -116.1353, 8650, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-01",  # opened
         "enabled": False, "stage": "shadow",
@@ -483,9 +483,9 @@ RESORTS = {
     "sun-valley": {
         "name": "Sun Valley", "region": "Idaho", "pass": "Ikon",
         "site": "https://www.sunvalley.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 43.6670, "lon": -114.3880, "elevation_ft": 7500,
-        "bands": _bands((43.6750, -114.3700, 5750, "River Run"), (43.6670, -114.3880, 7500, "mid-mountain"),
-                        (43.6597, -114.4033, 9150, "Bald Mountain summit")),
+        "lat": 43.6627, "lon": -114.3821, "elevation_ft": 7500,
+        "bands": _bands((43.6753, -114.3697, 5750, "River Run"), (43.6627, -114.3821, 7500, "mid-mountain"),
+                        (43.6546, -114.4095, 9150, "Bald Mountain summit")),
         "snotel": ["895:ID:SNTL", "537:ID:SNTL"], "snotel_label": "Chocolate Gulch",
         "cams": [], "patrol": None, "tz": "America/Boise", "opening_day": "2026-11-26",  # est.
         "enabled": False, "stage": "shadow",
@@ -494,9 +494,9 @@ RESORTS = {
     "mammoth": {
         "name": "Mammoth Mountain", "region": "California", "pass": "Ikon",
         "site": "https://www.mammothmountain.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 37.6440, "lon": -119.0390, "elevation_ft": 9600,
-        "bands": _bands((37.6510, -119.0270, 8900, "Main Lodge"), (37.6440, -119.0390, 9600, "McCoy Station"),
-                        (37.6310, -119.0330, 11053, "summit")),
+        "lat": 37.6402, "lon": -119.0262, "elevation_ft": 9600,
+        "bands": _bands((37.6483, -119.0250, 8900, "Main Lodge"), (37.6402, -119.0262, 9600, "McCoy Station"),
+                        (37.6303, -119.0330, 11053, "summit")),
         "snotel": [], "snotel_label": None,  # nearest SNOTEL (Virginia Lakes Ridge) is 51 km away: too far to count as truth
         "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-05",  # opened early
         "enabled": False, "stage": "shadow",
@@ -504,9 +504,9 @@ RESORTS = {
     "palisades-tahoe": {
         "name": "Palisades Tahoe", "region": "California", "pass": "Ikon",
         "site": "https://www.palisadestahoe.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 39.1880, "lon": -120.2620, "elevation_ft": 8200,
-        "bands": _bands((39.1970, -120.2350, 6200, "Olympic Valley"), (39.1880, -120.2620, 8200, "High Camp"),
-                        (39.1965, -120.2830, 9006, "Granite Chief")),
+        "lat": 39.1938, "lon": -120.2681, "elevation_ft": 8200,
+        "bands": _bands((39.1974, -120.2344, 6200, "Olympic Valley"), (39.1938, -120.2681, 8200, "High Camp"),
+                        (39.1974, -120.2856, 9006, "Granite Chief")),
         "snotel": ["784:CA:SNTL", "848:CA:SNTL"], "snotel_label": "Palisades Tahoe",
         "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-25",  # announced
         "enabled": False, "stage": "shadow",
@@ -514,9 +514,9 @@ RESORTS = {
     "big-bear": {
         "name": "Big Bear Mountain", "region": "California", "pass": "Ikon",
         "site": "https://www.bigbearmountainresort.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 34.2260, "lon": -116.8900, "elevation_ft": 7600,
-        "bands": _bands((34.2365, -116.8895, 7000, "Snow Summit base"), (34.2260, -116.8900, 7600, "mid-mountain"),
-                        (34.2180, -116.8920, 8200, "Snow Summit summit")),
+        "lat": 34.2268, "lon": -116.8883, "elevation_ft": 7600,
+        "bands": _bands((34.2349, -116.8883, 7000, "Snow Summit base"), (34.2268, -116.8883, 7600, "mid-mountain"),
+                        (34.2205, -116.8927, 8200, "Snow Summit summit")),
         "snotel": [], "snotel_label": None,  # no SNOTEL in Southern California (nearest is 250 km away)
         "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-20",  # est.
         "enabled": False, "stage": "shadow",
@@ -524,9 +524,9 @@ RESORTS = {
     "crystal-mountain": {
         "name": "Crystal Mountain", "region": "Washington", "pass": "Ikon",
         "site": "https://www.crystalmountainresort.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 46.9300, "lon": -121.4900, "elevation_ft": 5800,
-        "bands": _bands((46.9350, -121.4750, 4400, "base"), (46.9300, -121.4900, 5800, "mid-mountain"),
-                        (46.9280, -121.5040, 7012, "summit")),
+        "lat": 46.9391, "lon": -121.4870, "elevation_ft": 5800,
+        "bands": _bands((46.9346, -121.4752, 4400, "base"), (46.9391, -121.4870, 5800, "mid-mountain"),
+                        (46.9391, -121.4989, 7012, "summit")),
         "snotel": ["642:WA:SNTL", "1085:WA:SNTL"], "snotel_label": "Morse Lake",
         "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-27",  # announced
         "enabled": False, "stage": "shadow",
