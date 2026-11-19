@@ -1360,9 +1360,22 @@ def test_combined_email_has_7_daily_snow_tiles_per_resort():
     assert "Sun<br>11/22" in html and "Mon<br>11/23" not in html     # 7 days: 11/16 to 11/22
 
 
-def test_wave_1_resorts_run_only_in_shadow_mode(monkeypatch):
+WAVE_1_LIVE = ["whistler-blackcomb", "heavenly", "northstar", "kirkwood", "stevens-pass", "stowe", "okemo", "mount-snow",
+               "seven-springs", "killington"]
+
+
+def test_wave_1_launched_11_19_with_pass_facts():
+    from bcbot import facts
+    live = {r["slug"] for r in resorts.public_list()["resorts"]}
+    for slug in WAVE_1_LIVE:
+        assert slug in resorts.enabled() and slug in live and "stage" not in resorts.get(slug), slug
+        assert slug in facts.EPIC_ACCESS or slug in facts.IKON_ACCESS, slug
+    assert "mt-bachelor" in resorts.shadow()   # no snow report reader yet: launches with the rest
+
+
+def test_shadow_resorts_run_only_in_shadow_mode(monkeypatch):
     shadow = resorts.shadow()
-    assert {"whistler-blackcomb", "heavenly", "stowe", "killington"} <= set(shadow)
+    assert {"mt-bachelor", "jackson-hole", "mammoth"} <= set(shadow)
     assert not set(shadow) & set(resorts.enabled())                    # not in the app or the sends
     assert not set(shadow) & {r["slug"] for r in resorts.public_list()["resorts"]}
     from bcbot import worker
@@ -1402,4 +1415,4 @@ def test_wave_3_and_4_resorts_are_in_shadow():
 
 
 def test_the_next_50_are_all_registered():
-    assert len(resorts.RESORTS) == 72 and len(resorts.shadow()) == 50
+    assert len(resorts.RESORTS) == 72 and len(resorts.shadow()) == 40

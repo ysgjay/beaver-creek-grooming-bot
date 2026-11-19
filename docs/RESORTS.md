@@ -51,6 +51,10 @@ app, not in the sitemap. Turn one on (`enabled: True`, drop `stage`) after its n
 3 days, and add its pass facts (`EPIC_ACCESS` / `IKON_ACCESS` in `bcbot/facts.py`). Plan:
 https://claude.ai/artifact/5yrsn7gYFkyd5QZYqqwf3X
 
+Launched 11/19/2026 (Young's pick): Wave 1 minus Mt. Bachelor, i.e. Whistler Blackcomb, Heavenly, Northstar, Kirkwood,
+Stevens Pass, Stowe, Okemo, Mount Snow, Seven Springs and Killington (32 live). Mt. Bachelor (no snow report reader yet)
+and the other 39 shadow resorts are planned for 11/22.
+
 | Resort | Region | Snow report (checked 11/19) | Cams | Snow station | Opening day |
 |---|---|---|---|---|---|
 | Whistler Blackcomb | British Columbia | `snow-and-weather-report.aspx` | Brown Rice (7) | none (Canada) | 11/20 |
