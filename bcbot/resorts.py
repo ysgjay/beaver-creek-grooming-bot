@@ -97,7 +97,7 @@ RESORTS = {
                          ("keystonebergman", "Bergman"), ("keystoneriverrun", "River Run"), ("keystonelakeside", "Lakeside Village")]),
         "patrol": None,
         "tz": "America/Denver",
-        "opening_day": "2026-11-01",  # opened in October "as conditions allow"; any earlier date works
+        "opening_day": "2026-10-30",  # opened in October "as conditions allow"; any earlier date works
         "enabled": True,
     },
     "crested-butte": {
@@ -147,7 +147,7 @@ RESORTS = {
                         (37.9070, -107.8400, 12570, "summit")),
         "snotel": ['1344:CO:SNTL', '713:CO:SNTL'],
         "snotel_label": "Alta Lakes",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26", "enabled": True,
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-05", "enabled": True,
     },
     "snowmass": {
         "name": "Snowmass", "region": "Colorado", "pass": "Ikon",
@@ -197,7 +197,7 @@ RESORTS = {
                         (40.4520, -106.7430, 10568, "summit")),
         "snotel": ['457:CO:SNTL', '825:CO:SNTL'],
         "snotel_label": "Dry Lake",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-21", "enabled": True,
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27", "enabled": True,
     },
     "winter-park": {
         "name": "Winter Park", "region": "Colorado", "pass": "Ikon",
@@ -217,7 +217,7 @@ RESORTS = {
                         (39.4670, -106.1700, 12313, "summit")),
         "snotel": ['415:CO:SNTL', '485:CO:SNTL'],
         "snotel_label": "Copper Mountain",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-06", "enabled": True,
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-08", "enabled": True,
     },
     "arapahoe-basin": {
         "name": "Arapahoe Basin", "region": "Colorado", "pass": "Ikon",
@@ -257,7 +257,7 @@ RESORTS = {
                         (40.5960, -111.6090, 10488, "summit")),
         "snotel": ['366:UT:SNTL', '1308:UT:SNTL'],
         "snotel_label": "Brighton",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-20", "enabled": True,
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-19", "enabled": True,
     },
     "brighton": {
         "name": "Brighton", "region": "Utah", "pass": "Ikon",
@@ -299,6 +299,141 @@ RESORTS = {
         "snotel_label": "Ben Lomond Peak",
         "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27", "enabled": True,
     },
+
+    # ---------- Wave 1 (11/19/2026): shadow mode only ----------
+    # "stage": "shadow" = the Render worker runs these in shadow mode (no sends, nothing shown in the app)
+    # until their readers have matched the resorts' own pages for 3 days. Then set enabled True and drop stage.
+    # Snow report path and Brown Rice cam ids were checked on each site 11/19/2026. None posts a Lumiplan
+    # grooming map. Base/mid/peak points were snapped 11/19 to the nearest terrain at their stated elevation (Copernicus
+    # 90 m DEM via the Open-Meteo elevation API); check them against the trail map when tuning.
+    "whistler-blackcomb": {
+        "name": "Whistler Blackcomb", "region": "British Columbia", "pass": "Epic",
+        "site": "https://www.whistlerblackcomb.com", "grooming_pdf": None,
+        "lat": 50.0682, "lon": -122.9575, "elevation_ft": 6069,
+        "bands": _bands((50.1151, -122.9561, 2214, "Whistler Village"), (50.0682, -122.9575, 6069, "Roundhouse"),
+                        (50.0583, -122.9561, 7160, "Whistler Peak")),
+        "snotel": [], "snotel_label": None,  # no SNOTEL in Canada
+        "cams": _cams([("whistlerroundhouse", "Roundhouse"), ("whistlerpeak", "Whistler Peak"),
+                       ("whistlerblackcomb", "Blackcomb"), ("whistlersnowstack", "Snow stake"),
+                       ("whistler7thheaven", "7th Heaven"), ("whistlervillage", "Village"),
+                       ("whistlercreekside", "Creekside")]),
+        "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-11-20", "enabled": False, "stage": "shadow",
+    },
+    "heavenly": {
+        "name": "Heavenly", "region": "California", "pass": "Epic",
+        "site": "https://www.skiheavenly.com", "grooming_pdf": None,
+        "lat": 38.9254, "lon": -119.9215, "elevation_ft": 8500,
+        "bands": _bands((38.9344, -119.9446, 6565, "California Lodge"), (38.9254, -119.9215, 8500, "mid-mountain"),
+                        (38.9173, -119.9006, 10067, "Monument Peak")),
+        "snotel": ["518:CA:SNTL", "508:CA:SNTL"], "snotel_label": "Heavenly Valley",
+        "cams": _cams([("heavenlydipper", "Dipper"), ("heavenlymidstation", "Mid-station"), ("heavenlytram", "Tram"),
+                       ("heavenlyeastpeak", "East Peak")]),
+        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-20", "enabled": False, "stage": "shadow",
+    },
+    "northstar": {
+        "name": "Northstar", "region": "California", "pass": "Epic",
+        "site": "https://www.northstarcalifornia.com", "grooming_pdf": None,
+        "lat": 39.2586, "lon": -120.1361, "elevation_ft": 7600,
+        "bands": _bands((39.2757, -120.1199, 6330, "Village"), (39.2586, -120.1361, 7600, "mid-mountain"),
+                        (39.2415, -120.1385, 8610, "Mt. Pluto")),
+        "snotel": ["834:CA:SNTL", "809:CA:SNTL"], "snotel_label": "Truckee #2",
+        "cams": _cams([("northstarsnowstake", "Snow stake"), ("northstarspluto", "Mt. Pluto"),
+                       ("northstarmidmountain", "Mid-mountain"), ("northstarvillage", "Village")]),
+        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-20", "enabled": False, "stage": "shadow",
+    },
+    "kirkwood": {
+        "name": "Kirkwood", "region": "California", "pass": "Epic",
+        "site": "https://www.kirkwood.com", "grooming_pdf": None,
+        "lat": 38.6659, "lon": -120.0525, "elevation_ft": 8800,
+        "bands": _bands((38.6848, -120.0664, 7800, "base"), (38.6659, -120.0525, 8800, "mid-mountain"),
+                        (38.6623, -120.0606, 9876, "summit")),
+        "snotel": ["1067:CA:SNTL", "1049:CA:SNTL"], "snotel_label": "Carson Pass",
+        "cams": _cams([("kirkwoodcornice", "Cornice"), ("kirkwoodredcliffs", "Red Cliffs")]),
+        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04", "enabled": False, "stage": "shadow",
+    },
+    "stevens-pass": {
+        "name": "Stevens Pass", "region": "Washington", "pass": "Epic",
+        "site": "https://www.stevenspass.com", "snow_report_path": "/the-mountain/mountain-conditions/weather-report.aspx",
+        "grooming_pdf": None,
+        "lat": 47.7362, "lon": -121.0987, "elevation_ft": 4800,
+        "bands": _bands((47.7443, -121.0893, 4061, "base"), (47.7362, -121.0987, 4800, "mid-mountain"),
+                        (47.7317, -121.1027, 5845, "summit")),
+        "snotel": ["791:WA:SNTL", "1338:WA:SNTL"], "snotel_label": "Stevens Pass",
+        "cams": _cams([("stevenspasssnowstake", "Snow stake"), ("stevenspasscourtyard", "Courtyard"),
+                       ("stevenspassschool", "Ski school"), ("stevenspassjupiter", "Jupiter"),
+                       ("stevenspassskyline", "Skyline")]),
+        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04", "enabled": False, "stage": "shadow",
+    },
+    "stowe": {
+        "name": "Stowe", "region": "Vermont", "pass": "Epic",
+        "site": "https://www.stowe.com", "grooming_pdf": None,
+        "lat": 44.5274, "lon": -72.8003, "elevation_ft": 2700,
+        "bands": _bands((44.5310, -72.7801, 1559, "base"), (44.5274, -72.8003, 2700, "mid-mountain"),
+                        (44.5229, -72.8104, 3625, "Cliff House")),
+        "snotel": [], "snotel_label": None,  # no SNOTEL in the East
+        "cams": _cams([("stowesnowstake", "Snow stake"), ("stowemidwaybasestation", "Midway"),
+                       ("stowevillage", "Village")]),
+        # Opening day not announced yet (11/19); last season's target was the Saturday before Thanksgiving.
+        "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21", "enabled": False, "stage": "shadow",
+    },
+    "okemo": {
+        "name": "Okemo", "region": "Vermont", "pass": "Epic",
+        "site": "https://www.okemo.com", "grooming_pdf": None,
+        "lat": 43.4033, "lon": -72.7343, "elevation_ft": 2300,
+        "bands": _bands((43.3997, -72.7095, 1144, "base"), (43.4033, -72.7343, 2300, "mid-mountain"),
+                        (43.4033, -72.7517, 3344, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": _cams([("okemosnowstake", "Snow stake"), ("okemosummit", "Summit"), ("okemosugarhouse", "Sugar House"),
+                       ("okemoroundhouse", "Roundhouse")]),
+        "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21", "enabled": False, "stage": "shadow",
+    },
+    "mount-snow": {
+        "name": "Mount Snow", "region": "Vermont", "pass": "Epic",
+        "site": "https://www.mountsnow.com", "snow_report_path": "/the-mountain/mountain-conditions/weather-report.aspx",
+        "grooming_pdf": None,
+        "lat": 42.9667, "lon": -72.9135, "elevation_ft": 2800,
+        "bands": _bands((42.9658, -72.8913, 1900, "base"), (42.9667, -72.9135, 2800, "mid-mountain"),
+                        (42.9595, -72.9245, 3600, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": _cams([("mountsnowsnowstake", "Snow stake"), ("mountsnowsummit", "Summit"), ("mountsnowcarinthia", "Carinthia"),
+                       ("mountsnowbase", "Base")]),
+        "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21", "enabled": False, "stage": "shadow",
+    },
+    "seven-springs": {
+        "name": "Seven Springs", "region": "Pennsylvania", "pass": "Epic",
+        "site": "https://www.7springs.com", "grooming_pdf": None,
+        "lat": 40.0204, "lon": -79.2977, "elevation_ft": 2600,
+        "bands": _bands((40.0159, -79.2871, 2240, "base"), (40.0204, -79.2977, 2600, "mid-mountain"),
+                        (40.0240, -79.3106, 2994, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": _cams([("sevensprings", "Main"), ("sevenspringsnorthface", "North Face")]),
+        # Opening day not announced yet (11/19).
+        "patrol": None, "tz": "America/New_York", "opening_day": "2026-12-04", "enabled": False, "stage": "shadow",
+    },
+    # Killington (locally owned since POWDR sold it in 2024) and POWDR's Mt. Bachelor: no open feed like Copper's
+    # (checked 11/19), so for now these two
+    # run on forecast and snow stations only, like Telluride.
+    "killington": {
+        "name": "Killington", "region": "Vermont", "pass": "Ikon",
+        "site": "https://www.killington.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 43.6158, "lon": -72.8120, "elevation_ft": 3200,
+        "bands": _bands((43.6284, -72.7958, 2200, "Snowshed base"), (43.6158, -72.8120, 3200, "mid-mountain"),
+                        (43.6041, -72.8207, 4241, "Killington Peak")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York",
+        "opening_day": "2026-11-01",  # already open per Ikon (11/19); Killington sets no date in advance
+        "enabled": False, "stage": "shadow",
+    },
+    "mt-bachelor": {
+        "name": "Mt. Bachelor", "region": "Oregon", "pass": "Ikon",
+        "site": "https://www.mtbachelor.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 43.9868, "lon": -121.6832, "elevation_ft": 7775,
+        "bands": _bands((44.0012, -121.6694, 6300, "West Village"), (43.9868, -121.6832, 7775, "Pine Marten"),
+                        (43.9787, -121.6882, 9065, "summit")),
+        "snotel": ["815:OR:SNTL", "545:OR:SNTL"], "snotel_label": "Three Creeks Meadow",
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04",
+        "enabled": False, "stage": "shadow",
+    },
 }
 
 SNOW_REPORT_PATH = "/the-mountain/mountain-conditions/snow-and-weather-report.aspx"
@@ -309,6 +444,12 @@ def enabled():
     """Slugs the scheduler runs and the app offers, in display order."""
     env = [s.strip() for s in os.environ.get("RESORTS", "").split(",") if s.strip() in RESORTS]
     return env or [k for k, r in RESORTS.items() if r["enabled"]]
+
+
+def shadow():
+    """Slugs that run only on the Render worker in shadow mode (no sends, not in the app) while their readers
+    are checked. See docs/RENDER.md."""
+    return [k for k, r in RESORTS.items() if r.get("stage") == "shadow" and not r["enabled"]]
 
 
 def get(slug):

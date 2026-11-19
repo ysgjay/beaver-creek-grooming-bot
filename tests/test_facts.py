@@ -75,8 +75,8 @@ def test_passes_tickets_and_lessons_section():
 
 def test_shared_pass_facts_cover_every_resort():
     from bcbot import resorts
-    assert set(facts.FACTS) == set(resorts.RESORTS)
-    for slug in resorts.RESORTS:
+    assert set(resorts.enabled()) <= set(facts.FACTS)
+    for slug in resorts.enabled():  # shadow-mode resorts get their pass facts before launch
         assert "passes" in facts.FACTS[slug] and "blackout_dates" in facts.FACTS[slug], slug
     assert "Ikon Pass: 7 days, shared with Snowbird" in facts.FACTS["alta"]["passes"]["value"]
     assert facts.FACTS["vail"]["opening_day"]["value"] == "2026-11-13"
@@ -144,3 +144,29 @@ def test_admin_grid_lists_every_resort_and_fact():
     assert row[("vail", "trail_map")]["maps"] == 3 and row[("vail", "trail_map")]["map_images"] == 3
     assert row[("vail", "lift_tickets")]["fresh"] == "ok"
     assert facts.grid(date(2027, 3, 10))["rows"][0]["fresh"] in ("due", "stale")
+
+
+def test_registry_opening_day_matches_the_checked_fact():
+    """The registry date gates sends and the guide shows the fact: they must agree when the resort has set one."""
+    from bcbot import resorts
+    for slug in resorts.enabled():
+        v = facts.FACTS.get(slug, {}).get("opening_day", {}).get("value")
+        if v:
+            assert resorts.RESORTS[slug]["opening_day"] == v, slug
+
+
+def test_shadow_resorts_stay_off_public_endpoints(monkeypatch):
+    from bcbot import resorts, stats
+    shadow = resorts.shadow()[0]
+    hit = stats.clean_hit({"v": "a" * 16, "t": "report", "r": shadow}, resorts.enabled())
+    assert hit is None or hit["resort"] == ""                          # never counted as a shadow resort
+    from bcbot import audit
+    monkeypatch.setenv("STORE_MODE", "shadow")
+    monkeypatch.setattr("bcbot.db.url", lambda: "postgres://x")
+    assert audit.record(shadow, {}, {}, {}, {}, None, False) is None   # never touches Neon in shadow mode
+
+
+def test_scene7_tiles_load_small_and_link_the_full_image():
+    from bcbot import guide
+    html = guide.map_gallery(facts.FACTS["vail"]["trail_map"])
+    assert "wid=800" in html and "wid=4000" in html

@@ -79,7 +79,7 @@
       const tip = `${r.value}\n\nSource: ${r.source_name}\nChecked ${r.checked}, next check ${r.next_check}`;
       return `<td class="fx ${cls}" title="${esc(tip)}"><a href="${esc(r.source)}" target="_blank" rel="noopener">${mark}</a><span>${mmdd(r.checked)}${maps}</span></td>`;
     };
-    const rows = Object.keys(by).map((k) => `<tr><th>${esc(names?.[k] || by[k][kinds[0]]?.name || k)}</th>${kinds.map((kd) => cell(by[k][kd])).join("")}</tr>`).join("");
+    const rows = Object.keys(by).map((k) => `<tr><th>${esc(names?.[k] || by[k][kinds[0]]?.name || k)}${by[k][kinds[0]]?.stage === "shadow" ? ' <span class="ad-pill pending">testing</span>' : ""}</th>${kinds.map((kd) => cell(by[k][kd])).join("")}</tr>`).join("");
     return card("Resort facts", `${n("filled")} filled, ${n("not_posted")} checked but not posted by the resort, ${n("missing")} missing, ${due} due for a re-check. Hover a cell for the value and source; click to open the source.`,
       `<div class="ad-legend fx-legend"><span><i class="fx filled"></i>Filled</span><span><i class="fx not_posted"></i>Not posted yet</span><span><i class="fx missing"></i>Missing</span><span><i class="fx due"></i>Due for re-check</span><span><i class="fx stale"></i>Stale</span>
        <button class="btn secondary" type="button" id="fx-csv">Download CSV</button></div>
@@ -88,6 +88,7 @@
   function factsCsv(fx) {
     const cols = ["name", "resort", "label", "status", "fresh", "value", "checked", "next_check", "every_days", "maps", "map_images", "source_name", "source"];
     const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    cols.splice(2, 0, "stage");
     const csv = [cols.join(","), ...fx.rows.map((r) => cols.map((c) => q(r[c])).join(","))].join("\r\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv" }));

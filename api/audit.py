@@ -45,7 +45,7 @@ class handler(BaseHTTPRequestHandler):
                     return self._json(401, {"error": "unauthorized"})
                 return self._json(200, audit.job())
             slug = q.get("resort", [""])[0]
-            if slug not in resorts.RESORTS:
+            if slug not in resorts.enabled():  # shadow resorts stay unannounced
                 return self._json(400, {"error": "unknown resort"})
             today = date.today()
             if q.get("format", [""])[0] == "csv":

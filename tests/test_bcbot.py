@@ -1001,8 +1001,12 @@ def test_every_resort_is_complete():
         fts = [b["elevation_ft"] for b in r["bands"]]
         assert [b["key"] for b in r["bands"]] == ["base", "mid", "peak"] and fts == sorted(fts), slug
         assert fts[0] < r["elevation_ft"] <= fts[2], slug          # forecast point is on the mountain
-        assert r["snotel"] and r["tz"] == "America/Denver" and r["opening_day"], slug
-        assert r["region"] in ("Colorado", "Utah") and r["pass"] in ("Epic", "Ikon"), slug
+        no_snotel = r["region"] in ("British Columbia", "Vermont", "Pennsylvania")  # SNOTEL covers the western US only
+        assert (r["snotel"] or no_snotel) and r["opening_day"], slug
+        from zoneinfo import ZoneInfo
+        assert ZoneInfo(r["tz"]) and (r["tz"] == "America/Denver") == (r["region"] in ("Colorado", "Utah")), slug
+        assert r["pass"] in ("Epic", "Ikon"), slug
+        assert r["enabled"] or r.get("stage") == "shadow", slug  # new resorts start in shadow mode
         if r["dor_api"]:  # POWDR open feed
             assert r["snow_report"] == r["dor_api"] + "/api/v1/dor/drupal/snow-reports", slug
         elif r["snow_report"]:  # Vail-platform resorts; the others' reports aren't read yet
@@ -1335,3 +1339,21 @@ def test_combined_email_has_7_daily_snow_tiles_per_resort():
     vail["forecast"] = {"next_1_5": 5, "days": [{"date": f"2026-11-{16 + i}", "snow": float(i)} for i in range(10)]}
     html = mailer.digest_html([("vail", vail)], [], datetime(2026, 11, 16, 6, 30, tzinfo=digest.TZ))
     assert "Sun<br>11/22" in html and "Mon<br>11/23" not in html     # 7 days: 11/16 to 11/22
+
+
+def test_wave_1_resorts_run_only_in_shadow_mode(monkeypatch):
+    shadow = resorts.shadow()
+    assert {"whistler-blackcomb", "heavenly", "stowe", "killington"} <= set(shadow)
+    assert not set(shadow) & set(resorts.enabled())                    # not in the app or the sends
+    assert not set(shadow) & {r["slug"] for r in resorts.public_list()["resorts"]}
+    from bcbot import worker
+    seen = {}
+    monkeypatch.setattr("bcbot.main.run", lambda force=False, slug=None: seen.setdefault(slug, {"status": "skipped"}))
+    monkeypatch.setenv("WORKER_MODE", "shadow")
+    worker.tick(force=True)
+    assert set(shadow) <= set(seen)
+    seen.clear()
+    monkeypatch.setenv("WORKER_MODE", "live")
+    monkeypatch.setattr("api.run._digest", lambda: None)
+    worker.tick(force=True)
+    assert not set(shadow) & set(seen)

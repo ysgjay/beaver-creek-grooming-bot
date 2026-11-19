@@ -47,7 +47,8 @@ def tick(force=False, now=None):
     from bcbot.main import run
     from api.run import due
 
-    slugs = due(resorts.enabled(), force=force, now=now)
+    # Shadow mode also runs the resorts that are being checked before launch (resorts.shadow()).
+    slugs = due(resorts.enabled() + (resorts.shadow() if mode() == "shadow" else []), force=force, now=now)
     workers = max(1, int(os.environ.get("WORKER_CONCURRENCY", "4")))
 
     def one(slug):
