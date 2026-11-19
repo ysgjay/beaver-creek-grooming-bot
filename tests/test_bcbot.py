@@ -995,17 +995,32 @@ def test_claim_is_per_day_and_resort():
     assert "ON CONFLICT (day, resort)" in calls[0][0] and calls[0][1] == ("2026-11-15", "vail", "ready")
 
 
+NO_SNOTEL = ("British Columbia", "Alberta", "Quebec", "Vermont", "New Hampshire", "Maine", "New York", "Pennsylvania",
+             "West Virginia")
+
+
+REGION_TZ = {
+    "Colorado": "America/Denver", "Utah": "America/Denver", "Wyoming": "America/Denver", "Montana": "America/Denver",
+    "New Mexico": "America/Denver", "Idaho": "America/Boise", "California": "America/Los_Angeles",
+    "Washington": "America/Los_Angeles", "Oregon": "America/Los_Angeles", "British Columbia": "America/Vancouver",
+    "Alberta": "America/Edmonton", "Quebec": "America/Toronto", "Vermont": "America/New_York",
+    "New Hampshire": "America/New_York", "Maine": "America/New_York", "New York": "America/New_York",
+    "Pennsylvania": "America/New_York", "West Virginia": "America/New_York",
+}
+
+
 def test_every_resort_is_complete():
     for slug in resorts.RESORTS:
         r = resorts.get(slug)
         fts = [b["elevation_ft"] for b in r["bands"]]
         assert [b["key"] for b in r["bands"]] == ["base", "mid", "peak"] and fts == sorted(fts), slug
         assert fts[0] < r["elevation_ft"] <= fts[2], slug          # forecast point is on the mountain
-        no_snotel = r["region"] in ("British Columbia", "Vermont", "Pennsylvania")  # SNOTEL covers the western US only
+        # SNOTEL covers the western US only; Big Bear and Mammoth have none close enough
+        no_snotel = r["region"] in NO_SNOTEL or slug in ("big-bear", "mammoth")
         assert (r["snotel"] or no_snotel) and r["opening_day"], slug
         from zoneinfo import ZoneInfo
-        assert ZoneInfo(r["tz"]) and (r["tz"] == "America/Denver") == (r["region"] in ("Colorado", "Utah")), slug
-        assert r["pass"] in ("Epic", "Ikon"), slug
+        assert ZoneInfo(r["tz"]) and r["tz"] == REGION_TZ[r["region"]], slug
+        assert r["pass"] in ("Epic", "Ikon", "Mountain Collective", "Indy", "Independent"), slug
         assert r["enabled"] or r.get("stage") == "shadow", slug  # new resorts start in shadow mode
         if r["dor_api"]:  # POWDR open feed
             assert r["snow_report"] == r["dor_api"] + "/api/v1/dor/drupal/snow-reports", slug
@@ -1357,3 +1372,12 @@ def test_wave_1_resorts_run_only_in_shadow_mode(monkeypatch):
     monkeypatch.setattr("api.run._digest", lambda: None)
     worker.tick(force=True)
     assert not set(shadow) & set(seen)
+
+
+def test_wave_2_resorts_are_in_shadow_and_read_no_resort_page_yet():
+    wave2 = ["jackson-hole", "big-sky", "banff-sunshine", "lake-louise", "sun-valley", "mammoth", "palisades-tahoe",
+             "big-bear", "crystal-mountain", "tremblant", "sugarbush", "stratton", "snowshoe"]
+    assert set(wave2) <= set(resorts.shadow())
+    for slug in wave2:
+        r = resorts.get(slug)
+        assert r["snow_report"] is None and resorts.is_static(slug), slug  # no keyed feeds, no page reader yet
