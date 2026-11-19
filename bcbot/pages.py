@@ -128,7 +128,7 @@ def summary(day):
     runs = ((day.get("grooming") or {}).get("runs")) or {}
     groomed = mailer.groomed_runs(runs)
     out = []
-    first = f"{name} grooming and snow report for {d.strftime('%A')} {report.mmdd(d)}"
+    first = f"{name} snow report for {d.strftime('%A')} {report.mmdd(d)}"
     if groomed:
         first += f": {len(groomed)} runs groomed"
         top = runs.get("groomers_of_the_day") or groomed
@@ -163,10 +163,11 @@ def summary(day):
 
 
 def title(day, dated):
+    """Lead with "<Resort> snow report": it gets ~100x the searches of "grooming report" (docs/SEO.md)."""
     name = report.resort_name(day)
     when = report.mmdd(day["date"])
-    return (f"{name} grooming report and snow forecast, {when}" if dated
-            else f"{name} grooming report today and snow forecast") + f" | {ORG}"
+    return (f"{name} snow report {when}: grooming and new snow" if dated
+            else f"{name} snow report today ({when}): grooming and forecast") + f" | {ORG}"
 
 
 def description(day):
@@ -289,8 +290,8 @@ def resort_page(slug, day, dates, dated=False):
     desc = description(day)
     words = summary(day)
     d = date.fromisoformat(day_str)
-    h1 = (f"{name} grooming report, {d.strftime('%a')} {report.mmdd(d)}" if dated
-          else f"{name} grooming report and snow forecast")
+    h1 = (f"{name} snow report, {d.strftime('%a')} {report.mmdd(d)}" if dated
+          else f"{name} snow report today, {d.strftime('%a')} {report.mmdd(d)}")
     crumbs = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › <a href="{resort_path(slug)}">{escape(name)}</a>'
               + (f" › {report.mmdd(d)}" if dated else "") + "</p>")
     others = [x for x in dates if x != day_str][:60]
@@ -299,6 +300,7 @@ def resort_page(slug, day, dates, dated=False):
         for x in others) + "</ul>") if others else ""
     body = (crumbs + f'<h1 class="page">{escape(h1)}</h1>'
             + f'<p class="lead">{escape(" ".join(words))}</p>'
+            + _quick_links(slug, name)
             + webreport.render(day, map_url)
             + _cta(slug, name) + past + _more(slug, name))
     article = {
@@ -327,11 +329,11 @@ def empty_resort_page(slug):
     """No report stored yet (a resort just added): a thin page that asks not to be indexed."""
     name = resorts.get(slug)["name"]
     body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › {escape(name)}</p>'
-            f'<h1 class="page">{escape(name)} grooming report and snow forecast</h1>'
+            f'<h1 class="page">{escape(name)} snow report today</h1>'
             f'<p class="lead">The first {escape(name)} report is on its way. It posts each morning once the resort\'s '
             f'grooming and snow report are in.</p>' + _cta(slug, name))
-    return shell(page_title=f"{name} grooming report and snow forecast | {ORG}",
-                 desc=f"Daily {name} grooming report, new snow and forecast.", canonical=site(resort_path(slug)),
+    return shell(page_title=f"{name} snow report today: grooming and forecast | {ORG}",
+                 desc=f"Daily {name} snow report: new snow, base, grooming and the forecast.", canonical=site(resort_path(slug)),
                  body=body, noindex=True)
 
 
@@ -340,22 +342,24 @@ def hub_page():
     for slug in resorts.enabled():
         r = resorts.get(slug)
         groups.setdefault(r["region"], []).append(r)
-    body = ('<h1 class="page">Ski resort grooming reports for Colorado and Utah</h1>'
+    body = ('<h1 class="page">Colorado and Utah ski resort snow reports</h1>'
             '<p class="lead">A short report for each resort every morning: what was groomed, new snow, base, '
             'the weather from first chair to last and the snow forecast. Free, and updated daily.</p>')
     for region in sorted(groups):
         body += (f"<h2>{escape(region)}</h2><p style=\"margin:0 0 6px\"><a href=\"{resort_path(region.lower())}\">"
                  f"{escape(region)} snow report today: every resort in one table</a></p><ul class=\"list\">") + "".join(
-            f'<li><a href="{resort_path(r["slug"])}">{escape(r["name"])} grooming report</a> '
+            f'<li><a href="{resort_path(r["slug"])}">{escape(r["name"])} snow report</a> '
             f'<span style="color:var(--ink2);font-size:13px">({escape(r["pass"])} pass)</span></li>'
             for r in sorted(groups[region], key=lambda r: r["name"])) + "</ul>"
+    body += ('<h2>Pass blackout dates</h2><ul class="list">'
+             + "".join(f'<li><a href="/passes/{k}">{escape(v["h1"])}</a></li>' for k, v in PASSES.items()) + "</ul>")
     body += _cta(resorts.DEFAULT, "morning")
-    ld = {"@context": "https://schema.org", "@type": "CollectionPage", "name": "Ski resort grooming reports",
+    ld = {"@context": "https://schema.org", "@type": "CollectionPage", "name": "Ski resort snow reports",
           "url": site("resorts"), "publisher": _org(), "hasPart": [
-              {"@type": "WebPage", "name": f'{resorts.get(s)["name"]} grooming report', "url": site(resort_path(s))}
+              {"@type": "WebPage", "name": f'{resorts.get(s)["name"]} snow report', "url": site(resort_path(s))}
               for s in resorts.enabled()]}
-    return shell(page_title=f"Colorado and Utah ski resort grooming reports, daily | {ORG}",
-                 desc="Daily grooming reports, new snow, base depth and snow forecasts for 22 Colorado and Utah "
+    return shell(page_title=f"Colorado and Utah ski resort snow reports today: grooming and forecast | {ORG}",
+                 desc="Daily snow reports, grooming, new snow, base depth and snow forecasts for 22 Colorado and Utah "
                       "ski resorts on the Epic and Ikon passes.",
                  canonical=site("resorts"), body=body, ld=[ld])
 
@@ -373,6 +377,7 @@ def sitemap(store):
         by = dict(pool.map(dates, slugs))
     urls = [(site(), None, "daily"), (site("resorts"), None, "daily")]
     urls += [(site(resort_path(r)), None, "daily") for r in REGIONS]
+    urls += [(site(f"passes/{k}"), None, "weekly") for k in PASSES]
     for s in slugs:
         ds = by.get(s) or []
         urls.append((site(resort_path(s)), ds[0] if ds else None, "daily"))
@@ -382,6 +387,25 @@ def sitemap(store):
                    + f"<changefreq>{f}</changefreq></url>" for u, m, f in urls)
     return ('<?xml version="1.0" encoding="UTF-8"?>'
             f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{rows}</urlset>')
+
+
+def _quick_links(slug, name):
+    """One line under the lead answering the next searches people make (trail map, cams, grooming PDF, blackout dates)."""
+    from . import facts as F
+    r = resorts.get(slug)
+    links = []
+    tm = (F.FACTS.get(slug) or {}).get("trail_map") or {}
+    if tm.get("value"):
+        links.append(f'<a href="{escape(tm["value"])}" rel="nofollow">{escape(name)} trail map</a>')
+    if r.get("cams"):
+        links.append(f'<a href="/?resort={slug}">{escape(name)} webcams</a>')
+    if r.get("grooming_pdf"):
+        links.append(f'<a href="{escape(r["grooming_pdf"])}" rel="nofollow">Grooming map PDF</a>')
+    for key, p in PASSES.items():
+        if p["pass"] in r["pass"]:
+            links.append(f'<a href="/passes/{key}">{p["pass"]} Pass blackout dates</a>')
+    links.append(f'<a href="{resort_path(slug, "guide")}">Hours and opening day</a>')
+    return f'<p class="crumbs" style="font-size:14px;margin:0 0 14px">{" · ".join(links)}</p>'
 
 
 def _more(slug, name):
@@ -674,3 +698,114 @@ def _guide_label(slug, name):
     from . import facts as F
     return (f"{name} {F.topics(slug)}" if slug in F.FACTS
             else f"How the {name} grooming and snow report works")
+
+
+# ---------- pass blackout dates: one page per pass ----------
+# "epic pass blackout dates" and "ikon pass blackout dates" each get about half the searches of
+# "vail snow report" (docs/SEO.md). Dates come from bcbot/facts.py, so one re-check updates every page.
+
+PASSES = {
+    "epic-blackout-dates": {
+        "pass": "Epic", "h1": "Epic Pass blackout dates 2026/27",
+        "also": "Epic calls them restricted peak dates.",
+        "ranges": [("2026-11-27", "2026-11-28", "Thanksgiving"), ("2026-12-26", "2026-12-31", "Holidays"),
+                   ("2027-01-16", "2027-01-16", "MLK weekend"), ("2027-02-13", "2027-02-14", "Presidents Day weekend")],
+        "who": "the Epic Local Pass (at resorts where it says \"not valid on peak dates\") and the Epic Day Pass",
+        "free": "The full Epic Pass has no blackout dates.",
+        "source": "EPIC_PEAK",
+    },
+    "ikon-blackout-dates": {
+        "pass": "Ikon", "h1": "Ikon Pass blackout dates 2026/27",
+        "also": "Only the Ikon Base Pass has blackout dates.",
+        "ranges": [("2026-12-26", "2026-12-30", "Holidays"), ("2027-01-16", "2027-01-17", "MLK weekend"),
+                   ("2027-02-13", "2027-02-14", "Presidents Day weekend")],
+        "who": "the Ikon Base Pass",
+        "free": "The full Ikon Pass and the Ikon Session Pass have no blackout dates.",
+        "source": "IKON_BASE_BLACKOUTS",
+    },
+}
+
+
+def _today_mt():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo("America/Denver")).date()
+
+
+def _range_text(a, b):
+    da, db = date.fromisoformat(a), date.fromisoformat(b)
+    one = f"{da.strftime('%a')} {report.mmdd(da)}"
+    return one if a == b else f"{one} to {db.strftime('%a')} {report.mmdd(db)}"
+
+
+def pass_status(key, today=None):
+    """(is today restricted?, the next range as (start, end, label) or None)."""
+    today = today or _today_mt()
+    for a, b, label in PASSES[key]["ranges"]:
+        if date.fromisoformat(a) <= today <= date.fromisoformat(b):
+            return True, (a, b, label)
+        if date.fromisoformat(a) > today:
+            return False, (a, b, label)
+    return False, None
+
+
+def pass_page(key, today=None):
+    from . import facts as F
+    p = PASSES[key]
+    today = today or _today_mt()
+    src_url, src_name = getattr(F, p["source"])
+    on, nxt = pass_status(key, today)
+    if on:
+        answer = f"Yes. Today ({report.mmdd(today)}) is a blackout date for {p['who']}."
+    elif nxt:
+        days = (date.fromisoformat(nxt[0]) - today).days
+        answer = (f"No, today ({report.mmdd(today)}) is not a blackout date. The next one is "
+                  f"{_range_text(nxt[0], nxt[1])} ({nxt[2]}), {days} day{'s' if days != 1 else ''} away.")
+    else:
+        answer = "No. All 2026/27 blackout dates have passed."
+    all_dates = "; ".join(f"{_range_text(a, b)} ({lbl})" for a, b, lbl in p["ranges"])
+    lead = f"{p['h1']}: {all_dates}. They apply to {p['who']}. {p['free']} {p['also']}"
+    rows = "".join(f'<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line)">{escape(lbl)}</td>'
+                   f'<td style="padding:6px 8px;border-bottom:1px solid var(--line);font-family:\'IBM Plex Mono\',monospace;font-size:14px">'
+                   f'{escape(_range_text(a, b))}</td></tr>' for a, b, lbl in p["ranges"])
+    access = F.EPIC_ACCESS if p["pass"] == "Epic" else F.IKON_ACCESS
+    enabled = set(resorts.enabled())
+    res = ""
+    for slug, acc in access.items():
+        if slug not in enabled:
+            continue
+        name = resorts.get(slug)["name"]
+        if p["pass"] == "Epic":
+            local = acc[1] or "not included"
+            blocked = "Yes" if acc[1] and "not valid on peak" in acc[1] else ("No" if acc[1] else "–")
+            cols = (escape(local), blocked)
+        else:
+            base = acc[1] or "not included"
+            cols = (escape(base), "Yes" if acc[1] else "–")
+        res += (f'<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line)"><a href="{resort_path(slug)}">{escape(name)}</a></td>'
+                + "".join(f'<td style="padding:6px 8px;border-bottom:1px solid var(--line);font-size:14px">{c}</td>' for c in cols) + "</tr>")
+    lesser = "Epic Local Pass" if p["pass"] == "Epic" else "Ikon Base Pass"
+    th = 'style="padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;color:var(--ink2)"'
+    box = '<div style="overflow-x:auto;background:var(--paper);border:1px solid var(--edge);border-radius:20px;padding:8px">{}</div>'
+    other = [k for k in PASSES if k != key][0]
+    body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › Passes</p>'
+            f'<h1 class="page">{escape(p["h1"])}</h1>'
+            f'<div class="cta" style="margin-top:8px"><b>Is today a blackout date?</b> {escape(answer)}</div>'
+            f'<p class="lead">{escape(lead)}</p>'
+            f'<h2>2026/27 dates</h2>' + box.format(f'<table style="width:100%;border-collapse:collapse"><tbody>{rows}</tbody></table>')
+            + f'<h2>{p["pass"]} resorts we cover</h2>'
+            + box.format(f'<table style="width:100%;border-collapse:collapse"><thead><tr><th {th}>Resort</th>'
+                         f'<th {th}>{lesser}</th><th {th}>Blacked out on these dates?</th></tr></thead><tbody>{res}</tbody></table>')
+            + f'<p style="font-size:12px;color:var(--ink2)">Source: <a href="{escape(src_url)}" rel="nofollow">{escape(src_name)}</a> · '
+              f'checked {report.mmdd(F.CHECKED_SHARED)}. Passes can change, so check the source before you buy or go.</p>'
+            + _cta(resorts.DEFAULT, "morning")
+            + f'<p><a href="/passes/{other}">{escape(PASSES[other]["h1"])}</a> · <a href="/resorts">Snow reports for every resort</a></p>')
+    canonical = site(f"passes/{key}")
+    faq = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+        {"@type": "Question", "name": f"What are the {p['pass']} Pass blackout dates for 2026/27?",
+         "acceptedAnswer": {"@type": "Answer", "text": f"{all_dates}. They apply to {p['who']}. {p['free']}"}},
+        {"@type": "Question", "name": f"Does the full {p['pass']} Pass have blackout dates?",
+         "acceptedAnswer": {"@type": "Answer", "text": p["free"]}}]}
+    title = (f"{p['h1']}: is today blacked out?" + (" (restricted peak dates)" if p["pass"] == "Epic" else "")
+             + f" | {ORG}")
+    return shell(page_title=title, desc=lead[:300], canonical=canonical, body=body, ld=[faq], where="Passes")
