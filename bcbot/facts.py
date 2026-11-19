@@ -97,6 +97,303 @@ CURATED = {
 }
 
 
+# ---------- hand-checked facts, 11/19/2026 batch (official resort pages; Vail Resorts and a few others read in a browser) ----------
+
+def _c(value, url, page, note=None, checked="2026-11-19", **extra):
+    f = {"value": value, "checked": checked, "source": url, "source_name": page}
+    if note:
+        f["note"] = note
+    return dict(f, **extra)
+
+
+def _map(page_url, page_name, label, maps):
+    """A trail map fact: `value` is the official page; `maps` lists each map the resort posts, so big
+    mountains with several maps (Vail's Front Side, Back Bowls, Blue Sky) show all of them.
+    Each map: {"label", "season", "image" (resort-hosted image, embedded by URL, never copied), "pdf"}."""
+    return _c(page_url, page_url, page_name, label=label,
+              maps=[dict(zip(("label", "season", "image", "pdf"), m)) for m in maps])
+
+
+_VR_TIX_NOTE = ("Prices change by date and the advance price needs 7+ days' notice. The Epic 1-Day Pass is sold only "
+                "for a limited time, is non-refundable and isn't valid on peak dates.")
+_VR_LESSONS = ("Child group lessons ({kids}), adult group lessons ({adults}, including first-timer lessons), private lessons{extra}. "
+               "Kids save 20% on the third straight day of group lessons and adults on the second, Epic pass holders get an "
+               "extra 20% off group lessons, and a group lesson unlocks discounted lift tickets and rentals.")
+_S7 = "https://scene7.vailresorts.com/is/image/vailresorts/{}?wid=4000&fit=constrain,1&resMode=sharp2"
+_AS = "https://www.aspensnowmass.com/-/media/aspen-snowmass/documents/pdfs/25-26/2526-mountain-maps/"
+_AS_TIX = _c(None, "https://www.aspensnowmass.com/visit/tickets-and-passes/lift-tickets", "Aspen Snowmass: Lift Tickets",
+             note="Aspen Snowmass prices tickets by date and doesn't list a fixed 1-day price. Buying 30+ days ahead saves up "
+                  "to 25%, 7+ days up to 20%. Kids 6 and under ski free every day. With a group lesson, kids 7 to 17 get an "
+                  "$86 lift ticket and adults $174. One ticket works at all four mountains.")
+_AS_LESSONS = _c("Child and teen group lessons (ages 2.5 to 17), adult group lessons, private lessons, specialty camps and "
+                 "adaptive clinics (Challenge Aspen and Ascendigo), offered at all four mountains. Kids 7 to 17 and adults "
+                 "get a discounted lift ticket with a group lesson.",
+                 "https://www.aspensnowmass.com/visit/lessons", "Aspen Snowmass: Ski & Snowboard Lessons")
+
+
+def _as_map(slug_path, name, pdf):
+    page = f"https://www.aspensnowmass.com/four-mountains/{slug_path}/trail-maps"
+    return _map(page, f"{name}: Trail Maps", f"{name} winter trail map (PDF, on aspensnowmass.com)",
+                [(f"{name} winter trail map", "2025/26 file, still the one linked for 2026/27", None, _AS + pdf)])
+
+
+CURATED_1119 = {
+    "vail": {
+        "lift_tickets": _c("$335 online for a 1-day adult ticket (13+) bought 7+ days ahead (price shown for 11/18). The Epic "
+                           "1-Day Pass is $155 while it's on sale.", "https://www.vail.com/plan-your-trip/lift-access/tickets.aspx",
+                           "Vail: Lift Tickets", note=_VR_TIX_NOTE),
+        "lessons": _c(_VR_LESSONS.format(kids="3 to 15", adults="16+", extra=", Epic Ascent private lessons, adaptive programs, "
+                                         "adult signature programs and the DEVO program"),
+                      "https://www.vail.com/plan-your-trip/ski-and-ride-lessons.aspx", "Vail: Ski & Snowboard Lessons"),
+        "trail_map": _map("https://www.vail.com/the-mountain/about-the-mountain/trail-map.aspx", "Vail: Trail and Mountain Maps",
+                          "Winter 2026/27 trail maps: Front Side, Back Bowls, Blue Sky (on vail.com)", [
+                              ("Front Side", "2026/27", "https://scene7.vailresorts.com/is/image/vailresorts/20261014_VL_front-side-winter-trail-partners_map_001?wid=4000&hei=2467&fit=constrain,1&resMode=sharp2", None),
+                              ("Back Bowls", "2026/27", "https://scene7.vailresorts.com/is/image/vailresorts/20261014_VL_back-bowls-winter-trail-partners_map_001-1?wid=4000&hei=2000&fit=constrain,1&resMode=sharp2", None),
+                              ("Blue Sky Basin", "2026/27", "https://scene7.vailresorts.com/is/image/vailresorts/20261014_VL_blue-sky-winter-trail-partners_map_001-1?wid=4000&hei=3111&fit=constrain,1&resMode=sharp2", None)]),
+    },
+    "breckenridge": {
+        "lift_tickets": _c("$299 online for a 1-day adult ticket (13+) bought 7+ days ahead (price shown for 11/18). The Epic "
+                           "1-Day Pass is $155 while it's on sale.",
+                           "https://www.breckenridge.com/plan-your-trip/lift-access/tickets.aspx", "Breckenridge: Lift Tickets",
+                           note=_VR_TIX_NOTE + " Breckenridge limits tickets each day, and buying 4+ weeks ahead saves the most."),
+        "lessons": _c(_VR_LESSONS.format(kids="3 to 14", adults="15+", extra=", women's programs, seasonal youth programs, "
+                                         "Breck Club, Teen Camp and adaptive programs"),
+                      "https://www.breckenridge.com/plan-your-trip/ski-and-ride-lessons.aspx", "Breckenridge: Ski & Snowboard Lessons"),
+        "trail_map": _map("https://www.breckenridge.com/the-mountain/about-the-mountain/trail-map.aspx",
+                          "Breckenridge: Trail and Mountain Maps", "Winter 2026/27 trail map (on breckenridge.com)", [
+                              ("Winter trail map, five peaks", "2026/27", _S7.format("20261103_BR_winter-trail_map_001"),
+                               "https://www.breckenridge.com/-/aemasset/digital-experience-assets-library/destination-resorts/breckenridge/mountain-operations/winter-2026-2027/20261103_BR_winter-trail_map_001.pdf")]),
+    },
+    "keystone": {
+        "lift_tickets": _c("$229 online for a 1-day adult ticket (13+) bought 7+ days ahead (price shown for 11/18). The Epic "
+                           "1-Day Pass is $124 while it's on sale.",
+                           "https://www.keystoneresort.com/plan-your-trip/lift-access/tickets.aspx", "Keystone: Lift Tickets",
+                           note=_VR_TIX_NOTE),
+        "lessons": _c(_VR_LESSONS.format(kids="3 to 14", adults="15+", extra=", seasonal youth programs and adaptive programs"),
+                      "https://www.keystoneresort.com/plan-your-trip/ski-and-ride-lessons.aspx", "Keystone: Ski & Snowboard Lessons"),
+        "trail_map": _map("https://www.keystoneresort.com/the-mountain/about-the-mountain/trail-map.aspx",
+                          "Keystone: Trail and Mountain Maps", "Winter 2026/27 trail map (on keystoneresort.com)", [
+                              ("Winter trail map, three peaks", "2026/27", _S7.format("20261020_KY_winter-trail_map_001"),
+                               "https://www.keystoneresort.com/-/aemasset/digital-experience-assets-library/destination-resorts/keystone/mountain-operations/winter-2026-2027/20261020_KY_winter-trail_map_001.pdf")]),
+    },
+    "beaver-creek": {
+        "trail_map": dict(CURATED["beaver-creek"]["trail_map"], maps=[{
+            "label": "Winter trail map", "season": "2026/27", "image": _S7.format("20261110_BC_winter-trail_map_001"),
+            "pdf": CURATED["beaver-creek"]["trail_map"]["value"]}]),
+    },
+    "crested-butte": {
+        "lift_tickets": _c("$199 online for a 1-day adult ticket (13+) on opening day, 11/25, bought 7+ days ahead.",
+                           "https://www.skicb.com/plan-your-trip/lift-access/tickets.aspx", "Crested Butte: Lift Tickets",
+                           note="Prices change by date and the advance price needs 7+ days' notice."),
+        "lessons": _c(_VR_LESSONS.format(kids="3 to 15", adults="15+", extra=", the Mountain Sports Team, kids' winter programs, "
+                                         "women's programs and Ski with an Olympian"),
+                      "https://www.skicb.com/plan-your-trip/ski-and-ride-lessons.aspx", "Crested Butte: Ski & Snowboard Lessons"),
+        "trail_map": _map("https://www.skicb.com/the-mountain/about-the-mountain/trail-maps.aspx", "Crested Butte: Trail Maps",
+                          "Winter trail map (PDF, on skicb.com)", [
+                              ("Winter trail map", "2025/26 file, still the one linked", None,
+                               "https://www.skicb.com/-/aemasset/sitecore/crested-butte/maps/winter-2025-2026/20251103_CB_winter-trail_map_001.pdf")]),
+    },
+    "park-city": {
+        "lift_tickets": _c("$325 online for a 1-day adult ticket (13+) on opening day, 11/20, bought 7+ days ahead. The Epic "
+                           "1-Day Pass is $155 while it's on sale.",
+                           "https://www.parkcitymountain.com/plan-your-trip/lift-access/tickets.aspx", "Park City: Lift Tickets",
+                           note=_VR_TIX_NOTE),
+        "lessons": _c(_VR_LESSONS.format(kids="3 to 14", adults="15+", extra=", local youth programs, adult programs and "
+                                         "adaptive lessons"),
+                      "https://www.parkcitymountain.com/plan-your-trip/ski-and-ride-lessons.aspx", "Park City: Ski & Ride Lessons"),
+        "trail_map": _map("https://www.parkcitymountain.com/the-mountain/about-the-mountain/trail-map.aspx",
+                          "Park City: Trail Map", "Winter trail map (PDF, on parkcitymountain.com)", [
+                              ("Winter trail map, Park City and Canyons", "2025/26 file, still the one linked", None,
+                               "https://www.parkcitymountain.com/-/aemasset/sitecore/park-city/maps/20251114_PC_winter-trail_map_001.pdf")]),
+    },
+    "telluride": {
+        "lift_tickets": _c("From $164 online for a 1-day lift ticket. Pricing varies by date.",
+                           "https://shop.tellurideskiresort.com/s/winter-lift-tickets", "Telluride: Winter Lift Tickets",
+                           note="Buy in advance for the best rate. Group lessons can add a discounted lift ticket."),
+        "lessons": _c("Children's group lessons (Otters 3 to 4, Bears 5 to 6, Eagles 7 to 14), Cubs Camp nursery lessons "
+                      "(2.5 to 4), adult group lessons (full, half and 3-day), private and Private Premier lessons, a 3-day "
+                      "steep and off-piste program, Kids Snow Camp (5 to 10) and Telluride Adaptive Sports. Lessons cost "
+                      "less from 12/5 to 12/17, and group lessons unlock discounted lift tickets and rentals.",
+                      "https://tellurideskiresort.com/ski-school/", "Telluride: Ski School"),
+        "trail_map": _map("https://tellurideskiresort.com/mountain/", "Telluride: The Mountain",
+                          "Winter trail map plus Palmyra and Revelation Bowl maps (on tellurideskiresort.com)", [
+                              ("Winter trail map", "2024/25 file, still the one linked",
+                               "https://tellurideskiresort.com/wp-content/uploads/2425_TSR_Trail-Map_layered-trailmap.jpg",
+                               "https://tellurideskiresort.com/wp-content/uploads/2425_TSR_Trail-Map_layered-trailmap.pdf"),
+                              ("Palmyra Peak", "2023/24", "https://tellurideskiresort.com/wp-content/uploads/palmyra-23.24.png", None),
+                              ("Revelation Bowl", "2023/24", "https://tellurideskiresort.com/wp-content/uploads/revvy-23.24-1.png", None)]),
+    },
+    "snowmass": {"lift_tickets": _AS_TIX, "lessons": _AS_LESSONS,
+                 "trail_map": _as_map("snowmass", "Snowmass", "2526snowmass-map-layeredwebsite.pdf")},
+    "aspen-mountain": {"lift_tickets": _AS_TIX, "lessons": _AS_LESSONS,
+                       "trail_map": _as_map("aspen-mountain", "Aspen Mountain", "2526aspenmountainwebsite.pdf")},
+    "aspen-highlands": {"lift_tickets": _AS_TIX, "lessons": _AS_LESSONS,
+                        "trail_map": _as_map("aspen-highlands", "Aspen Highlands", "2526highlands-map-layeredwebsite.pdf")},
+    "buttermilk": {"lift_tickets": _AS_TIX, "lessons": _AS_LESSONS,
+                   "trail_map": _as_map("buttermilk", "Buttermilk", "2526buttermilk-map-layeredwebsite.pdf")},
+    "steamboat": {
+        "lift_tickets": _c(None, "https://www.steamboat.com/plan-your-trip/lift-tickets-ski-pass", "Steamboat: Lift Tickets",
+                           note="Steamboat doesn't list a fixed price; prices shift by date. It advertises up to 30% off when "
+                                "you book by 11/27. A day ticket includes night skiing that day, and late-afternoon tickets "
+                                "are sold only on site."),
+        "lessons": _c("Group lessons, private lessons, Family Private Experience, Learn 2 Ski or Ride (2-day beginner series), "
+                      "afternoon beginner group lessons, seasonal programs (ages 3 to 18+), a 3-day camp with Olympian Deb "
+                      "Armstrong, and private and Heli-Ready guided experiences. Booking early saves up to 30%.",
+                      "https://www.steamboat.com/plan-your-trip/snowboarding-ski-lessons", "Steamboat: Snowboard & Ski Lessons"),
+        "trail_map": _map("https://www.steamboat.com/the-mountain/trail-map/adventure-map", "Steamboat: Adventure Map",
+                          "Winter 2026/27 Adventure Map (on steamboat.com)", [
+                              ("Adventure Map", "2026/27",
+                               "https://www.steamboat.com/-/media/steamboat/maps/winter-26-27/steamboat-adventure-map-final-2026.jpg?rev=0e2ed2aab7354f22ac7745067e9ff9af",
+                               None)]),
+    },
+    "winter-park": {
+        "lift_tickets": _c("From $113 online for a 1-day adult ticket, all season with no blackout dates. Thursday tickets are "
+                           "$89 (1/7 to 2/25/2027, with blackout dates).",
+                           "https://www.winterparkresort.com/plan-your-trip/lift-tickets-ski-pass", "Winter Park: Tickets & Passes",
+                           note="Booking online 48+ hours ahead saves up to 40%. Tickets are refundable."),
+        "lessons": _c("Kids group lessons (full day, lunch included), adult group lessons (morning or afternoon), Learn to Ski "
+                      "and Ride packages, multi-week lessons, Flex 5-packs, private and early-season private lessons, "
+                      "60-minute Pro Tips, skills clinics, a Spanish clinic, and adaptive lessons through the NSCD. Winter Park "
+                      "and Ikon pass holders get 10% off group lessons booked online, and kids get a free lift ticket with a "
+                      "kids group lesson booked by 11/30.",
+                      "https://www.winterparkresort.com/plan-your-trip/snowboard-ski-lessons", "Winter Park: Snowboard & Ski Lessons"),
+        "trail_map": _map("https://www.winterparkresort.com/the-mountain/mountain-information/maps", "Winter Park: Trails and Maps",
+                          "Winter 2026/27 trail map (PDF, on winterparkresort.com)", [
+                              ("Winter trail map", "2026/27", None,
+                               "https://www.winterparkresort.com/-/media/winter-park/winter/winterparkresort_wintertrailmap.pdf?rev=3913478cfedb4536a70c66c41ae30530")]),
+    },
+    "arapahoe-basin": {
+        "opening_day": _c("2026-10-28", "https://www.denvergazette.com/2026/10/28/photos-ski-season-comes-early-as-arapahoe-basin-opens/",
+                          "Denver Gazette: Arapahoe Basin opens",
+                          note="Ikon lists A-Basin as open; the resort's own pages don't print the date."),
+        "closing_day": _c(None, "https://www.arapahoebasin.com/tickets-and-passes/", "Arapahoe Basin: Tickets & Passes",
+                          note="A-Basin lists closing day 2027 as TBD."),
+        "lift_tickets": _c(None, "https://www.arapahoebasin.com/tickets-and-passes/", "Arapahoe Basin: Tickets & Passes",
+                           note="Full-day ticket prices vary by date, and the sooner you buy the bigger the discount. Tickets "
+                                "must be bought online in advance and may sell out."),
+        "lessons": _c("Group lessons, private lessons (including 4 for 3 early-season privates), clinics and guided tours (15+), "
+                      "Lil Kids Club (3 to 4), Kids Club Arapahoe (5 to 12), Xtreme Teens (11 to 14), the Legendary Learning "
+                      "Package (4 lessons with lift access and rentals, then a $119 season pass), and adaptive programs with "
+                      "the BOEC.", "https://www.arapahoebasin.com/lessons/", "Arapahoe Basin: Ski School"),
+        "trail_map": _map("https://www.arapahoebasin.com/trail-maps/", "Arapahoe Basin: Trail Maps",
+                          "Full trail map plus Front Side, Montezuma Bowl and East Wall maps (on arapahoebasin.com)", [
+                              ("Full trail map", "2025", None, "https://www.arapahoebasin.com/uploaded/trailmaps/a%20basin%20map%202025.pdf"),
+                              ("Front Side, Pallavicini and The Beavers", "2023 file", None,
+                               "https://www.arapahoebasin.com/uploaded/trailmaps/a%20basin%20front-01.2%2009182023forweb.pdf"),
+                              ("Montezuma Bowl", "2023 file", None,
+                               "https://www.arapahoebasin.com/uploaded/trailmaps/a%20basin%20zuma-01.2%2009182023forweb.pdf"),
+                              ("East Wall", "Not dated", "https://www.arapahoebasin.com/uploaded/trailmaps/east-wall.jpg", None)]),
+    },
+    "eldora": {
+        "opening_day": _c(None, "https://www.ikonpass.com/en/opening-closing-dates", "Ikon Pass: Opening and Closing Dates",
+                          note="Eldora hasn't set a date. Ikon lists it as TBA, and Eldora's site counts down to the 26/27 season."),
+        "closing_day": _c(None, "https://www.eldora.com/the-mountain/questions/hours-faq/", "Eldora: Hours FAQ",
+                          note="Eldora usually runs November to April and hasn't posted a closing day."),
+        "lift_tickets": _c(None, "https://www.eldora.com/tickets-passes/tickets/", "Eldora: Single Day Tickets",
+                           note="All tickets are sold online and cost less the earlier you buy. Tickets bought in person at "
+                                "the Indian Peaks Lodge get no discount."),
+        "lessons": _c("Multi-week youth programs, adult programs, Learn in 3 (a 3-step beginner program), and single-day "
+                      "private, group and Nordic lessons. Everything is sold online, and buying ahead saves the most.",
+                      "https://www.eldora.com/lessons-rentals/ski-ride-school/", "Eldora: Ski & Ride School"),
+        "trail_map": _map("https://www.eldora.com/the-mountain/maps/alpine-trail-map/", "Eldora: Alpine Trail Map",
+                          "Alpine trail map (on eldora.com)", [
+                              ("Alpine trail map", "2025/26 file, still the one linked",
+                               "https://cms.eldora.com/sites/default/files/inline-images/Eldora_25.26_Alpine%20Map_Web.jpg",
+                               "https://cms.eldora.com/sites/default/files/2025-11/Eldora_25.26_Alpine%20Map_Web.pdf")]),
+    },
+    "deer-valley": {
+        "lift_hours": _c(None, "https://www.deervalley.com/explore-the-mountain/hours-of-operation", "Deer Valley: Hours of Operation",
+                         note="Deer Valley hasn't posted 2026/27 lift hours yet. Ikon lists opening day as 12/5."),
+        "lift_tickets": _c(None, "https://www.deervalley.com/plan-your-trip/tickets-and-passes/lift-tickets", "Deer Valley: Lift Tickets",
+                           note="Deer Valley caps tickets each day and shows prices by date on its booking calendar. Ages: "
+                                "adult 13 to 64, child 5 to 12, senior 65+, tot 4 and under. Learning Area tickets are $68. "
+                                "Holidays usually sell out, so buy ahead."),
+        "lessons": _c("Private lessons (3 to 18+), adult group lessons of up to 4 (18+), Teen Escape (13 to 17), Adventure Club "
+                      "(7 to 12), Reindeer Club (5 to 6), Bambi Club (4), Fawn Special (3), a women's 3-day program, "
+                      "multi-week kids programs, the Ted Ligety Performance Camp (2/5 to 2/7/2027) and adaptive lessons with "
+                      "the National Ability Center. Deer Valley is ski-only.",
+                      "https://www.deervalley.com/plan-your-trip/ski-school", "Deer Valley: Ski School"),
+        "trail_map": _map("https://www.deervalley.com/explore-the-mountain/interactive-grooming-map", "Deer Valley: Trail Maps",
+                          "Winter 2026/27 trail map (on deervalley.com)", [
+                              ("Winter trail map", "2026/27", None,
+                               "https://www.deervalley.com/-/media/deer-valley/skier-services/maps/DeerValleyWinterTrailMap2627Compressed")]),
+    },
+    "solitude": {
+        "lift_tickets": _c(None, "https://www.solitudemountain.com/plan-your-trip/snowboarding-ski-lift-tickets-passes",
+                           "Solitude: Lift Tickets & Season Pass",
+                           note="Solitude prices vary by date; buying online ahead locks in the lowest price. Kids 4 and under "
+                                "ski free. Multi-day S-Cards and transferable Ticket Paks bring days under $100."),
+        "lessons": _c("Group lessons (including first-timer lessons), private lessons for up to 5, Team Solitude (all-mountain, "
+                      "freeride and race for kids and teens), Cruisers multi-week kids programs, skills camps and clinics, and "
+                      "seasonal programs including Women on Wednesdays and Women on Weekends. Multi-pack lesson vouchers save "
+                      "money and have no blackout days.",
+                      "https://www.solitudemountain.com/plan-your-trip/snowboarding-ski-lessons", "Solitude: Ski & Snowboard Lessons"),
+        "trail_map": _map("https://www.solitudemountain.com/mountain-and-village/conditions-and-maps", "Solitude: Conditions & Maps",
+                          "Winter 2026/27 trail map (PDF, on solitudemountain.com)", [
+                              ("Winter trail map", "2026/27", None,
+                               "https://www.solitudemountain.com/-/media/Solitude/Trail-Map-PDFs/Solitude_Winter_Trail_Map_2627.pdf")]),
+    },
+    "brighton": {
+        "opening_day": _c(None, "https://www.brightonresort.com", "Brighton: Home",
+                          note="Brighton says \"Opening Day To Be Announced.\""),
+        "closing_day": _c(None, "https://www.brightonresort.com", "Brighton: Home", note="Not announced."),
+        "lift_hours": _c(None, "https://www.brightonresort.com/hours", "Brighton: Hours of Operation",
+                         note="Brighton hasn't posted 2026/27 lift hours. It runs night skiing, and its weekly closed day "
+                              "moves to Tuesday this season."),
+        "lift_tickets": _c("From $72 for winter lift tickets (all-day, afternoon and night tickets).",
+                           "https://www.brightonresort.com/lift-tickets", "Brighton: Lift Tickets",
+                           note="Prices vary by ticket type, age and date."),
+        "lessons": _c("Kids group lessons (4 to 12), adult group lessons (13+), private lessons (3+), 4-pack group lessons (4+), "
+                      "a Learn to Ride package (13+, lesson, rental and learner ticket; 50% off before 12/18) and Thursday "
+                      "night group lessons (8+).",
+                      "https://www.brightonresort.com/lessons/daily-winter-lessons", "Brighton: Daily Winter Lessons"),
+    },
+    "alta": {
+        "lift_tickets": _c(None, "https://www.alta.com/tickets-and-passes", "Alta: Lift Tickets and Season Passes",
+                           note="Alta sells online rates, window rates and window-only tickets but doesn't list a fixed "
+                                "price. Alta is skiers-only; snowboarding isn't allowed."),
+        "lessons": _c("Alf Engen Ski School: private lessons and private guided tours, adult classes, and kids classes and camps. "
+                      "Ski only.", "https://www.alta.com/ski-school", "Alta: Alf Engen Ski School"),
+        "trail_map": _map("https://www.alta.com/plan-your-trip#maps", "Alta: Plan Your Trip, Maps",
+                          "Winter 2026/27 trail map (on alta.com)", [
+                              ("Winter trail map", "2026/27",
+                               "https://res.cloudinary.com/altaskiarea/image/upload/f_auto,q_auto/v1793054037/resources/Maps/AltaSkiArea_TrailMap_2026-27.jpg",
+                               "https://res.cloudinary.com/altaskiarea/image/upload/v1793054038/resources/Maps/26_27_Alta_Trailmap_WEB.pdf")]),
+    },
+    "snowbird": {
+        "lift_hours": _c(None, "https://www.snowbird.com/the-mountain/mountain-report/lift-trail-report/", "Snowbird: Lift & Trail Report",
+                         note="Snowbird hasn't posted 2026/27 lift hours. It plans to open lift-served terrain 11/27."),
+        "lift_tickets": _c("From $195 for a 1-day adult ticket (13 to 64), $117 youth (7 to 12), $166 senior (65+). Kids 6 and "
+                           "under ski free.", "https://www.snowbird.com/tickets-passes/tickets/", "Snowbird: Lift Tickets",
+                           note="Prices rise on peak and holiday dates (holiday: 12/24 to 1/1, 1/16 to 1/17, 2/13 to 2/15). "
+                                "Buying online 2+ weeks ahead saves up to 15% over the window."),
+        "lessons": _c("Private and group ski and snowboard lessons from first-timer to advanced, multi-week programs, camps, "
+                      "women's programs, guiding (including snowcat skiing) and AIARE avalanche classes.",
+                      "https://www.snowbird.com/guiding-lessons/programs/", "Snowbird: Mountain Guiding & Ski School"),
+        "trail_map": _map("https://www.snowbird.com/the-mountain/maps/winter-trail-map/", "Snowbird: Winter Trail Map",
+                          "Winter 2026/27 trail map (on snowbird.com)", [
+                              ("Winter trail map", "2026/27",
+                               "https://cms.snowbird.com/sites/default/files/2026-10/TrailMap_1920x2318_2627.jpg", None)]),
+    },
+    "snowbasin": {
+        "lift_tickets": _c(None, "https://www.snowbasin.com/tickets-passes/lift-tickets/", "Snowbasin: Lift Tickets",
+                           note="Snowbasin doesn't list a fixed price; buying online ahead gets the best price. Ages: adult "
+                                "and teen 13 to 64, youth 5 to 12, senior 65+. Kids 4 and under ski free."),
+        "lessons": _c("Adult all-day group lessons (13+), youth half- and full-day group lessons (3 to 12), private lessons for "
+                      "up to 5, Learn & Earn for first-timers (4+, lessons, season rentals and a season pass), multi-week youth "
+                      "programs, Women of Winter and adaptive lessons with OVAS.",
+                      "https://www.snowbasin.com/lessons/", "Snowbasin: Ski and Snowboard Lessons"),
+        "trail_map": _map("https://www.snowbasin.com/the-mountain/trail-maps/", "Snowbasin: Trail Maps",
+                          "Winter trail map (on snowbasin.com)", [
+                              ("Winter trail map", "2025/26 file, still the one linked",
+                               "https://www.snowbasin.com/azure/snowbasin/media/siteassets/pdf/maps/winter/winter-trail-map-2025-26-(22-5in-x-12in).jpg?w=4000&mode=crop&scale=both",
+                               "https://www.snowbasin.com/getmedia/969afd05-b39b-4ecd-b123-6c0669d41d77/Winter-Trail-Map-2025-26-(22-5in-x-12in)-for-Ikon-reduced.pdf")]),
+    },
+}
+for _slug, _kinds in CURATED_1119.items():
+    CURATED.setdefault(_slug, {}).update(_kinds)
+
+
 # ---------- shared facts: one official source, many resorts ----------
 # Re-checking one of these pages updates every resort that uses it. See docs/RESORT_FACTS.md.
 
@@ -398,3 +695,35 @@ if __name__ == "__main__":  # python -m bcbot.facts [todo|due]
         for slug, kind, where in rows:
             print(f"{slug:16} {kind:15} {where}")
         print(f"\n{len(rows)} missing facts across {len({r[0] for r in rows})} resorts")
+
+
+# ---------- owner view: what we have, what's missing, how fresh (/admin "Resort facts") ----------
+
+def grid(today=None):
+    """One row per resort and fact kind for the private admin table and its CSV export.
+    status: "filled" (a value), "not_posted" (we checked and the resort hasn't posted it), "missing" (never checked).
+    fresh: "ok", "due" (next check date has come) or "stale" (more than twice the check interval old)."""
+    from . import resorts
+    today = today or date.today()
+    rows = []
+    for slug, r in resorts.RESORTS.items():
+        have = FACTS.get(slug) or {}
+        for kind in LABELS:
+            f = have.get(kind)
+            row = {"resort": slug, "name": r["name"], "fact": kind, "label": LABELS[kind]}
+            if not f:
+                rows.append(dict(row, status="missing", fresh="", value="", checked="", next_check="",
+                                 source="", source_name="", maps=0, map_images=0))
+                continue
+            every = interval_days(kind, today)
+            nxt = date.fromisoformat(f["checked"]) + timedelta(days=every)
+            value = f.get("value")
+            if kind == "trail_map":
+                value = f.get("label") or value
+            rows.append(dict(
+                row, status="filled" if f.get("value") else "not_posted",
+                fresh="stale" if stale(f, kind, today) else "due" if today >= nxt else "ok",
+                value=value or f.get("note") or "", checked=f["checked"], next_check=nxt.isoformat(), every_days=every,
+                source=f["source"], source_name=f.get("source_name", ""),
+                maps=len(f.get("maps") or []), map_images=sum(1 for m in f.get("maps") or [] if m.get("image"))))
+    return {"today": today.isoformat(), "kinds": list(LABELS), "labels": LABELS, "rows": rows}

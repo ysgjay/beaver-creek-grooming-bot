@@ -3,7 +3,7 @@ import logging
 import time
 
 from bcbot.web import Handler
-from bcbot import db, resorts, stats
+from bcbot import db, facts, resorts, stats
 
 
 class handler(Handler):
@@ -18,4 +18,5 @@ class handler(Handler):
             logging.exception("stats failed")
             return self.reply(500, {"error": "stats failed"})
         out["names"] = {k: v["name"] for k, v in resorts.RESORTS.items()}
+        out["facts"] = facts.grid()  # resort facts table: filled, not posted, missing, and freshness
         self.reply(200, out)

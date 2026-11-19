@@ -33,8 +33,19 @@ All of it lives in `bcbot/facts.py`.
    `{"value": ..., "note": ..., "checked": "YYYY-MM-DD", "source": url, "source_name": "Resort: Page title"}`.
    Dates are ISO in code and shown as MM/DD. Use `"value": None` plus a `note` when the resort posts no fixed answer
    (for example, ticket prices that change by date).
-4. Trail maps: link to the resort's page or PDF. Never copy or rehost the map art.
+4. Trail maps: link to the resort's page or PDF. Never copy or rehost the map art. List every map the resort posts in
+   `maps` (`_map()` in `facts.py`): big mountains have several (Vail: Front Side, Back Bowls, Blue Sky Basin;
+   A-Basin: 4). Each map can carry a high-res `image` that the guide page shows straight from the resort's server
+   (`referrerpolicy="no-referrer"`, never downloaded to ours) and a `pdf`. Vail Resorts images come from
+   `scene7.vailresorts.com/is/image/vailresorts/<file>?wid=4000`, using the same file name as the PDF. Check that an
+   image actually loads in a browser before adding it.
 5. Run `pytest -q tests/test_facts.py`. One test checks that every fact has a source and checked date.
+
+## Owner view
+
+`/admin` has a "Resort facts" table (`facts.grid()` via `/api/stats`): every resort by every fact, filled, not posted
+by the resort, or missing, with the checked date, and amber or red when a re-check is due or stale. Hover a cell for
+the value and source. "Download CSV" exports the full table (values, sources, next check date) for Excel.
 
 ## Operator page patterns
 

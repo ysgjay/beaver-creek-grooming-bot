@@ -54,6 +54,11 @@ dl.facts .note{{font-size:14px;color:var(--ink2);margin-top:2px}}
 .links a{{display:inline-block;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 14px;
  border-radius:12px;text-decoration:none;font-weight:600;font-size:14px}}
 .links a:hover{{border-color:var(--btn)}}
+.maps{{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin:0 0 12px}}
+.maps figure{{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}}
+.maps img{{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}}
+.maps figcaption{{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;font-size:13px}}
+.maps figcaption span{{color:var(--ink-2)}}
 table.glance{{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}}
 table.glance td{{border-top:1px solid var(--line);padding:6px 0}}
 table.glance td:first-child{{color:var(--ink2);width:40%}}
@@ -185,6 +190,25 @@ def _fact_rows(kinds, keys, today, name):
         note = f'<div class="note">{escape(f["note"])}</div>' if f.get("note") else ""
         out += f'<div><dt>{F.LABELS[kind]}</dt><dd>{escape(shown)}{note}{_src(f, kind, today)}</dd></div>'
     return f'<dl class="facts">{out}</dl>' if out else ""
+
+
+def map_gallery(tm):
+    """Every trail map the resort posts (big mountains have several). Images load from the resort's own
+    server, never copied to ours; maps that only come as a PDF get a link instead."""
+    out = ""
+    for m in (tm or {}).get("maps") or []:
+        full = m.get("image") or m.get("pdf")
+        if not full:
+            continue
+        cap = (f'<figcaption><b>{escape(m["label"])}</b><span>{escape(m.get("season") or "")}'
+               f'{" · PDF" if m.get("pdf") and not m.get("image") else ""}</span></figcaption>')
+        if m.get("image"):
+            out += (f'<figure><a href="{escape(full)}" rel="nofollow noopener" target="_blank">'
+                    f'<img src="{escape(m["image"])}" alt="{escape(m["label"])} trail map" loading="lazy" '
+                    f'referrerpolicy="no-referrer"></a>{cap}</figure>')
+        elif m.get("pdf") and len(tm["maps"]) > 1:
+            out += f'<figure><a class="pdf" href="{escape(m["pdf"])}" rel="nofollow noopener" target="_blank">{cap}</a></figure>'
+    return f'<div class="maps">{out}</div>' if out else ""
 
 
 def faq(slug, name, kinds, timing, today):
@@ -324,7 +348,7 @@ def render(slug, summary=None, day=None, today=None):
             links += f'<a href="{escape(r["grooming_pdf"])}" rel="nofollow">Tonight\'s grooming map (PDF) ↗</a>'
         sections.append(f'<section class="card" id="trail-map"><h2 tabindex="-1">{escape(name)} trail map and webcams</h2>'
                         f'<p class="sub" style="margin:0 0 10px">0xSnow links to the resort\'s own trail map and shows its '
-                        f'public cams in the app.</p><div class="links">{links}</div>'
+                        f'public cams in the app.</p>{map_gallery(tm)}<div class="links">{links}</div>'
                         + (_src(tm, "trail_map", today) if tm else "") + "</section>")
     season = _fact_rows(kinds, ("opening_day", "closing_day"), today, name)
     sections.append(f'<section class="card" id="season"><h2 tabindex="-1">{escape(name)} opening and closing day</h2>'
