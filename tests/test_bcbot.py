@@ -1024,6 +1024,10 @@ def test_every_resort_is_complete():
         assert r["enabled"] or r.get("stage") == "shadow", slug  # new resorts start in shadow mode
         if r["dor_api"]:  # POWDR open feed
             assert r["snow_report"] == r["dor_api"] + "/api/v1/dor/drupal/snow-reports", slug
+        elif r["reportpal"]:  # Boyne open feed on the resort's own site
+            assert r["snow_report"].startswith(r["site"] + "/api/reportpal?"), slug
+        elif r["report_feed"]:  # one-off reader (sources/feeds.py)
+            assert r["snow_report"] == r["report_feed"]["url"] and r["report_feed"]["kind"] in ("json", "text"), slug
         elif r["snow_report"]:  # Vail-platform resorts; the others' reports aren't read yet
             assert r["snow_report"].startswith(r["site"] + "/the-mountain/mountain-conditions/"), slug
 
@@ -1380,6 +1384,8 @@ def test_wave_2_resorts_are_in_shadow_and_read_no_resort_page_yet():
     assert set(wave2) <= set(resorts.shadow())
     for slug in wave2:
         r = resorts.get(slug)
+        if r["reportpal"] or r["report_feed"]:  # read from an open report feed (sources/reportpal.py, feeds.py)
+            continue
         assert r["snow_report"] is None and resorts.is_static(slug), slug  # no keyed feeds, no page reader yet
 
 
@@ -1390,6 +1396,8 @@ def test_wave_3_and_4_resorts_are_in_shadow():
              "cannon", "waterville-valley", "purgatory", "tamarack", "sun-peaks", "mt-baker"]
     for slug in wave3 + wave4:
         assert slug in resorts.shadow() and slug not in resorts.enabled(), slug
+        if resorts.get(slug)["reportpal"] or resorts.get(slug)["report_feed"]:  # open report feed
+            continue
         assert resorts.get(slug)["snow_report"] is None and resorts.is_static(slug), slug
 
 

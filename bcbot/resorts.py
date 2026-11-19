@@ -21,6 +21,11 @@ def _cams(ids):
             for cid, label in ids]
 
 
+def _jpg_cams(base, ids):
+    """Cams that are plain JPEGs on the resort's own server (loaded from there, never copied)."""
+    return [{"label": label, "image": f"{base}{name}.jpg", "live": None} for name, label in ids]
+
+
 def _bands(base, mid, peak):
     return [{"key": k, "label": k.title(), "lat": la, "lon": lo, "elevation_ft": ft}
             for k, (la, lo, ft, _where) in zip(("base", "mid", "peak"), (base, mid, peak))]
@@ -221,7 +226,8 @@ RESORTS = {
     },
     "arapahoe-basin": {
         "name": "Arapahoe Basin", "region": "Colorado", "pass": "Ikon",
-        "site": "https://www.arapahoebasin.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.arapahoebasin.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.arapahoebasin.com/snow-report/", "order": "before"}, "grooming_pdf": None,
         "lat": 39.6350, "lon": -105.8730, "elevation_ft": 11500,
         "bands": _bands((39.6420, -105.8710, 10520, "base"), (39.6350, -105.8730, 11500, "mid-mountain"),
                         (39.6270, -105.8780, 12500, "summit")),
@@ -261,7 +267,7 @@ RESORTS = {
     },
     "brighton": {
         "name": "Brighton", "region": "Utah", "pass": "Ikon",
-        "site": "https://www.brightonresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.brightonresort.com", "snow_report_path": None, "reportpal": "br", "grooming_pdf": None,
         "lat": 40.5920, "lon": -111.5800, "elevation_ft": 9600,
         "bands": _bands((40.5980, -111.5830, 8755, "base"), (40.5920, -111.5800, 9600, "mid-mountain"),
                         (40.5800, -111.5600, 10500, "summit")),
@@ -415,7 +421,8 @@ RESORTS = {
     # run on forecast and snow stations only, like Telluride.
     "killington": {
         "name": "Killington", "region": "Vermont", "pass": "Ikon",
-        "site": "https://www.killington.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.killington.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://killington.com/mountain-report", "start": "Snow Report Updated"}, "grooming_pdf": None,
         "lat": 43.6158, "lon": -72.8120, "elevation_ft": 3200,
         "bands": _bands((43.6284, -72.7958, 2200, "Snowshed base"), (43.6158, -72.8120, 3200, "mid-mountain"),
                         (43.6041, -72.8207, 4241, "Killington Peak")),
@@ -442,17 +449,28 @@ RESORTS = {
     # "est." are typical-season estimates (not announced or not checked 11/19); confirm before launch.
     "jackson-hole": {
         "name": "Jackson Hole", "region": "Wyoming", "pass": "Ikon",
-        "site": "https://www.jacksonhole.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.jacksonhole.com", "snow_report_path": None,
+        "report_feed": {"kind": "json", "url": "https://jacksonhole-prod.zaneray.com/api/snow.json", "stamp": "lastModified",
+                        "fields": {"overnight_in": "snow.midMountain.newSnowSinceLiftsClosed",
+                                   "last_24h_in": "snow.midMountain.newSnowLast24H",
+                                   "last_48h_in": "snow.midMountain.newSnowLast48H",
+                                   "last_7d_in": "snow.midMountain.newSnowLast7D",
+                                   "base_in": "snow.midMountain.totalSnowDepth",
+                                   "season_in": "snow.midMountain.seasonTotalSnow"}}, "grooming_pdf": None,
         "lat": 43.5873, "lon": -110.8511, "elevation_ft": 7835,
         "bands": _bands((43.5864, -110.8262, 6311, "Teton Village"), (43.5873, -110.8511, 7835, "mid-mountain"),
                         (43.5882, -110.8909, 10450, "Rendezvous summit")),
         "snotel": ["689:WY:SNTL", "1082:WY:SNTL"], "snotel_label": "Phillips Bench",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27",  # announced
+        "cams": _jpg_cams("https://cams.jacksonhole.com/webcam/", [
+            ("raymersnowstake", "Snow stake"), ("codybowl", "Cody Bowl"), ("guncam", "Sublette Base"),
+            ("teton_lift_summit", "Teton Lift summit"), ("casperchair", "Casper Chair"), ("teton_lift_base", "Teton Lift base"),
+            ("solitudestation", "Solitude Station"), ("teewinot", "Teewinot / Sweetwater"), ("trambase", "Tram base"),
+            ("SouthHoback", "Mountain view"), ("stilson", "Stilson")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27",  # announced
         "enabled": False, "stage": "shadow",
     },
     "big-sky": {
         "name": "Big Sky", "region": "Montana", "pass": "Ikon",
-        "site": "https://www.bigskyresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.bigskyresort.com", "snow_report_path": None, "reportpal": "bs", "grooming_pdf": None,
         "lat": 45.2889, "lon": -111.4292, "elevation_ft": 8800,
         "bands": _bands((45.2871, -111.3997, 7500, "Mountain Village"), (45.2889, -111.4292, 8800, "mid-mountain"),
                         (45.2772, -111.4509, 11166, "Lone Peak")),
@@ -462,7 +480,8 @@ RESORTS = {
     },
     "banff-sunshine": {
         "name": "Banff Sunshine", "region": "Alberta", "pass": "Ikon",
-        "site": "https://www.skibanff.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.skibanff.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.skibanff.com/conditions"}, "grooming_pdf": None,
         "lat": 51.0899, "lon": -115.7645, "elevation_ft": 7082,
         "bands": _bands((51.1170, -115.7545, 5440, "Gondola base"), (51.0899, -115.7645, 7082, "Sunshine Village"),
                         (51.0647, -115.7688, 7595, "upper mountain")),
@@ -482,7 +501,8 @@ RESORTS = {
     },
     "sun-valley": {
         "name": "Sun Valley", "region": "Idaho", "pass": "Ikon",
-        "site": "https://www.sunvalley.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.sunvalley.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.sunvalley.com/the-mountain/mountain-report", "start": "Snowfall", "order": "before"}, "grooming_pdf": None,
         "lat": 43.6627, "lon": -114.3821, "elevation_ft": 7500,
         "bands": _bands((43.6753, -114.3697, 5750, "River Run"), (43.6627, -114.3821, 7500, "mid-mountain"),
                         (43.6546, -114.4095, 9150, "Bald Mountain summit")),
@@ -579,7 +599,7 @@ RESORTS = {
     # Pass labels for the independents and every opening day (est.) get checked before launch.
     "sugarloaf": {
         "name": "Sugarloaf", "region": "Maine", "pass": "Ikon",
-        "site": "https://www.sugarloaf.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.sugarloaf.com", "snow_report_path": None, "reportpal": "sl", "grooming_pdf": None,
         "lat": 45.0400, "lon": -70.3100, "elevation_ft": 2800,
         "bands": _bands((45.0640, -70.3100, 1417, "base"), (45.0400, -70.3100, 2800, "mid-mountain"),
                         (45.0314, -70.3131, 4237, "summit")),
@@ -589,7 +609,7 @@ RESORTS = {
     },
     "sunday-river": {
         "name": "Sunday River", "region": "Maine", "pass": "Ikon",
-        "site": "https://www.sundayriver.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.sundayriver.com", "snow_report_path": None, "reportpal": "sr", "grooming_pdf": None,
         "lat": 44.4650, "lon": -70.8750, "elevation_ft": 1800,
         "bands": _bands((44.4730, -70.8570, 800, "South Ridge"), (44.4650, -70.8750, 1800, "mid-mountain"),
                         (44.4580, -70.9000, 3140, "Oz")),
@@ -599,7 +619,7 @@ RESORTS = {
     },
     "loon": {
         "name": "Loon Mountain", "region": "New Hampshire", "pass": "Ikon",
-        "site": "https://www.loonmtn.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.loonmtn.com", "snow_report_path": None, "reportpal": "lm", "grooming_pdf": None,
         "lat": 44.0445, "lon": -71.6288, "elevation_ft": 2000,
         "bands": _bands((44.0563, -71.6299, 950, "base"), (44.0445, -71.6288, 2000, "mid-mountain"),
                         (44.0360, -71.6210, 3050, "North Peak")),
@@ -629,7 +649,11 @@ RESORTS = {
     },
     "taos": {
         "name": "Taos Ski Valley", "region": "New Mexico", "pass": "Ikon",
-        "site": "https://www.skitaos.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.skitaos.com", "snow_report_path": None,
+        "report_feed": {"kind": "json", "url": "https://www.skitaos.com/api/conditions",
+                        "fields": {"overnight_in": "snowData.overnight", "last_24h_in": "snowData.last24Hours",
+                                   "last_48h_in": "snowData.last48Hours", "last_7d_in": "snowData.last7Days",
+                                   "base_in": "snowData.base", "season_in": "snowData.seasonTotal"}}, "grooming_pdf": None,
         "lat": 36.5850, "lon": -105.4500, "elevation_ft": 10500,
         "bands": _bands((36.5960, -105.4540, 9207, "base"), (36.5850, -105.4500, 10500, "mid-mountain"),
                         (36.5625, -105.4480, 12481, "Kachina Peak")),
@@ -639,12 +663,13 @@ RESORTS = {
     },
     "whitefish": {
         "name": "Whitefish Mountain", "region": "Montana", "pass": "Independent",
-        "site": "https://skiwhitefish.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://skiwhitefish.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://skiwhitefish.com/snowreport/", "start": "Summit"}, "grooming_pdf": None,
         "lat": 48.4930, "lon": -114.3620, "elevation_ft": 5800,
         "bands": _bands((48.4840, -114.3530, 4464, "base"), (48.4930, -114.3620, 5800, "mid-mountain"),
                         (48.5030, -114.3420, 6817, "summit")),
         "snotel": [], "snotel_label": None,  # nearest SNOTEL (Stryker Basin) is 31 km away: too far to count as truth
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-04",  # announced
+        "cams": [{"label": "Stumpy (snow stake)", "image": "https://skiwhitefish.com/inbound/cams/2425_StumpyCam.jpg", "live": None}], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-04",  # announced
         "enabled": False, "stage": "shadow",
     },
     "grand-targhee": {
@@ -659,12 +684,13 @@ RESORTS = {
     },
     "revelstoke": {
         "name": "Revelstoke", "region": "British Columbia", "pass": "Ikon",
-        "site": "https://www.revelstokemountainresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.revelstokemountainresort.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.revelstokemountainresort.com/mountain/conditions/snow-report/", "start": "Snow Report"}, "grooming_pdf": None,
         "lat": 50.9571, "lon": -118.1161, "elevation_ft": 5600,
         "bands": _bands((50.9580, -118.1640, 1680, "base"), (50.9571, -118.1161, 5600, "Mackenzie Outpost"),
                         (50.9640, -118.1031, 7300, "summit")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-05",  # announced
+        "cams": [{"label": "Gnorm (snow stake)", "image": "https://www.revelstokemountainresort.com/uploads/gnorm/gnorm.jpg", "live": None}], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-05",  # announced
         "enabled": False, "stage": "shadow",
     },
     "jay-peak": {
@@ -679,7 +705,8 @@ RESORTS = {
     },
     "loveland": {
         "name": "Loveland", "region": "Colorado", "pass": "Indy",
-        "site": "https://skiloveland.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://skiloveland.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://skiloveland.com/snow-report/", "order": "before"}, "grooming_pdf": None,
         "lat": 39.6700, "lon": -105.9050, "elevation_ft": 11500,
         "bands": _bands((39.6800, -105.8980, 10800, "Loveland Basin"), (39.6700, -105.9050, 11500, "mid-mountain"),
                         (39.6622, -105.9098, 13010, "summit")),
@@ -689,7 +716,8 @@ RESORTS = {
     },
     "wolf-creek": {
         "name": "Wolf Creek", "region": "Colorado", "pass": "Independent",
-        "site": "https://wolfcreekski.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://wolfcreekski.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://wolfcreekski.com/snow-report/"}, "grooming_pdf": None,
         "lat": 37.4700, "lon": -106.8000, "elevation_ft": 11000,
         "bands": _bands((37.4734, -106.7861, 10300, "base"), (37.4700, -106.8000, 11000, "mid-mountain"),
                         (37.4560, -106.7951, 11904, "summit")),
@@ -709,7 +737,8 @@ RESORTS = {
     },
     "big-white": {
         "name": "Big White", "region": "British Columbia", "pass": "Indy",
-        "site": "https://www.bigwhite.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.bigwhite.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.bigwhite.com/mountain-conditions/daily-snow-report"}, "grooming_pdf": None,
         "lat": 49.7210, "lon": -118.9290, "elevation_ft": 5757,
         "bands": _bands((49.7450, -118.9820, 4950, "base"), (49.7210, -118.9290, 5757, "Village"),
                         (49.7444, -118.9354, 7606, "summit")),
@@ -722,7 +751,8 @@ RESORTS = {
     # labels get checked before launch.
     "powder-mountain": {
         "name": "Powder Mountain", "region": "Utah", "pass": "Independent",
-        "site": "https://powdermountain.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://powdermountain.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.powdermountain.com/conditions", "start": "Updated"}, "grooming_pdf": None,
         "lat": 41.3775, "lon": -111.7826, "elevation_ft": 8000,
         "bands": _bands((41.3600, -111.8075, 6900, "base"), (41.3775, -111.7826, 8000, "mid-mountain"),
                         (41.3914, -111.7931, 9422, "James Peak")),
@@ -812,7 +842,8 @@ RESORTS = {
     },
     "tamarack": {
         "name": "Tamarack", "region": "Idaho", "pass": "Indy",
-        "site": "https://tamarackidaho.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://tamarackidaho.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.tamarackidaho.com/snow-report", "order": "before"}, "grooming_pdf": None,
         "lat": 44.6750, "lon": -116.1450, "elevation_ft": 6500,
         "bands": _bands((44.6700, -116.1220, 4900, "base"), (44.6750, -116.1450, 6500, "mid-mountain"),
                         (44.6727, -116.1649, 7700, "summit")),
@@ -822,7 +853,8 @@ RESORTS = {
     },
     "sun-peaks": {
         "name": "Sun Peaks", "region": "British Columbia", "pass": "Mountain Collective",
-        "site": "https://www.sunpeaksresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.sunpeaksresort.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.sunpeaksresort.com/ski-ride/weather-conditions-cams/weather-snow-report", "start": "Updated"}, "grooming_pdf": None,
         "lat": 50.8970, "lon": -119.9040, "elevation_ft": 5800,
         "bands": _bands((50.8840, -119.8860, 4117, "Village"), (50.8970, -119.9040, 5800, "mid-mountain"),
                         (50.9089, -119.9266, 6824, "Tod Mountain")),
@@ -832,7 +864,8 @@ RESORTS = {
     },
     "mt-baker": {
         "name": "Mt. Baker", "region": "Washington", "pass": "Independent",
-        "site": "https://www.mtbaker.us", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://www.mtbaker.us", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.mtbaker.us/snow-report/"}, "grooming_pdf": None,
         "lat": 48.8600, "lon": -121.6800, "elevation_ft": 4200,
         "bands": _bands((48.8617, -121.6570, 3500, "White Salmon"), (48.8600, -121.6800, 4200, "mid-mountain"),
                         (48.8527, -121.6776, 5089, "Panorama Dome")),
@@ -873,9 +906,16 @@ def get(slug):
     r.setdefault("region", "Colorado")
     r.setdefault("pass", "Epic")
     r.setdefault("dor_api", None)
+    r.setdefault("reportpal", None)
+    r.setdefault("report_feed", None)
     r["country"] = "CA" if r["region"] in CANADA_REGIONS else "US"
     if r["dor_api"]:  # POWDR's open JSON feed (sources/dor.py): snow report and groomed runs
         r["snow_report"] = r["dor_api"] + "/api/v1/dor/drupal/snow-reports"
+    elif r["reportpal"]:  # Boyne's open JSON feed on the resort's own site (sources/reportpal.py)
+        from .sources.reportpal import url as _rp_url
+        r["snow_report"] = _rp_url(r["site"], r["reportpal"])
+    elif r["report_feed"]:  # a small per-resort reader (sources/feeds.py)
+        r["snow_report"] = r["report_feed"]["url"]
     elif "snow_report_path" in r and r["snow_report_path"] is None:
         r["snow_report"] = None  # this resort's own snow report isn't read (yet)
     env = os.environ.get("OPENING_DAY_" + slug.upper().replace("-", "_")) or (
@@ -901,7 +941,7 @@ def public_list():
         out.append({"slug": slug, "name": r["name"], "timezone": r["tz"], "cams": r["cams"], "patrol": r["patrol"],
                     "snotel": r["snotel_label"], "site": r["site"], "lat": r["lat"], "lon": r["lon"],
                     "region": r["region"], "pass": r["pass"], "snow_report": bool(r["snow_report"]),
-                    "grooming": bool(r["grooming_pdf"] or r["dor_api"])})
+                    "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"])})
     return {"default": DEFAULT, "resorts": out}
 
 

@@ -147,3 +147,28 @@ with `OPENING_DAY_<SLUG>` (for example `OPENING_DAY_CRESTED_BUTTE=2027-11-24`).
 ## POWDR feeds (Copper, Eldora, Snowbird)
 
 These three publish open JSON at `https://api.<resort>.com/api/v1/dor/drupal/snow-reports` and `/trails`. `bcbot/sources/dor.py` reads both: the newest snow report (its `date` is the Updated time) and every winter trail whose `groom_status` isn't `not_groomed`, grouped by sector. They have no map, so the email lists groomed runs and sends once today's snow report is in, like other map-less resorts (9:00 deadline), listing whatever runs are groomed by then.
+
+### Boyne report feed (11/19/2026)
+
+Big Sky, Brighton, Sugarloaf, Sunday River and Loon read Boyne's mountain report JSON from each resort's own
+site: `<site>/api/reportpal?resortName=<code>&useReportPal=true` (codes bs, br, sl, sr, lm), the same feed their
+Current Conditions pages load. `bcbot/sources/reportpal.py` takes the resort-wide snow numbers (inches), the
+`updated` time and the groomed runs by area. Set a resort's `"reportpal"` code in resorts.py to use it.
+Operating directive (Young, 11/19/2026): support every resort's facts, maps and cams while we ask operators for
+permission, and take anything down the same day an operator asks.
+
+### Per-resort report readers (11/19/2026)
+
+`bcbot/sources/feeds.py` picks a reader from a resort's `"report_feed"`:
+
+- `{"kind": "json", ...}`: the resort's own report JSON, with dotted paths per field. Jackson Hole
+  (jacksonhole-prod.zaneray.com/api/snow.json, mid-mountain numbers) and Taos (/api/conditions).
+- `{"kind": "text", "url", "start", "order"}`: server-rendered report pages (`sources/textpage.py`). It strips the
+  page to text and pairs labels ("24 Hour", "Base Depth", "Season Total", ...) with the number after them
+  (`order: "after"`) or before them (`"before"`), converting cm to inches. `start` skips summary tiles.
+  Killington, Sun Valley, Revelstoke, Whitefish, Banff Sunshine, Big White, Sun Peaks, Loveland, Wolf Creek,
+  Powder Mountain, Mt. Baker, Tamarack, and the live Telluride and A-Basin.
+
+Shadow resorts prove these readers for 3 days before launch. Not read yet: Alterra (keyed feed, waiting on Alterra),
+pages that fill their numbers in with JavaScript (Lake Louise, Grand Targhee, Mt. Hood Meadows, Mt. Bachelor) and
+sites that refused the check (Whiteface, Gore, Jay Peak, Purgatory, Bretton Woods, Smugglers' Notch).

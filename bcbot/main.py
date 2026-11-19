@@ -20,7 +20,7 @@ import sys
 from datetime import date, datetime, timedelta
 
 from . import alert, audit, config, forecast, notify, pages, report, resorts, verify
-from .sources import dor, grooming, mountain, nws, openmeteo, resort, snotel
+from .sources import dor, grooming, reportpal, mountain, nws, openmeteo, resort, snotel
 from .store import get_store, resort_store
 from .util import get, now_local
 
@@ -371,7 +371,7 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
     # Readers return {} instead of raising; record that so missing data doesn't look normal.
     if not obs and config.SNOTEL_STATIONS:
         errors.append("snotel: no station answered")
-    if not resort_report and (config.DOR_API or config.RESORT_SNOW_REPORT_URL):
+    if not resort_report and (config.DOR_API or config.REPORTPAL or config.REPORT_FEED or config.RESORT_SNOW_REPORT_URL):
         errors.append("resort snow report: empty or unreadable")
 
     if obs:
@@ -398,8 +398,9 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
     g = dict(prev.get("grooming") or {"new_map": False, "image": state.get("last_map_image")})
     if not config.GROOMING_PDF_URL:
         g = {"new_map": False, "image": None, "none": True}  # this resort posts no grooming map
-        if config.DOR_API:  # no map, but the resort's trail feed says which runs are groomed
-            runs = _try("grooming feed", dor.fetch_grooming, errors, None)
+        feed = dor if config.DOR_API else reportpal if config.REPORTPAL else None
+        if feed:  # no map, but the resort's trail feed says which runs are groomed
+            runs = _try("grooming feed", feed.fetch_grooming, errors, None)
             if runs is not None:
                 g = {"new_map": bool(runs["groomed"]), "image": None, "runs": runs, "list": True}
     if groom and not g.get("runs"):
