@@ -1,7 +1,7 @@
 """Public, crawlable report pages (SEO): one page per resort plus a dated daily report archive.
 
   /resorts                      every resort, by state
-  /resorts/<slug>               today's report (the single-resort Day Ticket email, as a web page)
+  /resorts/<slug>               today's report (the Day Ticket, laid out for the web: bcbot/webreport.py)
   /resorts/<slug>/<YYYY-MM-DD>  that day's report, kept as an archive post
   /sitemap.xml                  home, the hub, every resort page and every post
 
@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from html import escape
 
-from . import config, mailer, report, resorts
+from . import config, mailer, report, resorts, webreport
 from .store import resort_store
 
 ORG = "0xSnow"
@@ -195,7 +195,7 @@ ul.list{{padding-left:18px}}
 .cta{{background:{mailer.FROST};border:1px solid #fff;border-radius:20px;padding:16px;margin:16px 0}}
 .cta a.btn{{background:{mailer.BURGUNDY};color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600;display:inline-block}}
 footer{{margin-top:26px;font-size:12px;color:{mailer.INK2}}}
-"""
+""" + webreport.CSS
 
 
 def _ld(obj):
@@ -203,7 +203,7 @@ def _ld(obj):
     return f'<script type="application/ld+json">{data}</script>'
 
 
-def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=False, feed=None):
+def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=False, feed=None, wide=False):
     image = image or site("brand/share-1200x630.png")
     meta = [
         f"<title>{escape(page_title)}</title>",
@@ -228,7 +228,7 @@ def shell(*, page_title, desc, canonical, body, ld=None, image=None, noindex=Fal
 <meta name="theme-color" content="{mailer.ICE}">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <style>{CSS}</style>{lds}</head>
-<body><div class="wrap">
+<body><div class="wrap{' wide' if wide else ''}">
 <header class="top"><a href="/"><img src="/brand/frosted-logo-email.png" width="36" height="36" alt="">{ORG}</a>
 <a class="app" href="/">Open the app</a></header>
 {body}
@@ -273,7 +273,7 @@ def resort_page(slug, day, dates, dated=False):
         for x in others) + "</ul>") if others else ""
     body = (crumbs + f'<h1 class="page">{escape(h1)}</h1>'
             + f'<p class="lead">{escape(" ".join(words))}</p>'
-            + mailer.daily_html(day, map_url, hidden_preheader=False)
+            + webreport.render(day, map_url)
             + _cta(slug, name) + past + _more(slug, name))
     article = {
         "@context": "https://schema.org", "@type": "BlogPosting" if dated else "WebPage",
@@ -292,7 +292,7 @@ def resort_page(slug, day, dates, dated=False):
         {"@type": "ListItem", "position": 2, "name": name, "item": site(resort_path(slug))}]
         + ([{"@type": "ListItem", "position": 3, "name": report.mmdd(d), "item": canonical}] if dated else [])}
     return shell(page_title=t, desc=desc, canonical=canonical, body=body, ld=[article, crumbs_ld], image=map_url,
-                 feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"))
+                 feed=(f"/resorts/{slug}/feed.xml", f"{name} daily reports"), wide=True)
 
 
 def empty_resort_page(slug):
