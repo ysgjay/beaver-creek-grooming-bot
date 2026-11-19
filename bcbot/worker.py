@@ -15,6 +15,8 @@ Modes (WORKER_MODE):
                     trigger off, so one scheduler drives the pipeline (docs/RENDER.md).
 """
 import argparse
+import ctypes
+import gc
 import logging
 import os
 import sys
@@ -49,7 +51,8 @@ def tick(force=False, now=None):
 
     # Shadow mode also runs the resorts that are being checked before launch (resorts.shadow()).
     slugs = due(resorts.enabled() + (resorts.shadow() if mode() == "shadow" else []), force=force, now=now)
-    workers = max(1, int(os.environ.get("WORKER_CONCURRENCY", "4")))
+    # 2 at a time: each full run holds a forecast, ensembles and images, and the Starter plan has 512 MB.
+    workers = max(1, int(os.environ.get("WORKER_CONCURRENCY", "2")))
 
     def one(slug):
         try:
@@ -66,9 +69,44 @@ def tick(force=False, now=None):
         from api.run import _digest
         digest = _digest()
     bad = [s for s, r in results.items() if r.get("status") == "error" or (r.get("status") != "skipped" and not r.get("ok"))]
-    log.info("tick (%s): %d resorts in %.0fs, %d with problems %s", mode(), len(results),
-             time.monotonic() - started, len(bad), bad)
+    log.info("tick (%s): %d resorts in %.0fs, %d with problems %s, %s MB", mode(), len(results),
+             time.monotonic() - started, len(bad), bad, _release_memory())
     return {"mode": mode(), "resorts": results, "digest": digest}
+
+
+def _release_memory():
+    """Give memory from the tick back to the system, so the worker idles low between ticks.
+    Python keeps freed memory by default, which left it near its limit before the next tick.
+    Returns resident memory in MB (None if it can't be read)."""
+    gc.collect()
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass
+    try:
+        with open("/proc/self/status") as f:
+            return next(int(line.split()[1]) // 1024 for line in f if line.startswith("VmRSS:"))
+    except Exception:
+        return None
+
+
+def _start_tick_due():
+    """The start-up check runs once per deploy, not after every restart. An out-of-memory restart
+    used to run a full forced tick again, which ran out of memory again (a crash loop on 11/19)."""
+    from pathlib import Path
+    commit = os.environ.get("RENDER_GIT_COMMIT") or "local"
+    marker = Path(os.environ.get("SHADOW_DIR") or "/tmp/0xsnow-shadow") / ".start-tick"
+    try:
+        if marker.read_text().strip() == commit:
+            return False
+    except OSError:
+        pass
+    try:
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text(commit)  # written before the tick, so a crash during it doesn't repeat it
+    except OSError:
+        pass
+    return True
 
 
 def check_forecast_server():
@@ -95,7 +133,7 @@ def check_forecast_server():
 def loop():
     log.info("0xSnow worker started in %s mode", mode())
     check_forecast_server()
-    if mode() == "shadow" and os.environ.get("WORKER_TICK_ON_START", "1") == "1":
+    if mode() == "shadow" and os.environ.get("WORKER_TICK_ON_START", "1") == "1" and _start_tick_due():
         try:  # every deploy checks every reader once; harmless in shadow mode
             tick(force=True)
         except Exception:

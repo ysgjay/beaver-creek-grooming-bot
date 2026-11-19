@@ -199,6 +199,8 @@ class ShadowStore:
         self.local.put_json(path, obj)
 
     def put_bytes(self, path, data, content_type, max_age=None):
+        if content_type.startswith("image/"):
+            return  # maps, cams and radar frames aren't kept in shadow: only the report data is compared
         self.local.put_bytes(path, data, content_type, max_age)
 
 

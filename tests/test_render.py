@@ -73,7 +73,7 @@ def test_shadow_store_reads_live_writes_local(tmp_path):
     s.put_bytes("maps/x.jpg", b"img", "image/jpeg")
     assert s.get_json("data/latest.json") == {"day": "shadow"}
     assert live.get_json("data/latest.json") == {"day": "live"}
-    assert not live.exists("maps/x.jpg") and s.exists("maps/x.jpg")
+    assert not live.exists("maps/x.jpg") and not s.exists("maps/x.jpg")  # images aren't kept in shadow
     assert s.list("data/") == ["data/latest.json"]
 
 
@@ -83,3 +83,34 @@ def test_get_store_shadow_mode(monkeypatch, tmp_path):
     monkeypatch.setenv("BLOB_PUBLIC_BASE", "https://example.public.blob.vercel-storage.com")
     s = store.get_store()
     assert isinstance(s, store.ShadowStore) and isinstance(s.live, store.BlobStore)
+
+
+def test_start_tick_once_per_deploy(monkeypatch, tmp_path):
+    monkeypatch.setenv("SHADOW_DIR", str(tmp_path))
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "abc")
+    assert worker._start_tick_due() is True
+    assert worker._start_tick_due() is False   # a restart of the same deploy skips it
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "def")
+    assert worker._start_tick_due() is True    # a new deploy runs it again
+
+
+def test_release_memory_reports_mb():
+    mb = worker._release_memory()
+    assert mb is None or mb > 0
+
+
+def test_canadian_resorts_skip_nws(monkeypatch):
+    from bcbot import config, resorts
+    from bcbot.sources import mountain, nws
+    called = []
+    monkeypatch.setattr(nws, "get", lambda *a, **k: called.append(a) or (_ for _ in ()).throw(AssertionError))
+    monkeypatch.setattr(mountain, "get", lambda *a, **k: called.append(a) or (_ for _ in ()).throw(AssertionError))
+    assert resorts.get("whistler-blackcomb")["country"] == "CA"
+    assert resorts.get("beaver-creek")["country"] == "US"
+    config.use("whistler-blackcomb")
+    try:
+        assert nws.fetch_snowfall() == {}
+        assert mountain.fetch_discussion() is None
+        assert called == []
+    finally:
+        config.use("beaver-creek")

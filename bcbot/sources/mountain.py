@@ -77,6 +77,8 @@ def fetch_avalanche():
 
 def fetch_discussion():
     """{office, issued, url} for the latest Area Forecast Discussion from the resort's NWS office."""
+    if not config.IN_US:
+        return None  # NWS has no office for Canadian resorts
     try:
         pts = get(f"https://api.weather.gov/points/{config.LAT:.4f},{config.LON:.4f}",
                   headers=NWS_HEADERS, timeout=10, retries=0)

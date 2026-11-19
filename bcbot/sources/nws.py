@@ -49,7 +49,9 @@ def daily_from_intervals(values, to_inches=1 / 25.4, min_hours=0):
 
 
 def fetch_snowfall():
-    """Return {date: inches} of NWS forecast snowfall at the forecast point."""
+    """Return {date: inches} of NWS forecast snowfall at the forecast point ({} outside the US)."""
+    if not config.IN_US:
+        return {}
     headers = {"Accept": "application/geo+json"}
     pts = get(f"https://api.weather.gov/points/{config.LAT:.4f},{config.LON:.4f}", headers=headers)
     pts.raise_for_status()
