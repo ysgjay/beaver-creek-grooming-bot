@@ -74,23 +74,23 @@ NWS and avalanche lookups are US/Colorado-centric and may log errors for Whistle
 Top independents and the Alterra group. None of their own snow reports is read yet: Alterra's mountain report loads
 from a keyed feed (mtnpowder.com) that we don't use without Alterra's permission, and the independents need the page
 reader. Until then they run like Steamboat and Winter Park: our forecast, the nearest SNOTEL in the US, NOAA snow
-depths in the East and forecast only in Canada. Opening days are typical-season estimates; confirm before launch.
+depths in the East and forecast only in Canada. Opening days are from the Ikon list and November news (checked 11/19); Big Bear's is still an estimate.
 
-| Resort | Region | Pass | Snow station | Opening day (est.) |
+| Resort | Region | Pass | Snow station | Opening day (announced unless est.) |
 |---|---|---|---|---|
-| Jackson Hole | Wyoming | Ikon | Phillips Bench 689 | 11/28 |
-| Big Sky | Montana | Ikon | Lone Mountain 590 | 11/26 |
-| Banff Sunshine | Alberta | Ikon | none (Canada) | 11/07 |
-| Lake Louise | Alberta | Ikon | none (Canada) | 11/06 |
+| Jackson Hole | Wyoming | Ikon | Phillips Bench 689 | 11/27 |
+| Big Sky | Montana | Ikon | Lone Mountain 590 | 11/25 |
+| Banff Sunshine | Alberta | Ikon | none (Canada) | 11/06 (reported) |
+| Lake Louise | Alberta | Ikon | none (Canada) | open since 11/01 |
 | Sun Valley | Idaho | Ikon | Chocolate Gulch 895 | 11/26 |
-| Mammoth Mountain | California | Ikon | Virginia Lakes Ridge 846 (51 km) | 11/13 |
-| Palisades Tahoe | California | Ikon | Palisades Tahoe 784 | 11/26 |
-| Big Bear Mountain | California | Ikon | none (no SNOTEL in SoCal) | 11/20 |
-| Crystal Mountain | Washington | Ikon | Morse Lake 642 | 12/04 |
-| Tremblant | Quebec | Ikon | none (Canada) | 11/27 |
+| Mammoth Mountain | California | Ikon | none (nearest SNOTEL is 51 km away) | open since 11/05 |
+| Palisades Tahoe | California | Ikon | Palisades Tahoe 784 | 11/25 |
+| Big Bear Mountain | California | Ikon | none (no SNOTEL in SoCal) | 11/20 est. |
+| Crystal Mountain | Washington | Ikon | Morse Lake 642 | 11/27 |
+| Tremblant | Quebec | Ikon | none (Canada) | 11/26 |
 | Sugarbush | Vermont | Ikon | none | 11/21 |
-| Stratton | Vermont | Ikon | none | 11/21 |
-| Snowshoe | West Virginia | Ikon | none | 11/26 |
+| Stratton | Vermont | Ikon | none | 11/18 |
+| Snowshoe | West Virginia | Ikon | none | 11/25 |
 
 Canadian resorts still show inches and °F; the cm/°C choice is open (see the plan).
 
