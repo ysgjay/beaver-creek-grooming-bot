@@ -44,6 +44,31 @@ Coordinates and band elevations are approximate on-mountain points; check them a
 resort's trail map when tuning a resort. Next steps that stay free: Brown Rice or other cam IDs
 for the Ikon resorts, and a snow report reader per resort site.
 
+### Wave 1 (added 11/19/2026, shadow mode)
+
+`"stage": "shadow"` resorts run only on the Render worker in shadow mode (`resorts.shadow()`): no sends, not in the
+app, not in the sitemap. Turn one on (`enabled: True`, drop `stage`) after its numbers match the resort's own page for
+3 days, and add its pass facts (`EPIC_ACCESS` / `IKON_ACCESS` in `bcbot/facts.py`). Plan:
+https://claude.ai/artifact/5yrsn7gYFkyd5QZYqqwf3X
+
+| Resort | Region | Snow report (checked 11/19) | Cams | Snow station | Opening day |
+|---|---|---|---|---|---|
+| Whistler Blackcomb | British Columbia | `snow-and-weather-report.aspx` | Brown Rice (7) | none (Canada) | 11/20 |
+| Heavenly | California | `snow-and-weather-report.aspx` | Brown Rice (4) | Heavenly Valley 518 | 11/20 |
+| Northstar | California | `snow-and-weather-report.aspx` | Brown Rice (4) | Truckee #2 834 | 11/20 |
+| Kirkwood | California | `snow-and-weather-report.aspx` | Brown Rice (2) | Carson Pass 1067 | 12/4 |
+| Stevens Pass | Washington | `weather-report.aspx` | Brown Rice (5) | Stevens Pass 791 | 12/4 |
+| Stowe | Vermont | `snow-and-weather-report.aspx` | Brown Rice (3) | none (East) | not announced |
+| Okemo | Vermont | `snow-and-weather-report.aspx` | Brown Rice (4) | none | not announced |
+| Mount Snow | Vermont | `weather-report.aspx` | Brown Rice (4) | none | not announced |
+| Seven Springs | Pennsylvania | `snow-and-weather-report.aspx` | Brown Rice (2) | none | not announced |
+| Killington | Vermont | not read (no open feed; site is server-rendered) | none yet | none | open |
+| Mt. Bachelor | Oregon | not read yet | none yet | Three Creeks Meadow 815 | 12/4 |
+
+No Wave 1 resort posts a Lumiplan grooming PDF (all 404 on 11/19). Western US resorts use their nearest SNOTEL;
+Vermont, Pennsylvania and BC have none, so the report falls back to NOAA snow-center depths (US) or forecast only (BC).
+NWS and avalanche lookups are US/Colorado-centric and may log errors for Whistler; shadow mode is where we find out.
+
 ## What differs between resorts
 - **Grooming map layouts.** Beaver Creek's PDF has "Groomers of the day", "Last night's grooming" and
   "Morning grooming" sections with number and name on alternating lines. Vail's lists runs under area

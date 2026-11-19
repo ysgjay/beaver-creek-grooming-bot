@@ -75,8 +75,8 @@ def test_passes_tickets_and_lessons_section():
 
 def test_shared_pass_facts_cover_every_resort():
     from bcbot import resorts
-    assert set(facts.FACTS) == set(resorts.RESORTS)
-    for slug in resorts.RESORTS:
+    assert set(resorts.enabled()) <= set(facts.FACTS)
+    for slug in resorts.enabled():  # shadow-mode resorts get their pass facts before launch
         assert "passes" in facts.FACTS[slug] and "blackout_dates" in facts.FACTS[slug], slug
     assert "Ikon Pass: 7 days, shared with Snowbird" in facts.FACTS["alta"]["passes"]["value"]
     assert facts.FACTS["vail"]["opening_day"]["value"] == "2026-11-13"

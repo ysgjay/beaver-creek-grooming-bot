@@ -450,6 +450,9 @@ ANNOUNCED = {
     "steamboat": ("2026-11-27", None, ("https://www.steamboat.com/the-mountain/hours-and-operations", "Steamboat: Hours and Operations")), "alta": ("2026-11-20", None, IKON_DATES),
     "snowbird": ("2026-11-27", None, IKON_DATES), "solitude": ("2026-11-19", None, ("https://www.solitudemountain.com/mountain-and-village/mountain-information/hours-of-operation", "Solitude: Hours of Operation")),
     "deer-valley": ("2026-12-05", None, IKON_DATES), "snowbasin": ("2026-11-27", None, IKON_DATES),
+    "whistler-blackcomb": ("2026-11-20", None, VR_DATES), "heavenly": ("2026-11-20", None, VR_DATES),
+    "northstar": ("2026-11-20", None, VR_DATES), "kirkwood": ("2026-12-04", None, VR_DATES),
+    "stevens-pass": ("2026-12-04", None, VR_DATES), "mt-bachelor": ("2026-12-04", None, IKON_DATES),
     "winter-park": ("2026-11-13", "2027-04-18", ("https://www.winterparkresort.com/the-mountain/hours-of-operation", "Winter Park: Hours of Operation")),
 }
 # Trail map pages checked by hand (we link, never copy the art).
@@ -710,7 +713,8 @@ def grid(today=None):
         have = FACTS.get(slug) or {}
         for kind in LABELS:
             f = have.get(kind)
-            row = {"resort": slug, "name": r["name"], "fact": kind, "label": LABELS[kind]}
+            row = {"resort": slug, "name": r["name"], "fact": kind, "label": LABELS[kind],
+                   "stage": "live" if r["enabled"] else r.get("stage", "off")}
             if not f:
                 rows.append(dict(row, status="missing", fresh="", value="", checked="", next_check="",
                                  source="", source_name="", maps=0, map_images=0))
