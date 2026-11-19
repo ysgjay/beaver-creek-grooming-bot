@@ -46,6 +46,8 @@ Naming (11/18/2026): the app is **0xSnow** everywhere (title, Home Screen label,
 | Private data | Neon project **snow-desk** (`spring-heart-11973566`, us-east-1), created from Vercel Storage in team 0xM Studio, so it bills through 0xM's Vercel account (Launch plan). Moved Nov 15, 2026 from the old `square-hill-75040371` project, which billed elsewhere. | Tables: `subscribers` (double opt-in, token, status, resorts), `push_subscriptions` (resorts), `daily_sends` (once-a-day claim per resort). |
 | Email | Resend, domain **snow.0xm.studio** (`8a410eb5-…`, verified) | DNS in Vercel: `resend._domainkey.snow` TXT, `send.snow` MX and TXT, `rsend.snow` CNAME. Free plan: 100 emails a day, about 90 subscribers. |
 
+**Render (expansion, 11/19/2026):** a self-hosted Open-Meteo server and a resort worker, set up from `render.yaml`. Details, modes and cut-over steps: `docs/RENDER.md`.
+
 **DNS gotcha:** `snow.0xm.studio` needs its own ALIAS record (`snow` → `cname.vercel-dns-016.com.`), which now exists. The email records under `snow.*` stop 0xm.studio's catch-all `*` record from covering it. Never delete that ALIAS.
 
 ## Vercel environment variables (names only; values live in Vercel)

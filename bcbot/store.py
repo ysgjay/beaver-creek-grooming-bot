@@ -168,9 +168,46 @@ def resort_store(slug, store=None):
         store.inner if isinstance(store, ResortStore) else store, slug)
 
 
+class ShadowStore:
+    """Reads the live archive, writes only to a local folder. The Render worker runs in this
+    mode first (WORKER_MODE=shadow), so the full pipeline can be checked off Vercel without
+    touching what the app and emails read. Reads see the shadow's own writes first."""
+
+    def __init__(self, live, root):
+        self.live = live
+        self.local = LocalStore(root)
+
+    def get_json(self, path, default=None):
+        hit = self.local.get_json(path)
+        return hit if hit is not None else self.live.get_json(path, default)
+
+    def get_bytes(self, path):
+        hit = self.local.get_bytes(path)
+        return hit if hit is not None else self.live.get_bytes(path)
+
+    def exists(self, path):
+        return self.local.exists(path) or self.live.exists(path)
+
+    def list(self, prefix, limit=2000):
+        try:
+            live = self.live.list(prefix, limit)
+        except Exception:  # Blob listing needs the token; a read-only shadow may not have it
+            live = []
+        return sorted(set(live) | set(self.local.list(prefix, limit)))[:limit]
+
+    def put_json(self, path, obj):
+        self.local.put_json(path, obj)
+
+    def put_bytes(self, path, data, content_type, max_age=None):
+        self.local.put_bytes(path, data, content_type, max_age)
+
+
 def get_store():
     token = os.environ.get("BLOB_READ_WRITE_TOKEN")
     base = os.environ.get("BLOB_PUBLIC_BASE")
+    if os.environ.get("STORE_MODE") == "shadow":
+        live = BlobStore(token or "", base) if base else LocalStore(config.ROOT / "public")
+        return ShadowStore(live, os.environ.get("SHADOW_DIR") or "/tmp/0xsnow-shadow")
     if token and base:
         return BlobStore(token, base)
     return LocalStore(config.ROOT / "public")
