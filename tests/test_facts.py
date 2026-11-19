@@ -1,4 +1,5 @@
 """Resort facts: seasonal re-check schedule, page watch and the info section."""
+import re
 from datetime import date, datetime
 
 from bcbot import facts, pages
@@ -212,3 +213,62 @@ def test_coverage_lists_every_resort_with_cams_and_report_source():
     assert cv["copper"]["report"] == "POWDR feed" and cv["killington"]["report"] == "Report page"
     assert cv["beaver-creek"]["report"] == "Vail page" and cv["mammoth"]["report"] == ""
     assert cv["mammoth"]["stage"] == "shadow" and cv["vail"]["stage"] == "live"
+
+
+def test_watch_confirms_unchanged_facts_without_a_pr(tmp_path):
+    store = LocalStore(tmp_path)
+    pages_now = {u: "<p>Opens November 25</p>" for kinds in facts.FACTS.values() for u in [f["source"] for f in kinds.values()]}
+    later = datetime(2026, 12, 30, 7, 30)  # every fact is due by now
+    facts.watch(store, pages_now.get, now=datetime(2026, 11, 20, 7, 30))
+    url = next(iter(pages_now))
+    pages_now[url] = None  # this page fails today, so its facts can't be confirmed
+    s = facts.watch(store, pages_now.get, now=later)
+    slug, kind, f = next((s_, k, f) for s_, ks in facts.FACTS.items() for k, f in ks.items() if f.get("value") is not None and f["source"] != url)
+    assert s["confirmed"][f"{slug}|{kind}"] == "2026-12-30"
+    assert not any(q["resort"] == slug and q["fact"] == kind for q in s["queue"])
+    blocked = [(s_, k) for s_, ks in facts.FACTS.items() for k, f in ks.items() if f["source"] == url]
+    assert all(any(q["resort"] == b[0] and q["fact"] == b[1] for q in s["queue"]) for b in blocked)
+    row = next(r for r in facts.grid(today=later.date(), confirmed=s["confirmed"])["rows"]
+               if r["resort"] == slug and r["fact"] == kind)
+    assert row["checked"] == "2026-12-30" and row["fresh"] == "ok"
+
+
+def _season_ok(iso, months):
+    return date.fromisoformat(iso).month in months
+
+
+def test_fact_values_pass_sanity_checks():
+    """Guards automated re-check PRs: a bad value fails here before it can reach the site."""
+    for slug, kinds in facts.FACTS.items():
+        o, c = (kinds.get("opening_day") or {}).get("value"), (kinds.get("closing_day") or {}).get("value")
+        if o:
+            assert _season_ok(o, {9, 10, 11, 12, 1}), (slug, o)
+        if c:
+            assert _season_ok(c, {3, 4, 5, 6, 7}), (slug, c)
+        if o and c:
+            assert o < c, slug
+        for kind, f in kinds.items():
+            v = f.get("value")
+            if v is None:
+                assert f.get("note") or kind in ("closing_day", "opening_day"), (slug, kind)  # blank needs a reason
+                continue
+            if kind == "lift_hours":
+                assert re.search(r"\d{1,2}(:\d\d)?\s?(AM|PM|am|pm|noon|midnight)|\d{1,2} to \d", v), (slug, v)
+            if kind == "lift_tickets":
+                assert "$" in v, (slug, v)
+            if kind == "trail_map":
+                assert v.startswith("https://"), (slug, v)
+
+
+def test_expired_values_are_hidden_not_shown_as_current():
+    later = date(2027, 6, 1)  # long after the 11/19 checks
+    pub = facts.public("vail", later, confirmed={})
+    assert pub["lift_hours"]["value"] is None and pub["lift_hours"]["expired"]
+    assert pub["lift_hours"]["note"].startswith("Last confirmed 11/19. Check Vail: Hours of Operation")
+    assert pub["trail_map"]["value"]  # slow kinds stay, just flagged on the page
+    assert pub["opening_day"]["value"] is None  # last season's opening day
+    # A confirmation from the watch keeps it live.
+    pub = facts.public("vail", date(2026, 12, 1), confirmed={"vail|lift_hours": "2026-11-30"})
+    assert pub["lift_hours"]["value"] and pub["lift_hours"]["checked"] == "2026-11-30"
+    html = pages.guide_page("vail", {}, today=later)
+    assert "Last confirmed 11/19" in html and "9 AM to 3:30 PM daily" not in html

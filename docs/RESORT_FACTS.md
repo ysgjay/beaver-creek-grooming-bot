@@ -5,7 +5,7 @@ opening day, closing day, lift hours, trail map, passes, blackout dates, lift ti
 the official page it came from and the date someone read it. The page title, heading and FAQ follow whichever facts a
 resort has, so a resort can go live with 2 facts and gain the rest later.
 
-All of it lives in `bcbot/facts.py`.
+The data lives in `bcbot/facts_data/` (`curated.json` per resort, `shared.json` for the Epic/Ikon tables, announced dates, lift hours and trail map pages). `bcbot/facts.py` loads it, builds each resort's facts and decides what the pages show.
 
 ## Where facts come from
 
@@ -88,3 +88,12 @@ the site automatically: a person (or Claude) re-reads the page and updates the t
   `checked` date moves past the change).
 - **Read-only access:** `GET /api/facts?queue=1` returns `queue` and `failing` without a key. The scheduled re-check
   task reads it from there. It holds public page text only.
+
+## What the public pages show when a fact gets old
+
+`facts.public()` feeds the guide pages, llms.txt and the JSON. It uses the newer of the checked date and the
+watch's confirmation in Blob.
+- Past 2x the check interval, the source line says "may be out of date, check the source".
+- Past 4x, opening day, closing day, lift hours and lift tickets are hidden. The page shows "Last confirmed MM/DD.
+  Check <source> for the current ..." with the link.
+- An opening or closing date more than 240 days old (last season's) is hidden the same way.
