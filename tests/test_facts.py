@@ -170,3 +170,14 @@ def test_scene7_tiles_load_small_and_link_the_full_image():
     from bcbot import guide
     html = guide.map_gallery(facts.FACTS["vail"]["trail_map"])
     assert "wid=800" in html and "wid=4000" in html
+
+
+def test_coverage_lists_every_resort_with_cams_and_report_source():
+    from bcbot import resorts
+    cv = {r["resort"]: r for r in resorts.coverage()}
+    assert set(cv) == set(resorts.RESORTS)
+    assert cv["jackson-hole"]["cams"] == 11 and cv["jackson-hole"]["stake"] and cv["jackson-hole"]["report"] == "Resort feed"
+    assert cv["big-sky"]["report"] == "Boyne feed" and cv["big-sky"]["grooming"]
+    assert cv["copper"]["report"] == "POWDR feed" and cv["killington"]["report"] == "Report page"
+    assert cv["beaver-creek"]["report"] == "Vail page" and cv["mammoth"]["report"] == ""
+    assert cv["mammoth"]["stage"] == "shadow" and cv["vail"]["stage"] == "live"

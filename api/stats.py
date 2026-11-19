@@ -18,5 +18,6 @@ class handler(Handler):
             logging.exception("stats failed")
             return self.reply(500, {"error": "stats failed"})
         out["names"] = {k: v["name"] for k, v in resorts.RESORTS.items()}
+        out["coverage"] = resorts.coverage()  # cams and snow report source per resort
         out["facts"] = facts.grid()  # resort facts table: filled, not posted, missing, and freshness
         self.reply(200, out)

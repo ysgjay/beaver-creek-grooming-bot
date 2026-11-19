@@ -151,7 +151,8 @@ RESORTS = {
     },
     "telluride": {
         "name": "Telluride", "region": "Colorado", "pass": "Epic",
-        "site": "https://tellurideskiresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://tellurideskiresort.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://tellurideskiresort.com/snow-report/", "start": "Snow depth"}, "grooming_pdf": None,
         "lat": 37.9160, "lon": -107.8360, "elevation_ft": 10800,
         "bands": _bands((37.9360, -107.8460, 8725, "base"), (37.9160, -107.8360, 10800, "mid-mountain"),
                         (37.9070, -107.8400, 12570, "summit")),
@@ -973,3 +974,29 @@ def is_static(slug):
     The scheduler only needs to run these every half hour (refresh + the 7:00 send)."""
     r = get(slug)
     return not r["grooming_pdf"] and not r["snow_report"] and not r["dor_api"]
+
+
+def coverage():
+    """What each resort has and lacks: cams and where its snow report comes from (the admin "Cams and
+    reports" table, so Young can see what's missing and send cam links in the thread)."""
+    rows = []
+    for slug in RESORTS:
+        r = get(slug)
+        if r["dor_api"]:
+            report = "POWDR feed"
+        elif r["reportpal"]:
+            report = "Boyne feed"
+        elif r["report_feed"]:
+            report = "Resort feed" if r["report_feed"]["kind"] == "json" else "Report page"
+        elif r["snow_report"]:
+            report = "Vail page"
+        else:
+            report = ""
+        rows.append({"resort": slug, "name": r["name"], "region": r["region"], "pass": r["pass"],
+                     "stage": "live" if r["enabled"] else (r.get("stage") or "off"), "site": r["site"],
+                     "cams": len(r["cams"]), "cam_labels": [c["label"] for c in r["cams"]],
+                     "stake": any("stake" in c["label"].lower() for c in r["cams"]),
+                     "report": report, "report_url": r["snow_report"] or "",
+                     "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"])})
+    return rows
+

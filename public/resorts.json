@@ -280,7 +280,7 @@
    "lon": -107.836,
    "region": "Colorado",
    "pass": "Epic",
-   "snow_report": false,
+   "snow_report": true,
    "grooming": false
   },
   {

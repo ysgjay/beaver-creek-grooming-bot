@@ -72,3 +72,8 @@ def test_every_report_feed_is_wired():
             assert f["kind"] in feeds.KINDS and f["url"].startswith("https://"), slug
             assert f.get("order", "after") in ("after", "before"), slug
             assert resorts.get(slug)["snow_report"] == f["url"] and not resorts.is_static(slug), slug
+
+
+def test_live_resorts_with_page_readers():
+    assert resorts.get("telluride")["report_feed"]["start"] == "Snow depth"
+    assert resorts.get("arapahoe-basin")["report_feed"]["order"] == "before"
