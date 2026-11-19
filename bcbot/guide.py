@@ -5,6 +5,7 @@ grooming time), then blackout dates and passes, trail map and cams, season dates
 and last how the 0xSnow report is built. Every fact keeps its source link and checked date (bcbot/facts.py).
 """
 
+import re
 from datetime import date
 from html import escape
 
@@ -58,7 +59,8 @@ dl.facts .note{{font-size:14px;color:var(--ink2);margin-top:2px}}
 .maps figure{{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}}
 .maps img{{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}}
 .maps figcaption{{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;font-size:13px}}
-.maps figcaption span{{color:var(--ink-2)}}
+.maps figcaption span{{color:var(--ink2)}}
+.maps figcaption a.pdf{{display:flex;justify-content:space-between;gap:8px;width:100%;color:var(--ink);text-decoration:none}}
 table.glance{{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}}
 table.glance td{{border-top:1px solid var(--line);padding:6px 0}}
 table.glance td:first-child{{color:var(--ink2);width:40%}}
@@ -192,6 +194,11 @@ def _fact_rows(kinds, keys, today, name):
     return f'<dl class="facts">{out}</dl>' if out else ""
 
 
+def _thumb(url):
+    """Vail Resorts' image server resizes on request: load an 800 px tile, link the 4000 px original."""
+    return re.sub(r"([?&])wid=\d+", r"\1wid=800", url) if "scene7.vailresorts.com" in url else url
+
+
 def map_gallery(tm):
     """Every trail map the resort posts (big mountains have several). Images load from the resort's own
     server, never copied to ours; maps that only come as a PDF get a link instead."""
@@ -204,10 +211,12 @@ def map_gallery(tm):
                f'{" · PDF" if m.get("pdf") and not m.get("image") else ""}</span></figcaption>')
         if m.get("image"):
             out += (f'<figure><a href="{escape(full)}" rel="nofollow noopener" target="_blank">'
-                    f'<img src="{escape(m["image"])}" alt="{escape(m["label"])} trail map" loading="lazy" '
+                    f'<img src="{escape(_thumb(m["image"]))}" alt="{escape(m["label"])} trail map" loading="lazy" '
                     f'referrerpolicy="no-referrer"></a>{cap}</figure>')
         elif m.get("pdf") and len(tm["maps"]) > 1:
-            out += f'<figure><a class="pdf" href="{escape(m["pdf"])}" rel="nofollow noopener" target="_blank">{cap}</a></figure>'
+            link = (f'<a class="pdf" href="{escape(m["pdf"])}" rel="nofollow noopener" target="_blank">'
+                    f'<b>{escape(m["label"])}</b><span>{escape(m.get("season") or "")} · PDF</span></a>')
+            out += f'<figure><figcaption>{link}</figcaption></figure>'
     return f'<div class="maps">{out}</div>' if out else ""
 
 
