@@ -26,6 +26,11 @@ def _jpg_cams(base, ids):
     return [{"label": label, "image": f"{base}{name}.jpg", "live": None} for name, label in ids]
 
 
+def _url_cams(items):
+    """Cams given as full image URLs on the resort's own cam host (loaded from there, never copied)."""
+    return [{"label": label, "image": url, "live": None} for url, label in items]
+
+
 def _bands(base, mid, peak):
     return [{"key": k, "label": k.title(), "lat": la, "lon": lo, "elevation_ft": ft}
             for k, (la, lo, ft, _where) in zip(("base", "mid", "peak"), (base, mid, peak))]
@@ -152,7 +157,10 @@ RESORTS = {
                         (37.9070, -107.8400, 12570, "summit")),
         "snotel": ['1344:CO:SNTL', '713:CO:SNTL'],
         "snotel_label": "Alta Lakes",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-05", "enabled": True,
+        "cams": _url_cams([("https://g1.ipcamlive.com/player/snapshot.php?alias=powcam", "Prospect Basin (Powcam)"),
+                          ("https://g1.ipcamlive.com/player/snapshot.php?alias=plazacam", "Mountain Village"),
+                          ("https://g1.ipcamlive.com/player/snapshot.php?alias=bonvivant", "Black Iron Bowl"),
+                          ("https://g1.ipcamlive.com/player/snapshot.php?alias=jointpoint", "See Forever")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-05", "enabled": True,
     },
     "snowmass": {
         "name": "Snowmass", "region": "Colorado", "pass": "Ikon",
@@ -222,7 +230,8 @@ RESORTS = {
                         (39.4670, -106.1700, 12313, "summit")),
         "snotel": ['415:CO:SNTL', '485:CO:SNTL'],
         "snotel_label": "Copper Mountain",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-08", "enabled": True,
+        "cams": _url_cams([("https://img.hdrelay.com/frames/fb469125-f1f3-459f-aeb4-98cb674e395f/default/last.jpg", "Snow stake"),
+                          ("https://img.hdrelay.com/frames/671bcfb507697ecebbaffc13/default/last.jpg", "Aerie")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-08", "enabled": True,
     },
     "arapahoe-basin": {
         "name": "Arapahoe Basin", "region": "Colorado", "pass": "Ikon",
@@ -293,7 +302,13 @@ RESORTS = {
                         (40.5600, -111.6560, 11000, "summit")),
         "snotel": ['766:UT:SNTL', '1308:UT:SNTL'],
         "snotel_label": "Snowbird",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27", "enabled": True,
+        "cams": _url_cams([("https://manage.hdrelay.com/snapshot/8611e276-7ee5-42c0-b8cd-d9e1890e1cd4", "Snow stake"),
+                          ("https://manage.hdrelay.com/snapshot/544432bd-3910-4888-aa9f-14b6f51a7eb5", "Peruvian Gulch"),
+                          ("https://manage.hdrelay.com/snapshot/5780754f-8da1-4223-ab8a-6755d84cbc10", "Mineral Basin"),
+                          ("https://manage.hdrelay.com/snapshot/db2a69c5-66e9-4c48-a713-919eaf191fc1", "Little Cloud"),
+                          ("https://manage.hdrelay.com/snapshot/61b2490be101c00b9c48374f", "Tram Bullpen"),
+                          ("https://backend.roundshot.com/cams/44cfff4ff2a218a1178dbb105d95846a/medium", "Hidden Peak"),
+                          ("https://backend.roundshot.com/cams/48fc223c0ed88474ecc2f884bf39de63/medium", "Powder Paradise")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27", "enabled": True,
     },
     "snowbasin": {
         "name": "Snowbasin", "region": "Utah", "pass": "Ikon",

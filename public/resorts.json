@@ -251,7 +251,28 @@
    "slug": "telluride",
    "name": "Telluride",
    "timezone": "America/Denver",
-   "cams": [],
+   "cams": [
+    {
+     "label": "Prospect Basin (Powcam)",
+     "image": "https://g1.ipcamlive.com/player/snapshot.php?alias=powcam",
+     "live": null
+    },
+    {
+     "label": "Mountain Village",
+     "image": "https://g1.ipcamlive.com/player/snapshot.php?alias=plazacam",
+     "live": null
+    },
+    {
+     "label": "Black Iron Bowl",
+     "image": "https://g1.ipcamlive.com/player/snapshot.php?alias=bonvivant",
+     "live": null
+    },
+    {
+     "label": "See Forever",
+     "image": "https://g1.ipcamlive.com/player/snapshot.php?alias=jointpoint",
+     "live": null
+    }
+   ],
    "patrol": null,
    "snotel": "Alta Lakes",
    "site": "https://tellurideskiresort.com",
@@ -356,7 +377,18 @@
    "slug": "copper",
    "name": "Copper Mountain",
    "timezone": "America/Denver",
-   "cams": [],
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://img.hdrelay.com/frames/fb469125-f1f3-459f-aeb4-98cb674e395f/default/last.jpg",
+     "live": null
+    },
+    {
+     "label": "Aerie",
+     "image": "https://img.hdrelay.com/frames/671bcfb507697ecebbaffc13/default/last.jpg",
+     "live": null
+    }
+   ],
    "patrol": null,
    "snotel": "Copper Mountain",
    "site": "https://www.coppercolorado.com",
@@ -461,7 +493,43 @@
    "slug": "snowbird",
    "name": "Snowbird",
    "timezone": "America/Denver",
-   "cams": [],
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://manage.hdrelay.com/snapshot/8611e276-7ee5-42c0-b8cd-d9e1890e1cd4",
+     "live": null
+    },
+    {
+     "label": "Peruvian Gulch",
+     "image": "https://manage.hdrelay.com/snapshot/544432bd-3910-4888-aa9f-14b6f51a7eb5",
+     "live": null
+    },
+    {
+     "label": "Mineral Basin",
+     "image": "https://manage.hdrelay.com/snapshot/5780754f-8da1-4223-ab8a-6755d84cbc10",
+     "live": null
+    },
+    {
+     "label": "Little Cloud",
+     "image": "https://manage.hdrelay.com/snapshot/db2a69c5-66e9-4c48-a713-919eaf191fc1",
+     "live": null
+    },
+    {
+     "label": "Tram Bullpen",
+     "image": "https://manage.hdrelay.com/snapshot/61b2490be101c00b9c48374f",
+     "live": null
+    },
+    {
+     "label": "Hidden Peak",
+     "image": "https://backend.roundshot.com/cams/44cfff4ff2a218a1178dbb105d95846a/medium",
+     "live": null
+    },
+    {
+     "label": "Powder Paradise",
+     "image": "https://backend.roundshot.com/cams/48fc223c0ed88474ecc2f884bf39de63/medium",
+     "live": null
+    }
+   ],
    "patrol": null,
    "snotel": "Snowbird",
    "site": "https://www.snowbird.com",
