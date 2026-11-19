@@ -682,15 +682,17 @@
   function radarPalette() {
     const cs = getComputedStyle(document.documentElement), v = (n) => rgbOf(cs.getPropertyValue(n));
     const bg = v("--bg"), ink = v("--ink"), white = [255, 255, 255], black = [0, 0, 0];
-    const accent = v("--snow");   // Weather uses the snow palette, independently of brand accents.
     const dark = (0.299 * bg[0] + 0.587 * bg[1] + 0.114 * bg[2]) < 110;
+    // Snow must never look like land. Light mode puts blue snow on a warm gray map, so anything blue is snow;
+    // dark mode keeps the theme's map and brightens snow toward white. In both, land is one flat colour:
+    // park and forest areas are not shaded, because those patches read as light snow.
     const ramp = dark
-      ? [mixRgb(bg, accent, 0.36), mixRgb(bg, accent, 0.55), mixRgb(bg, accent, 0.75), mixRgb(bg, accent, 0.92), mixRgb(accent, white, 0.4)]
-      : [mixRgb(white, accent, 0.3), mixRgb(white, accent, 0.5), mixRgb(white, accent, 0.72), accent, mixRgb(accent, black, 0.35)];
+      ? ["#5f8fb8", "#82b2da", "#a9cdec", "#d4e8f7", "#ffffff"].map(rgbOf)
+      : ["#8db8e0", "#5b95cc", "#3576b6", "#215a96", "#123a68"].map(rgbOf);
     const map = dark
-      ? { land: bg, hills: mixRgb(bg, ink, 0.07), water: mixRgb(bg, black, 0.35), roads: mixRgb(bg, ink, 0.26), lines: mixRgb(bg, ink, 0.14), labels: mixRgb(bg, ink, 0.66), halo: bg }
-      : { land: mixRgb(bg, white, 0.55), hills: mixRgb(bg, white, 0.12), water: mixRgb(bg, ink, 0.07), roads: mixRgb(bg, ink, 0.24), lines: mixRgb(bg, ink, 0.1), labels: mixRgb(bg, ink, 0.68), halo: mixRgb(bg, white, 0.55) };
-    return { dark, ramp, map: Object.fromEntries(Object.entries(map).map(([k, c]) => [k, hexOf(c)])), pin: hexOf(ink), pinText: hexOf(dark ? bg : white) };   // markers in the theme's ink, so they stand apart from the accent-coloured radar
+      ? { land: bg, hills: bg, water: mixRgb(bg, black, 0.35), roads: mixRgb(bg, ink, 0.26), lines: mixRgb(bg, ink, 0.14), labels: mixRgb(bg, ink, 0.66), halo: bg }
+      : { land: rgbOf("#f2f1ee"), hills: rgbOf("#f2f1ee"), water: rgbOf("#d3dbe3"), roads: rgbOf("#cdc9c1"), lines: rgbOf("#dcd8d1"), labels: rgbOf("#5e5b55"), halo: rgbOf("#f2f1ee") };
+    return { dark, ramp, opacity: dark ? 0.95 : 0.92, map: Object.fromEntries(Object.entries(map).map(([k, c]) => [k, hexOf(c)])), pin: hexOf(ink), pinText: hexOf(dark ? bg : white) };   // markers in the theme's ink, so they stand apart from the accent-coloured radar
   }
   // How strong an echo is, 0 to 1, from its colour in the standard radar palette. That palette runs
   // cyan, blue, green, yellow, orange, red, magenta, and is not ordered by brightness, so this goes by hue.
@@ -899,7 +901,7 @@
     const tuck = () => map.querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show");   // start as the small (i) button
     tuck(); m.once("idle", tuck);
     return {
-      show(i, prev) { if (radarMap !== m) return; add(i); if (prev >= 0 && prev !== i && added.has(prev)) m.setPaintProperty(id(prev), "raster-opacity", 0); m.setPaintProperty(id(i), "raster-opacity", 0.88); },
+      show(i, prev) { if (radarMap !== m) return; add(i); if (prev >= 0 && prev !== i && added.has(prev)) m.setPaintProperty(id(prev), "raster-opacity", 0); m.setPaintProperty(id(i), "raster-opacity", pal.opacity); },
       preload: add,
       failed: (i) => failed.has(i),
     };
