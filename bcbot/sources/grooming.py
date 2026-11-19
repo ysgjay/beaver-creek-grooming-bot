@@ -26,7 +26,9 @@ def render(pdf_bytes, max_width=2000):
     text = page.get_text()
     pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2))
     img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
+    pix = None
     doc.close()
+    pymupdf.TOOLS.store_shrink(100)  # empty MuPDF's cache: it otherwise grows across renders
     if img.width > max_width:
         img = img.resize((max_width, round(img.height * max_width / img.width)), Image.LANCZOS)
     buf = io.BytesIO()
@@ -105,15 +107,26 @@ def parse_runs(lines):
     return out
 
 
-def fetch():
+def page_text(pdf_bytes):
+    doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+    try:
+        return doc[0].get_text()
+    finally:
+        doc.close()
+
+
+def fetch(known_hash=None):
+    """The map PDF's hash, run names and (only when the PDF changed) its JPEG. The cheap check runs
+    every few minutes, and rendering an unchanged map each time used up the Render worker's memory."""
     r = get(config.GROOMING_PDF_URL, timeout=60)
     r.raise_for_status()
     pdf = r.content
-    jpeg, text = render(pdf)
+    digest = hashlib.sha256(pdf).hexdigest()[:16]
+    jpeg, text = (None, page_text(pdf)) if known_hash and digest == known_hash else render(pdf)
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     return {
         # Hash the PDF, not the render, so re-rendering never fakes a "new" map.
-        "hash": hashlib.sha256(pdf).hexdigest()[:16],
+        "hash": digest,
         "jpeg": jpeg,
         "text_lines": lines,
         "runs": parse_runs(lines),

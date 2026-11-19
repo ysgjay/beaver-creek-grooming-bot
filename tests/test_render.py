@@ -114,3 +114,25 @@ def test_canadian_resorts_skip_nws(monkeypatch):
         assert called == []
     finally:
         config.use("beaver-creek")
+
+
+def test_unchanged_map_is_not_rendered(monkeypatch):
+    import hashlib
+    from bcbot.sources import grooming
+    from tests.test_bcbot import make_pdf
+    pdf = make_pdf()
+
+    class R:
+        content, headers = pdf, {}
+        def raise_for_status(self):
+            pass
+    monkeypatch.setattr(grooming, "get", lambda *a, **k: R())
+    monkeypatch.setattr(grooming.config, "GROOMING_PDF_URL", "https://example.com/map.pdf", raising=False)
+    digest = hashlib.sha256(pdf).hexdigest()[:16]
+    rendered = []
+    real = grooming.render
+    monkeypatch.setattr(grooming, "render", lambda b: rendered.append(1) or real(b))
+    same = grooming.fetch(digest)
+    assert same["hash"] == digest and same["jpeg"] is None and same["text_lines"] and rendered == []
+    new = grooming.fetch("something-else")
+    assert new["jpeg"] and rendered == [1]
