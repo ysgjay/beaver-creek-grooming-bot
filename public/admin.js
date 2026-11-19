@@ -85,6 +85,36 @@
        <button class="btn secondary" type="button" id="fx-csv">Download CSV</button></div>
        <div class="fx-scroll"><table class="ad-t fx-t"><thead><tr><th>Resort</th>${kinds.map((k) => `<th>${esc(fx.labels[k])}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`, "wide");
   }
+  // Cams and reports: which resorts still need cams or a snow report reader. "Copy missing" puts a list on the
+  // clipboard to paste into the project chat with cam page links.
+  function coverageCard(cv) {
+    if (!cv || !cv.length) return "";
+    const noCams = cv.filter((r) => !r.cams), noReport = cv.filter((r) => !r.report);
+    const stage = (r) => r.stage === "live" ? "" : ` <span class="ad-pill pending">${r.stage === "shadow" ? "testing" : esc(r.stage)}</span>`;
+    const rows = [...cv].sort((a, b) => (a.cams > 0) - (b.cams > 0) || a.name.localeCompare(b.name)).map((r) => `<tr>
+      <th><a href="${esc(r.site)}" target="_blank" rel="noopener">${esc(r.name)}</a>${stage(r)}</th>
+      <td class="fx ${r.cams ? "filled" : "missing"}" title="${esc(r.cam_labels.join(", "))}">${r.cams ? `${r.cams} cam${r.cams > 1 ? "s" : ""}${r.stake ? " · stake" : ""}` : "None"}</td>
+      <td class="fx ${r.report ? "filled" : "missing"}">${r.report ? (r.report_url ? `<a href="${esc(r.report_url)}" target="_blank" rel="noopener">${esc(r.report)}</a>` : esc(r.report)) : "Forecast + SNOTEL only"}</td>
+      <td class="fx ${r.grooming ? "filled" : "missing"}">${r.grooming ? "✓" : "—"}</td></tr>`).join("");
+    return card("Cams and reports", `${noCams.length} of ${cv.length} resorts have no cams; ${noReport.length} have no snow report reader. Send cam page links in the project chat and Claude adds them.`,
+      `<div class="ad-legend fx-legend"><button class="btn secondary" type="button" id="cv-copy">Copy missing list</button>
+       <button class="btn secondary" type="button" id="cv-csv">Download CSV</button><span id="cv-done" class="sub"></span></div>
+       <div class="fx-scroll"><table class="ad-t fx-t"><thead><tr><th>Resort</th><th>Cams</th><th>Snow report</th><th>Groomed runs</th></tr></thead><tbody>${rows}</tbody></table></div>`, "wide");
+  }
+  function coverageText(cv) {
+    const line = (r) => `- ${r.name} (${r.site}): cam page link = `;
+    const miss = cv.filter((r) => !r.cams);
+    return `Cams missing for ${miss.length} resorts:\n${miss.map(line).join("\n")}`;
+  }
+  function coverageCsv(cv, today) {
+    const cols = ["name", "resort", "stage", "region", "pass", "site", "cams", "stake", "report", "report_url", "grooming"];
+    const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const csv = [cols.join(","), ...cv.map((r) => cols.map((c) => q(r[c])).join(","))].join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv" }));
+    a.download = `0xsnow-cams-and-reports-${today}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
   function factsCsv(fx) {
     const cols = ["name", "resort", "label", "status", "fresh", "value", "checked", "next_check", "every_days", "maps", "map_images", "source_name", "source"];
     const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
@@ -141,12 +171,17 @@
         : `<p class="small muted">No sign-ups yet.</p>`, "wide");
 
     const off = !!store.get("noCount");
-    $("#ad-body").innerHTML = kpis + `<div class="ad-grid">${signupsCard}${visitsCard}${resortCard}${useCard}${recentCard}${factsCard(s.facts, s.names)}</div>
+    $("#ad-body").innerHTML = kpis + `<div class="ad-grid">${signupsCard}${visitsCard}${resortCard}${useCard}${recentCard}${coverageCard(s.coverage)}${factsCard(s.facts, s.names)}</div>
       <div class="ad-foot"><label><input type="checkbox" id="ad-nocount"${off ? " checked" : ""}> Don't count my visits on this device</label>
       <span>Visits are counted by the app itself: a random id per browser, no cookies or IPs. Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.</span></div>`;
     const cards = $("#ad-body").querySelectorAll(".ad-grid .card");
     sg.wire(cards[0]); vg.wire(cards[1]);
     $("#fx-csv")?.addEventListener("click", () => factsCsv(s.facts));
+    $("#cv-csv")?.addEventListener("click", () => coverageCsv(s.coverage, s.today));
+    $("#cv-copy")?.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(coverageText(s.coverage)); $("#cv-done").textContent = "Copied. Paste it in the chat and fill in links."; }
+      catch (e) { $("#cv-done").textContent = "Couldn't copy; use the CSV instead."; }
+    });
     $("#ad-nocount").addEventListener("change", (e) => store.set("noCount", e.target.checked ? "1" : null));
     $("#ad-sub").textContent = `Private · Mountain Time · ${wd(s.today)} ${mmdd(s.today)}`;
   }

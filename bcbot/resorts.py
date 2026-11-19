@@ -26,6 +26,11 @@ def _jpg_cams(base, ids):
     return [{"label": label, "image": f"{base}{name}.jpg", "live": None} for name, label in ids]
 
 
+def _url_cams(items):
+    """Cams given as full image URLs on the resort's own cam host (loaded from there, never copied)."""
+    return [{"label": label, "image": url, "live": None} for url, label in items]
+
+
 def _bands(base, mid, peak):
     return [{"key": k, "label": k.title(), "lat": la, "lon": lo, "elevation_ft": ft}
             for k, (la, lo, ft, _where) in zip(("base", "mid", "peak"), (base, mid, peak))]
@@ -146,13 +151,17 @@ RESORTS = {
     },
     "telluride": {
         "name": "Telluride", "region": "Colorado", "pass": "Epic",
-        "site": "https://tellurideskiresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "site": "https://tellurideskiresort.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://tellurideskiresort.com/snow-report/", "start": "Snow depth"}, "grooming_pdf": None,
         "lat": 37.9160, "lon": -107.8360, "elevation_ft": 10800,
         "bands": _bands((37.9360, -107.8460, 8725, "base"), (37.9160, -107.8360, 10800, "mid-mountain"),
                         (37.9070, -107.8400, 12570, "summit")),
         "snotel": ['1344:CO:SNTL', '713:CO:SNTL'],
         "snotel_label": "Alta Lakes",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-05", "enabled": True,
+        "cams": _url_cams([("https://g1.ipcamlive.com/player/snapshot.php?alias=powcam", "Prospect Basin (Powcam)"),
+                          ("https://g1.ipcamlive.com/player/snapshot.php?alias=plazacam", "Mountain Village"),
+                          ("https://g1.ipcamlive.com/player/snapshot.php?alias=bonvivant", "Black Iron Bowl"),
+                          ("https://g1.ipcamlive.com/player/snapshot.php?alias=jointpoint", "See Forever")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-05", "enabled": True,
     },
     "snowmass": {
         "name": "Snowmass", "region": "Colorado", "pass": "Ikon",
@@ -222,7 +231,8 @@ RESORTS = {
                         (39.4670, -106.1700, 12313, "summit")),
         "snotel": ['415:CO:SNTL', '485:CO:SNTL'],
         "snotel_label": "Copper Mountain",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-08", "enabled": True,
+        "cams": _url_cams([("https://img.hdrelay.com/frames/fb469125-f1f3-459f-aeb4-98cb674e395f/default/last.jpg", "Snow stake"),
+                          ("https://img.hdrelay.com/frames/671bcfb507697ecebbaffc13/default/last.jpg", "Aerie")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-08", "enabled": True,
     },
     "arapahoe-basin": {
         "name": "Arapahoe Basin", "region": "Colorado", "pass": "Ikon",
@@ -293,7 +303,13 @@ RESORTS = {
                         (40.5600, -111.6560, 11000, "summit")),
         "snotel": ['766:UT:SNTL', '1308:UT:SNTL'],
         "snotel_label": "Snowbird",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27", "enabled": True,
+        "cams": _url_cams([("https://manage.hdrelay.com/snapshot/8611e276-7ee5-42c0-b8cd-d9e1890e1cd4", "Snow stake"),
+                          ("https://manage.hdrelay.com/snapshot/544432bd-3910-4888-aa9f-14b6f51a7eb5", "Peruvian Gulch"),
+                          ("https://manage.hdrelay.com/snapshot/5780754f-8da1-4223-ab8a-6755d84cbc10", "Mineral Basin"),
+                          ("https://manage.hdrelay.com/snapshot/db2a69c5-66e9-4c48-a713-919eaf191fc1", "Little Cloud"),
+                          ("https://manage.hdrelay.com/snapshot/61b2490be101c00b9c48374f", "Tram Bullpen"),
+                          ("https://backend.roundshot.com/cams/44cfff4ff2a218a1178dbb105d95846a/medium", "Hidden Peak"),
+                          ("https://backend.roundshot.com/cams/48fc223c0ed88474ecc2f884bf39de63/medium", "Powder Paradise")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27", "enabled": True,
     },
     "snowbasin": {
         "name": "Snowbasin", "region": "Utah", "pass": "Ikon",
@@ -518,7 +534,15 @@ RESORTS = {
         "bands": _bands((37.6483, -119.0250, 8900, "Main Lodge"), (37.6402, -119.0262, 9600, "McCoy Station"),
                         (37.6303, -119.0330, 11053, "summit")),
         "snotel": [], "snotel_label": None,  # nearest SNOTEL (Virginia Lakes Ridge) is 51 km away: too far to count as truth
-        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-05",  # opened early
+        "cams": [{"label": label, "image": f"https://media.mammothresorts.com/mmsa/mammoth/cams/{name}_1280x720.jpg",
+                  "live": f"https://www.youtube.com/watch?v={yt}"}
+                 for name, label, yt in (("Main_Broadway", "Main Lodge", "m4u2kGpkYD4"),
+                                         ("Top_Of_Sierra_1", "The Summit", "awxz_oIlJE0"),
+                                         ("McCoy_Chair_23_Top", "McCoy Station", "jFK8bVYad0M"),
+                                         ("Unbound_Main_Park_1", "Unbound Main Park", "gelXqzE1Xi0"),
+                                         ("Woolly_Woolly", "Woolly Cam", "AXyxIFY3JaA"),
+                                         ("Village_Village", "The Village", "MwHWDokyUhw"),
+                                         ("Outpost_Arriba", "The Outpost", "xaf6OzA-i6M"))], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-05",  # opened early
         "enabled": False, "stage": "shadow",
     },
     "palisades-tahoe": {
@@ -950,3 +974,29 @@ def is_static(slug):
     The scheduler only needs to run these every half hour (refresh + the 7:00 send)."""
     r = get(slug)
     return not r["grooming_pdf"] and not r["snow_report"] and not r["dor_api"]
+
+
+def coverage():
+    """What each resort has and lacks: cams and where its snow report comes from (the admin "Cams and
+    reports" table, so Young can see what's missing and send cam links in the thread)."""
+    rows = []
+    for slug in RESORTS:
+        r = get(slug)
+        if r["dor_api"]:
+            report = "POWDR feed"
+        elif r["reportpal"]:
+            report = "Boyne feed"
+        elif r["report_feed"]:
+            report = "Resort feed" if r["report_feed"]["kind"] == "json" else "Report page"
+        elif r["snow_report"]:
+            report = "Vail page"
+        else:
+            report = ""
+        rows.append({"resort": slug, "name": r["name"], "region": r["region"], "pass": r["pass"],
+                     "stage": "live" if r["enabled"] else (r.get("stage") or "off"), "site": r["site"],
+                     "cams": len(r["cams"]), "cam_labels": [c["label"] for c in r["cams"]],
+                     "stake": any("stake" in c["label"].lower() for c in r["cams"]),
+                     "report": report, "report_url": r["snow_report"] or "",
+                     "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"])})
+    return rows
+
