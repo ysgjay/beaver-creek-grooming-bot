@@ -1,0 +1,36 @@
+{
+  "scope": "Code review probes only; no live services, messages, database or network were used.",
+  "inspected_commit": "413056ccf6a163ad4082d2107e50e28af2b21535",
+  "probes": [
+    {
+      "probe": "shadow_mode_keeps_database_configuration",
+      "observed": "Database configuration remains present after shadow setup.",
+      "scope": "isolated functions with in-memory dependencies"
+    },
+    {
+      "probe": "audit_not_isolated_by_shadow_store",
+      "observed": "With database configuration available, audit.record reaches schema-writing code; ShadowStore does not guard it.",
+      "scope": "isolated functions with in-memory dependencies"
+    },
+    {
+      "probe": "live_missing_blob_secret_falls_back_to_local",
+      "observed": "get_store selects LocalStore when the write token is missing, even with WORKER_MODE=live.",
+      "scope": "isolated functions with in-memory dependencies"
+    },
+    {
+      "probe": "once_exit_status_masks_failure",
+      "observed": "--once exits 0 when the only resort result is error.",
+      "scope": "isolated functions with in-memory dependencies"
+    },
+    {
+      "probe": "self_hosted_fallback_only_checks_http_status",
+      "observed": "An HTTP 200 empty response is accepted without calling the public fallback.",
+      "scope": "isolated functions with in-memory dependencies"
+    },
+    {
+      "probe": "digest_ignores_send_gate_and_does_not_retry_claimed_failure",
+      "observed": "With SEND_ENABLED=0, digest attempts a send; after the simulated timeout, the next invocation skips the permanently claimed recipient.",
+      "scope": "isolated functions with in-memory dependencies"
+    }
+  ]
+}

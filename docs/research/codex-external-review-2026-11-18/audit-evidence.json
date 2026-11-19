@@ -1,0 +1,732 @@
+{
+  "scope": "Sanitized HTTP and data evidence for the 0xSnow research report. No subscriber, delivery, credential or internal error payloads are included.",
+  "research_date_et": "2026-11-18",
+  "repository": "ysgjay/beaver-creek-grooming-bot",
+  "inspected_commit": "413056ccf6a163ad4082d2107e50e28af2b21535",
+  "limitations": [
+    "User-agent strings were emulated from the researcher network; real crawler identities and access were not verified.",
+    "Byte counts/hash values describe received response bodies; compressed payloads are not directly comparable to decoded JSON sizes.",
+    "The first sitemap request had a network-resolution error; the recorded retry succeeded.",
+    "No owner webmaster dashboards, private firewall settings or full consumer-assistant benchmark were inspected."
+  ],
+  "http_observations": [
+    {
+      "fetched_at": "2026-11-19T04:08:35.079416+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 9981,
+      "sha256": "1b0772bd8ca14c84d7baafe60b34e1647450e8c0939032f19469741ca25b5681",
+      "title": "0xSnow: Colorado and Utah grooming report and snow forecast",
+      "h1": [
+        "Beaver Creek"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/"
+      ],
+      "url": "https://snow.0xm.studio/",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "text/html; charset=utf-8",
+        "etag": "\"e5f1b4cceb084fff6b6380a194c08d30\"",
+        "last-modified": "Thu, 19 Nov 2026 04:08:35 GMT",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Grooming report, weather, snow forecast and cams for Colorado and Utah resorts on the Epic and Ikon passes, every morning.",
+        "og:title": "0xSnow: grooming and snow report for Colorado and Utah",
+        "og:url": "https://snow.0xm.studio/",
+        "og:image": "https://snow.0xm.studio/brand/share-1200x630.png"
+      },
+      "jsonld_types": [
+        null
+      ],
+      "extracted_text_chars": 196
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.079777+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 576,
+      "sha256": "61619af465be4b4a3df836e13bbd97e4ab707ec4806a39654e50635b4658f697",
+      "url": "https://snow.0xm.studio/robots.txt",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "text/plain; charset=utf-8",
+        "etag": "\"77ea8d311e0a5c706c0369bf62e42e2b\"",
+        "last-modified": "Thu, 19 Nov 2026 04:07:10 GMT",
+        "server": "Vercel"
+      }
+    },
+    {
+      "url": "https://snow.0xm.studio/sitemap.xml",
+      "initial_attempt": "network_resolution_error",
+      "retry": "See additional_checks"
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.080106+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 7921,
+      "sha256": "7f156ec4421ef94593ebb654cf54636e3c823b2a631edddda0276c6d494595d0",
+      "url": "https://snow.0xm.studio/llms.txt",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=3600",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel"
+      }
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.107182+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 8221,
+      "sha256": "0b36f33dbfde4a2fb88177fbd70d4b3c530bcfe86fd30ba1abad9f5201ba8243",
+      "url": "https://snow.0xm.studio/feed.xml",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public",
+        "content-type": "application/rss+xml; charset=utf-8",
+        "server": "Vercel"
+      }
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.224372+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 25566,
+      "sha256": "6f38795fa885f8e0d17a8ba15804dfef5596035071f4ce8066823176fb32f734",
+      "title": "Colorado and Utah ski resort snow reports today: grooming and forecast | 0xSnow",
+      "h1": [
+        "Colorado and Utah ski resort snow reports"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts"
+      ],
+      "url": "https://snow.0xm.studio/resorts",
+      "headers": {
+        "cache-control": "public, max-age=3600",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Daily snow reports, grooming, new snow, base depth and snow forecasts for 22 Colorado and Utah ski resorts on the Epic and Ikon passes.",
+        "og:title": "Colorado and Utah ski resort snow reports today: grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts",
+        "og:image": "https://snow.0xm.studio/brand/share-1200x630.png"
+      },
+      "jsonld_types": [
+        "CollectionPage"
+      ],
+      "extracted_text_chars": 1868
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.252557+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 28470,
+      "sha256": "f9efa7cff5a3127f052e7a6342de59e82c0120ffca965769ce14ce16bfbfe8e3",
+      "title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+      "h1": [
+        "Beaver Creek snow report today, Wed 11/18"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/beaver-creek"
+      ],
+      "url": "https://snow.0xm.studio/resorts/beaver-creek",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Beaver Creek snow report for Wednesday 11/18. The resort reports 1\" of new snow in the last 24 hours, 4\" base and 12\" so far this season. The snow report posted at 5:32 AM. Expect 30°F at 2 PM, feeling like 19°, with gusts to 15 mph around 2 PM. The next 5 days look like 1 to 9\" of snow, most likely",
+        "og:title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/beaver-creek",
+        "og:image": "https://snow.0xm.studio/maps/2026-11-16.jpg"
+      },
+      "jsonld_types": [
+        "WebPage",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 2122
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.321767+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 2062,
+      "sha256": "9c4683ea70b11df568fb9a67c280678aaf3e8eb3c3d37fa5fa0b1d1aad84dfcc",
+      "url": "https://snow.0xm.studio/resorts/beaver-creek.md",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=300",
+        "content-type": "text/markdown; charset=utf-8",
+        "link": "<https://snow.0xm.studio/resorts/beaver-creek>; rel=\"canonical\"",
+        "server": "Vercel"
+      }
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.337674+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 5764,
+      "sha256": "f7f69274f9ffa90791b0d6fa0961be64be5d9b93b00053725eb496aeaae20a32",
+      "url": "https://snow.0xm.studio/resorts/beaver-creek.json",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=300",
+        "content-type": "application/json; charset=utf-8",
+        "link": "<https://snow.0xm.studio/resorts/beaver-creek>; rel=\"canonical\"",
+        "server": "Vercel"
+      }
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.447147+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 28632,
+      "sha256": "4378089ced576085ae97441733ed58e0edb1b84f45860e336040ed5f45f67fb1",
+      "title": "Beaver Creek snow report 11/17: grooming and new snow | 0xSnow",
+      "h1": [
+        "Beaver Creek snow report, Tue 11/17"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/beaver-creek/2026-11-17"
+      ],
+      "url": "https://snow.0xm.studio/resorts/beaver-creek/2026-11-17",
+      "headers": {
+        "cache-control": "public, max-age=3600",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Beaver Creek snow report for Tuesday 11/17. The resort reports 0\" of new snow in the last 24 hours, 4\" base and 11\" so far this season. The snow report posted at 5:32 AM. Expect 41°F at 2 PM, feeling like 32°, with gusts to 38 mph around 8 PM. The next 5 days look like 2 to 9\" of snow, most likely 4",
+        "og:title": "Beaver Creek snow report 11/17: grooming and new snow | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/beaver-creek/2026-11-17",
+        "og:image": "https://snow.0xm.studio/maps/2026-11-16.jpg"
+      },
+      "jsonld_types": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 2123
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.473490+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 5776,
+      "sha256": "6ebbd5919ace8eda47c70d5328485f6f66234e10ebe95a7bd9fdf0876ff94166",
+      "url": "https://snow.0xm.studio/resorts/beaver-creek/2026-11-17.json",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=3600",
+        "content-type": "application/json; charset=utf-8",
+        "link": "<https://snow.0xm.studio/resorts/beaver-creek/2026-11-17>; rel=\"canonical\"",
+        "server": "Vercel"
+      }
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.629342+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 28192,
+      "sha256": "d3aa5b5eb63d14c023b7697939797694132d93e7dda1e6381f36de59c580b947",
+      "title": "Vail snow report today (11/18): grooming and forecast | 0xSnow",
+      "h1": [
+        "Vail snow report today, Wed 11/18"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/vail"
+      ],
+      "url": "https://snow.0xm.studio/resorts/vail",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Vail snow report for Wednesday 11/18: 2 runs groomed, including Ramshorn - Lower, Ramshorn - Upper. The resort reports 2\" of new snow in the last 24 hours, 18\" base and 13\" so far this season. The snow report posted at 5:32 AM. Expect 28°F at 2 PM, feeling like 18°, with gusts to 17 mph around 2 PM.",
+        "og:title": "Vail snow report today (11/18): grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/vail",
+        "og:image": "https://snow.0xm.studio/maps/vail/2026-11-18.jpg"
+      },
+      "jsonld_types": [
+        "WebPage",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 2111
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.672476+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 27157,
+      "sha256": "ea2d4e604b273fad2569aa532ef9bd406e645a8bb0e5016fe807ab8b00b9ba85",
+      "title": "Telluride snow report today (11/18): grooming and forecast | 0xSnow",
+      "h1": [
+        "Telluride snow report today, Wed 11/18"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/telluride"
+      ],
+      "url": "https://snow.0xm.studio/resorts/telluride",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Telluride snow report for Wednesday 11/18. The resort reports 2\" of new snow in the last 24 hours. Expect 30°F at 2 PM, feeling like 22°, with gusts to 23 mph around 7 PM. The next 5 days look like 2 to 9\" of snow, most likely 4\".",
+        "og:title": "Telluride snow report today (11/18): grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/telluride",
+        "og:image": "https://snow.0xm.studio/brand/share-1200x630.png"
+      },
+      "jsonld_types": [
+        "WebPage",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 1907
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.694372+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 27334,
+      "sha256": "947ebed9436b09e17a645871226970222a73f769d0f81a0760f2188fdbb95de6",
+      "title": "Snowbird snow report today (11/18): grooming and forecast | 0xSnow",
+      "h1": [
+        "Snowbird snow report today, Wed 11/18"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/snowbird"
+      ],
+      "url": "https://snow.0xm.studio/resorts/snowbird",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Snowbird snow report for Wednesday 11/18. The resort reports 18\" of new snow in the last 24 hours, 26\" base and 63\" so far this season. The snow report posted at 8:45 AM. Expect 23°F at 2 PM, feeling like 9°, with gusts to 30 mph around 4 PM. The next 5 days look like 9 to 32\" of snow, most likely 2",
+        "og:title": "Snowbird snow report today (11/18): grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/snowbird",
+        "og:image": "https://snow.0xm.studio/brand/share-1200x630.png"
+      },
+      "jsonld_types": [
+        "WebPage",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 1913
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.728820+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 31804,
+      "sha256": "e27786d3eb0e771f79c18433bb9429b11f352de256d9209f5134e0a5d36ccd92",
+      "title": "Colorado snow report today: new snow and grooming at 15 resorts | 0xSnow",
+      "h1": [
+        "Colorado snow report today"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/colorado"
+      ],
+      "url": "https://snow.0xm.studio/resorts/colorado",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Colorado ski resort snow report for Wednesday 11/18, 15 resorts in one table. Most new snow: Crested Butte 3\", Telluride 2\", Buttermilk 2\". Biggest 5-day forecast: Snowmass, 5\".",
+        "og:title": "Colorado snow report today: new snow and grooming at 15 resorts | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/colorado",
+        "og:image": "https://snow.0xm.studio/brand/share-1200x630.png"
+      },
+      "jsonld_types": [
+        "WebPage"
+      ],
+      "extracted_text_chars": 1391
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.826485+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 32494,
+      "sha256": "b5dda83d0c33929f2a5b65d5ad8051c5e554d23191e96de7195c0b756c9b4ace",
+      "title": "Beaver Creek trail map, opening day, blackout dates, lift hours, ticket prices and lessons 2026/27 | 0xSnow",
+      "h1": [
+        "Beaver Creek guide: trail map, opening day, blackout dates and more 2026/27"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/beaver-creek/guide"
+      ],
+      "url": "https://snow.0xm.studio/resorts/beaver-creek/guide",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Beaver Creek trail map, opening day, blackout dates, lift hours, ticket prices and lessons for 2026/27, each with its source and the date we checked it, plus today's snow report and when grooming posts.",
+        "og:title": "Beaver Creek trail map, opening day, blackout dates, lift hours, ticket prices and lessons 2026/27 | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/beaver-creek/guide",
+        "og:image": "https://snow.0xm.studio/brand/share-1200x630.png"
+      },
+      "jsonld_types": [
+        "Article",
+        "FAQPage"
+      ],
+      "extracted_text_chars": 4598
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.835862+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 4338,
+      "sha256": "a9e17e9174af9fc744bc44cfbf2ecd7c981a166804d1bd20025428e3e7f9cf63",
+      "title": "Snow Audit · 0xSnow",
+      "h1": [
+        "Snow Audit"
+      ],
+      "canonical": [],
+      "url": "https://snow.0xm.studio/audit/beaver-creek",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "text/html; charset=utf-8",
+        "etag": "\"c372abd9f7d0187b2a1e6993a550f46e\"",
+        "last-modified": "Thu, 19 Nov 2026 04:07:56 GMT",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "How every forecast model has scored against what actually fell, resort by resort."
+      },
+      "jsonld_types": [],
+      "extracted_text_chars": 708
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.970636+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 404,
+      "bytes": 17851,
+      "sha256": "c8d49317f030a9a0f792798765b980d194051b5abc63412b88698ecdd8dbf1a5",
+      "title": "Not found | 0xSnow",
+      "h1": [
+        "We don't cover that resort yet"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts"
+      ],
+      "url": "https://snow.0xm.studio/resorts/not-a-real-resort",
+      "headers": {
+        "cache-control": "public",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "We don't cover that resort yet",
+        "og:title": "Not found | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts",
+        "og:image": "https://snow.0xm.studio/brand/share-1200x630.png",
+        "robots": "noindex"
+      },
+      "jsonld_types": [],
+      "extracted_text_chars": 355
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:35.985002+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 404,
+      "bytes": 17817,
+      "sha256": "968e3856b20192aee173ebe36e743c798497c741eaa61be753b2f1f356cc9100",
+      "title": "Not found | 0xSnow",
+      "h1": [
+        "No report for that day"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts"
+      ],
+      "url": "https://snow.0xm.studio/resorts/beaver-creek/2099-01-01",
+      "headers": {
+        "cache-control": "public",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "No report for that day",
+        "og:title": "Not found | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts",
+        "og:image": "https://snow.0xm.studio/brand/share-1200x630.png",
+        "robots": "noindex"
+      },
+      "jsonld_types": [],
+      "extracted_text_chars": 347
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:36.043176+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 404,
+      "bytes": 79,
+      "sha256": "322f5e8beaad314ec83fb21e7b0a2edca60fbcfc3046be6d60fa71972e1a41c3",
+      "url": "https://snow.0xm.studio/openapi.json",
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "text/plain; charset=utf-8",
+        "server": "Vercel"
+      }
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:36.160242+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 3042,
+      "sha256": "d721d1945e8d241b072a65e25bb655b936a85c67c9c80057b585df26df603a75",
+      "url": "https://snow.0xm.studio/data/latest.json",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=60",
+        "content-encoding": "br",
+        "content-type": "application/json",
+        "etag": "W/\"5b70819d06549fe7f9a9d8bebc40cdf4\"",
+        "last-modified": "Wed, 18 Nov 2026 23:33:39 GMT",
+        "server": "Vercel"
+      }
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:36.161064+00:00",
+      "agent": "SnowDeskResearch/1.0",
+      "status": 200,
+      "bytes": 3608,
+      "sha256": "145cc268502298083ab6e0ba63aa63227f70067ede9bd8235b8215e682f6d89b",
+      "url": "https://snow.0xm.studio/data/audit/beaver-creek.json",
+      "headers": {
+        "access-control-allow-origin": "*",
+        "cache-control": "public, max-age=60",
+        "content-encoding": "br",
+        "content-type": "application/json",
+        "etag": "W/\"6d5584a79d5cfb65c8a99e47df2fc1b4\"",
+        "last-modified": "Thu, 19 Nov 2026 04:00:36 GMT",
+        "server": "Vercel"
+      }
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:36.387238+00:00",
+      "agent": "OAI-SearchBot/1.4",
+      "status": 200,
+      "bytes": 28470,
+      "sha256": "f9efa7cff5a3127f052e7a6342de59e82c0120ffca965769ce14ce16bfbfe8e3",
+      "title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+      "h1": [
+        "Beaver Creek snow report today, Wed 11/18"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/beaver-creek"
+      ],
+      "url": "https://snow.0xm.studio/resorts/beaver-creek",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Beaver Creek snow report for Wednesday 11/18. The resort reports 1\" of new snow in the last 24 hours, 4\" base and 12\" so far this season. The snow report posted at 5:32 AM. Expect 30°F at 2 PM, feeling like 19°, with gusts to 15 mph around 2 PM. The next 5 days look like 1 to 9\" of snow, most likely",
+        "og:title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/beaver-creek",
+        "og:image": "https://snow.0xm.studio/maps/2026-11-16.jpg"
+      },
+      "jsonld_types": [
+        "WebPage",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 2122
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:36.618028+00:00",
+      "agent": "Googlebot/2.1",
+      "status": 200,
+      "bytes": 28470,
+      "sha256": "f9efa7cff5a3127f052e7a6342de59e82c0120ffca965769ce14ce16bfbfe8e3",
+      "title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+      "h1": [
+        "Beaver Creek snow report today, Wed 11/18"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/beaver-creek"
+      ],
+      "url": "https://snow.0xm.studio/resorts/beaver-creek",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Beaver Creek snow report for Wednesday 11/18. The resort reports 1\" of new snow in the last 24 hours, 4\" base and 12\" so far this season. The snow report posted at 5:32 AM. Expect 30°F at 2 PM, feeling like 19°, with gusts to 15 mph around 2 PM. The next 5 days look like 1 to 9\" of snow, most likely",
+        "og:title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/beaver-creek",
+        "og:image": "https://snow.0xm.studio/maps/2026-11-16.jpg"
+      },
+      "jsonld_types": [
+        "WebPage",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 2122
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:36.816049+00:00",
+      "agent": "bingbot/2.0",
+      "status": 200,
+      "bytes": 28470,
+      "sha256": "f9efa7cff5a3127f052e7a6342de59e82c0120ffca965769ce14ce16bfbfe8e3",
+      "title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+      "h1": [
+        "Beaver Creek snow report today, Wed 11/18"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/beaver-creek"
+      ],
+      "url": "https://snow.0xm.studio/resorts/beaver-creek",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Beaver Creek snow report for Wednesday 11/18. The resort reports 1\" of new snow in the last 24 hours, 4\" base and 12\" so far this season. The snow report posted at 5:32 AM. Expect 30°F at 2 PM, feeling like 19°, with gusts to 15 mph around 2 PM. The next 5 days look like 1 to 9\" of snow, most likely",
+        "og:title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/beaver-creek",
+        "og:image": "https://snow.0xm.studio/maps/2026-11-16.jpg"
+      },
+      "jsonld_types": [
+        "WebPage",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 2122
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:37.019636+00:00",
+      "agent": "PerplexityBot/1.0",
+      "status": 200,
+      "bytes": 28470,
+      "sha256": "f9efa7cff5a3127f052e7a6342de59e82c0120ffca965769ce14ce16bfbfe8e3",
+      "title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+      "h1": [
+        "Beaver Creek snow report today, Wed 11/18"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/beaver-creek"
+      ],
+      "url": "https://snow.0xm.studio/resorts/beaver-creek",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Beaver Creek snow report for Wednesday 11/18. The resort reports 1\" of new snow in the last 24 hours, 4\" base and 12\" so far this season. The snow report posted at 5:32 AM. Expect 30°F at 2 PM, feeling like 19°, with gusts to 15 mph around 2 PM. The next 5 days look like 1 to 9\" of snow, most likely",
+        "og:title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/beaver-creek",
+        "og:image": "https://snow.0xm.studio/maps/2026-11-16.jpg"
+      },
+      "jsonld_types": [
+        "WebPage",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 2122
+    },
+    {
+      "fetched_at": "2026-11-19T04:08:37.115427+00:00",
+      "agent": "Claude-SearchBot/1.0",
+      "status": 200,
+      "bytes": 28470,
+      "sha256": "f9efa7cff5a3127f052e7a6342de59e82c0120ffca965769ce14ce16bfbfe8e3",
+      "title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+      "h1": [
+        "Beaver Creek snow report today, Wed 11/18"
+      ],
+      "canonical": [
+        "https://snow.0xm.studio/resorts/beaver-creek"
+      ],
+      "url": "https://snow.0xm.studio/resorts/beaver-creek",
+      "headers": {
+        "cache-control": "public, max-age=300",
+        "content-type": "text/html; charset=utf-8",
+        "server": "Vercel"
+      },
+      "meta": {
+        "description": "Beaver Creek snow report for Wednesday 11/18. The resort reports 1\" of new snow in the last 24 hours, 4\" base and 12\" so far this season. The snow report posted at 5:32 AM. Expect 30°F at 2 PM, feeling like 19°, with gusts to 15 mph around 2 PM. The next 5 days look like 1 to 9\" of snow, most likely",
+        "og:title": "Beaver Creek snow report today (11/18): grooming and forecast | 0xSnow",
+        "og:url": "https://snow.0xm.studio/resorts/beaver-creek",
+        "og:image": "https://snow.0xm.studio/maps/2026-11-16.jpg"
+      },
+      "jsonld_types": [
+        "WebPage",
+        "BreadcrumbList"
+      ],
+      "extracted_text_chars": 2122
+    }
+  ],
+  "additional_checks": [
+    {
+      "url": "https://snow.0xm.studio/sitemap.xml",
+      "status": 200,
+      "response_date": "Thu, 19 Nov 2026 04:09:20 GMT",
+      "content_type": "application/xml; charset=utf-8",
+      "body_bytes": 17436,
+      "sha256": "7f378a16e14171080f2a36ea881bb8c5f658164d471693eedf091c49d2cb2183",
+      "url_count": 139
+    },
+    {
+      "url": "https://snow.0xm.studio/data/posts/2026-11-18.json",
+      "status": 404,
+      "response_date": "Thu, 19 Nov 2026 04:11:49 GMT",
+      "content_type": "text/plain; charset=utf-8",
+      "body_bytes": 15,
+      "sha256": "965bd3a451e4f46ebf7d8a5d72a4c0dc09e9dbfba2b9c96d34fc3e97790a7c5d"
+    },
+    {
+      "url": "https://snow.0xm.studio/a156955085e0f01a4754e933d5369d7f.txt",
+      "status": 200,
+      "response_date": "Thu, 19 Nov 2026 04:11:49 GMT",
+      "content_type": "text/plain; charset=utf-8",
+      "body_bytes": 33,
+      "sha256": "9d0376b344611bec0f1593df7ca9dd3bd4001a1e5d1c6c267fb4445bc7a21358"
+    }
+  ],
+  "selected_findings": {
+    "telluride": {
+      "page_url": "https://snow.0xm.studio/resorts/telluride",
+      "report_date": "2026-11-18",
+      "public_claim_source": "resort",
+      "resort_object_empty": true,
+      "actual_station": "1344:CO:SNTL",
+      "station_name_from_configuration": "Alta Lakes",
+      "derived_depth_rise_in": 2,
+      "source_timestamp_unconverted": "2026-11-18 12:00",
+      "finding": "The shared helper substituted station-derived depth rise in a sentence attributing snowfall to the resort."
+    },
+    "beaver_creek": {
+      "report_date": "2026-11-18",
+      "generated_at": "2026-11-18T14:01-07:00",
+      "resort_source_timestamp": "Updated November 18, 2026 at 5:32 AM MST",
+      "grooming_source_date": "November 16, 2026",
+      "forecast_point": {
+        "lat": 39.5893,
+        "lon": -106.5214,
+        "elevation_ft": 10476
+      },
+      "ensemble_members": 212
+    },
+    "audit": {
+      "url": "https://snow.0xm.studio/audit/beaver-creek",
+      "updated": "2026-11-18T21:00-07:00",
+      "live_days": 1,
+      "replay_days": 379,
+      "limitation": "Replay precipitation and live snowfall evidence are not interchangeable."
+    }
+  }
+}
