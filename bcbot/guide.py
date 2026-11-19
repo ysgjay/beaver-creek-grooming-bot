@@ -265,7 +265,9 @@ def render(slug, summary=None, day=None, today=None):
     if r.get("cams"):
         tiles.append(("#trail-map", "Webcams", f"{len(r['cams'])} cams", "in the 0xSnow app"))
     g_time = (times.get("grooming") or {}).get("time")
-    tiles.append(("#grooming", "Grooming", f"About {g_time}" if g_time else ("Nightly PDF" if r.get("grooming_pdf") else "Not read yet"),
+    tiles.append(("#grooming", "Grooming", f"About {g_time}" if g_time else ("Nightly PDF" if r.get("grooming_pdf")
+                                                                     else "Trail status feed" if r.get("dor_api")
+                                                                     else "Not tracked yet"),
                   "usual posting time" if g_time else ""))
     if kinds.get("lift_hours"):
         tiles.append(("#season", "Lift hours", "See hours", ""))
@@ -340,6 +342,9 @@ def render(slug, summary=None, day=None, today=None):
             f'<div class="layout"><div>{"".join(sections)}</div><aside>{aside}</aside></div></article>')
     ld = [{"@context": "https://schema.org", "@type": "Article", "headline": h1,
            "url": pages.site(pages.resort_path(slug, "guide")), "author": pages._org(), "publisher": pages._org(),
-           "about": {"@type": "SkiResort", "name": name}},
+           "dateModified": max((f.get("checked") or "" for f in kinds.values() if isinstance(f, dict)), default="")
+           or None,
+           "about": {"@type": "SkiResort", "name": name, "url": r["site"],
+                     "geo": {"@type": "GeoCoordinates", "latitude": r["lat"], "longitude": r["lon"]}}},
           faq(slug, name, kinds, timing, today)]
     return title, desc, h1, body, ld

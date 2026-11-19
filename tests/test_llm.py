@@ -10,6 +10,7 @@ def test_llms_txt_lists_every_resort_with_md_and_json():
     assert t.startswith("# 0xSnow\n\n> ")
     assert "https://snow.0xm.studio/resorts/vail.md" in t and "https://snow.0xm.studio/resorts/vail.json" in t
     assert "https://snow.0xm.studio/resorts/copper/guide.md" in t and "## Utah resorts" in t
+    assert "https://snow.0xm.studio/passes/epic-blackout-dates)" in t and "ikon-blackout-dates.ics" in t
 
 
 def test_report_markdown_has_only_real_numbers():
