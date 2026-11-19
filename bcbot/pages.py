@@ -465,7 +465,7 @@ def sitemap(store):
 def _hours_line(slug, name):
     """Lift hours on the report page too: one of the most asked questions (links to the guide's hours card)."""
     from . import facts as F
-    f = (F.FACTS.get(slug) or {}).get("lift_hours")
+    f = F.public(slug).get("lift_hours")
     if not f:
         return ""
     shown = f.get("value") or "Not posted yet"
@@ -478,7 +478,7 @@ def _quick_links(slug, name):
     from . import facts as F
     r = resorts.get(slug)
     links = []
-    tm = (F.FACTS.get(slug) or {}).get("trail_map") or {}
+    tm = F.public(slug).get("trail_map") or {}
     if tm.get("value"):
         links.append(f'<a href="{escape(tm["value"])}" rel="nofollow">{escape(name)} trail map</a>')
     if r.get("cams"):

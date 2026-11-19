@@ -92,7 +92,7 @@ def _join(parts):
 def covers(slug):
     """What the page answers, in search-demand order (docs/SEO.md): trail map, opening day, blackout dates..."""
     from . import facts as F
-    have = F.FACTS.get(slug) or {}
+    have = F.public(slug)
     return [SEARCH_WORDS[k] for k in SECTION_ORDER if k in have]
 
 
@@ -108,7 +108,7 @@ def _long_day(iso):
 
 def _src(f, kind, today):
     from . import facts as F
-    flag = " · <b>re-checking</b>" if F.stale(f, kind, today) else ""
+    flag = " · <b>may be out of date, check the source</b>" if F.stale(f, kind, today) and not f.get("expired") else ""
     return (f'<p class="src">Source: <a href="{escape(f["source"])}" rel="nofollow">{escape(f.get("source_name") or f["source"])}</a>'
             f' · checked {report.mmdd(f["checked"])}{flag}</p>')
 
@@ -270,7 +270,7 @@ def render(slug, summary=None, day=None, today=None):
     today = today or pages._today_mt()
     r = resorts.get(slug)
     name = r["name"]
-    kinds = F.FACTS.get(slug) or {}
+    kinds = F.public(slug, today)
     report_url = pages.resort_path(slug)
     app = f"/?resort={slug}"
 

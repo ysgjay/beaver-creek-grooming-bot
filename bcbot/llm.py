@@ -171,7 +171,7 @@ def report_json(slug, day, dated=False):
                      "days": [{"date": f["date"], "snow_in": f["snow"], "low_in": f.get("low"), "high_in": f.get("high")}
                               for f in (fc.get("days") or [])[:10]]},
         "facts": {k: {kk: vv for kk, vv in v.items() if kk in ("value", "note", "label", "checked", "source", "source_name")}
-                  for k, v in (F.FACTS.get(slug) or {}).items()},
+                  for k, v in F.public(slug).items()},
         "attribution": f"{ORG} ({_site()}). Not affiliated with any resort. Forecast data: Open-Meteo (CC BY 4.0), NWS, NRCS SNOTEL.",
     }
 
@@ -184,7 +184,7 @@ def guide_md(slug):
     name = r["name"]
     out = [f"# {name}: resort facts", "", f"Source page: {_site(f'resorts/{slug}/guide')}  ",
            f"Region: {r['region']} · Pass: {r['pass']}", ""]
-    kinds = F.FACTS.get(slug)
+    kinds = F.public(slug)
     if not kinds:
         out += [f"0xSnow hasn't collected sourced facts for {name} yet. Opening day on file: "
                 f"{r['opening_day'].strftime('%A')} {report.mmdd(r['opening_day'])}.", ""]

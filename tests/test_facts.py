@@ -258,3 +258,17 @@ def test_fact_values_pass_sanity_checks():
                 assert "$" in v, (slug, v)
             if kind == "trail_map":
                 assert v.startswith("https://"), (slug, v)
+
+
+def test_expired_values_are_hidden_not_shown_as_current():
+    later = date(2027, 6, 1)  # long after the 11/19 checks
+    pub = facts.public("vail", later, confirmed={})
+    assert pub["lift_hours"]["value"] is None and pub["lift_hours"]["expired"]
+    assert pub["lift_hours"]["note"].startswith("Last confirmed 11/19. Check Vail: Hours of Operation")
+    assert pub["trail_map"]["value"]  # slow kinds stay, just flagged on the page
+    assert pub["opening_day"]["value"] is None  # last season's opening day
+    # A confirmation from the watch keeps it live.
+    pub = facts.public("vail", date(2026, 12, 1), confirmed={"vail|lift_hours": "2026-11-30"})
+    assert pub["lift_hours"]["value"] and pub["lift_hours"]["checked"] == "2026-11-30"
+    html = pages.guide_page("vail", {}, today=later)
+    assert "Last confirmed 11/19" in html and "9 AM to 3:30 PM daily" not in html

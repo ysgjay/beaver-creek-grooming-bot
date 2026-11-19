@@ -824,6 +824,55 @@ def last_checked(slug, kind, f, confirmed=None):
     return max(f["checked"], c) if c else f["checked"]
 
 
+# Kinds that go wrong fast. Past 4x their check interval we stop showing the value at all.
+VOLATILE = ("opening_day", "closing_day", "lift_hours", "lift_tickets")
+_CONFIRMED = {"at": None, "data": {}}
+
+
+def confirmed_dates():
+    """Dates the daily watch confirmed facts unchanged (Blob data/facts/status.json), cached 15 minutes.
+    Never raises: with no store we fall back to the checked dates in this file."""
+    now = datetime.now()
+    if _CONFIRMED["at"] and (now - _CONFIRMED["at"]).total_seconds() < 900:
+        return _CONFIRMED["data"]
+    try:
+        from .store import get_store
+        data = (get_store().get_json("data/facts/status.json", {}) or {}).get("confirmed") or {}
+    except Exception:
+        data = {}
+    _CONFIRMED.update(at=now, data=data)
+    return data
+
+
+def expired(f, kind, today=None):
+    """Too old to show: a volatile fact past 4x its check interval, or a date from a past season."""
+    today = today or date.today()
+    if kind in VOLATILE and (today - date.fromisoformat(f["checked"])).days > 4 * interval_days(kind, today):
+        return True
+    v = f.get("value")
+    if kind in ("opening_day", "closing_day") and v and re.fullmatch(r"\d{4}-\d\d-\d\d", v):
+        return (today - date.fromisoformat(v)).days > 240  # last season's date
+    return False
+
+
+def public(slug, today=None, confirmed=None):
+    """A resort's facts as the public pages, llms.txt and JSON should show them: checked dates include
+    the watch's confirmations, and an expired value is replaced by a pointer to the source page, so we
+    never show an old value as current."""
+    today = today or date.today()
+    confirmed = confirmed_dates() if confirmed is None else confirmed
+    out = {}
+    for kind, f in (FACTS.get(slug) or {}).items():
+        f = dict(f, checked=last_checked(slug, kind, f, confirmed))
+        if f.get("value") is not None and expired(f, kind, today):
+            name = f.get("source_name") or "the resort's page"
+            f = dict(f, value=None, expired=True, maps=None,
+                     note=f"Last confirmed {int(f['checked'][5:7])}/{int(f['checked'][8:10])}. Check {name} for the current {SHORT[kind]}.")
+            f = {k: v for k, v in f.items() if v is not None or k == "value"}
+        out[kind] = f
+    return out
+
+
 def stale(f, kind, today=None):
     """Shown on the page when a fact is more than twice its check interval old."""
     today = today or date.today()
