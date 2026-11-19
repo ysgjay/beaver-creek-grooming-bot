@@ -1039,11 +1039,9 @@
         <div class="snow-grid">
           <div><span class="label">Days 1–5</span><span class="big">${inch(fc.next_1_5)}</span><span class="sub">${fc.next_1_5_range ? `likely ${inch(fc.next_1_5_range[0])}–${inch(fc.next_1_5_range[1])}` : ""}</span></div>
           <div><span class="label">Days 6–10</span><span class="mid">${inch(fc.next_6_10)}</span><span class="sub">${fc.next_6_10_range ? `${inch(fc.next_6_10_range[0])}–${inch(fc.next_6_10_range[1])}` : ""}</span></div>
-          <div><span class="label">6"+ day odds</span><span class="mid">${fc.powder_odds_pct == null ? "–" : fc.powder_odds_pct + "%"}</span><span class="sub">first 5 forecast days</span></div>
         </div>
         <div id="fc-chart" class="chart-scroll" aria-label="Daily snowfall; scroll to see later days">${days.length ? "" : '<p class="muted small">No daily forecast available.</p>'}</div>
         ${days.length ? `<div class="chart-controls"><span>Swipe for later days</span><button type="button" data-scroll="-1" aria-label="Earlier forecast days">←</button><button type="button" data-scroll="1" aria-label="Later forecast days">→</button></div>` : ""}
-        ${fc.powder_odds_pct == null ? "" : `<p class="powder-note">${fc.powder_odds_pct}% chance of a 6″+ day · first 5 forecast days</p>`}
         <div class="legend stake-legend"><span><i style="background:var(--snow-fill);border:1px solid var(--accent)"></i>Expected</span><span><i class="hatch"></i>Could reach</span><span><i class="notch"></i>Low end</span><span class="pick-hint">Tap a day for the range and models.</span></div>
       </section>
 
@@ -1065,7 +1063,7 @@
             <li>Public weather models (NOAA's GFS, HRRR and National Blend, ECMWF, ICON, GEM, UKMO) for a point on the upper mountain, not the town below, with temperature corrected to that elevation. The NWS forecasters' snowfall joins as one more voice.</li>
             <li>Liquid precipitation becomes snow with a temperature-based ratio tuned for dry Colorado snow, about 15 to 1 in the teens. Humidity decides rain or snow near freezing.</li>
             <li>Every model is scored daily against the ${esc(resortInfo().snotel || "nearest")} SNOTEL gauge, starting from how it did last winter. Models that run dry here are scaled up, and models that keep missing get less weight. The total is then checked against the resort's own snow report.</li>
-            <li>High-resolution models lead for 48 hours, global models after that. ${fc.ensemble_members ? `${fc.ensemble_members} ensemble runs` : "Ensemble runs"} from six forecast centers, including ECMWF's AI model, give the range and the powder odds. The top of the range is never below any model's own call.</li>
+            <li>High-resolution models lead for 48 hours, global models after that. ${fc.ensemble_members ? `${fc.ensemble_members} ensemble runs` : "Ensemble runs"} from six forecast centers, including ECMWF's AI model, give the range. The top of the range is never below any model's own call.</li>
             ${S.latest?.mountain?.discussion ? `<li>For the reasoning behind a storm, read the <a href="${esc(S.latest.mountain.discussion.url)}" target="_blank" rel="noopener">NWS ${esc(S.latest.mountain.discussion.office)} forecasters' discussion</a>.</li>` : ""}
           </ol>
         </details>
