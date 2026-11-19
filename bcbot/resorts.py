@@ -473,9 +473,9 @@ RESORTS = {
     "lake-louise": {
         "name": "Lake Louise", "region": "Alberta", "pass": "Ikon",
         "site": "https://www.skilouise.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 51.4679, "lon": -116.1642, "elevation_ft": 6800,
-        "bands": _bands((51.4409, -116.1642, 5400, "base"), (51.4679, -116.1642, 6800, "Whitehorn"),
-                        (51.4922, -116.1353, 8650, "summit")),
+        "lat": 51.4530, "lon": -116.1400, "elevation_ft": 6800,
+        "bands": _bands((51.4409, -116.1642, 5400, "base"), (51.4530, -116.1400, 6800, "Whitehorn"),
+                        (51.4676, -116.1417, 8650, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-01",  # opened
         "enabled": False, "stage": "shadow",
@@ -534,9 +534,9 @@ RESORTS = {
     "tremblant": {
         "name": "Tremblant", "region": "Quebec", "pass": "Ikon",
         "site": "https://www.tremblant.ca", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 46.2180, "lon": -74.5700, "elevation_ft": 2000,
-        "bands": _bands((46.2090, -74.5850, 755, "Village"), (46.2180, -74.5700, 2000, "mid-mountain"),
-                        (46.2265, -74.5560, 2871, "summit")),
+        "lat": 46.2160, "lon": -74.5670, "elevation_ft": 2000,
+        "bands": _bands((46.2090, -74.5850, 755, "Village"), (46.2160, -74.5670, 2000, "mid-mountain"),
+                        (46.2200, -74.5525, 2871, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/Toronto", "opening_day": "2026-11-26",  # announced
         "enabled": False, "stage": "shadow",
@@ -544,9 +544,9 @@ RESORTS = {
     "sugarbush": {
         "name": "Sugarbush", "region": "Vermont", "pass": "Ikon",
         "site": "https://www.sugarbush.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 44.1400, "lon": -72.9100, "elevation_ft": 2500,
-        "bands": _bands((44.1360, -72.8940, 1483, "Lincoln Peak base"), (44.1400, -72.9100, 2500, "mid-mountain"),
-                        (44.1440, -72.9300, 3975, "Lincoln Peak")),
+        "lat": 44.1315, "lon": -72.9112, "elevation_ft": 2500,
+        "bands": _bands((44.1360, -72.8940, 1483, "Lincoln Peak base"), (44.1315, -72.9112, 2500, "mid-mountain"),
+                        (44.1269, -72.9281, 3975, "Lincoln Peak")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
         "enabled": False, "stage": "shadow",
@@ -554,8 +554,8 @@ RESORTS = {
     "stratton": {
         "name": "Stratton", "region": "Vermont", "pass": "Ikon",
         "site": "https://www.stratton.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 43.1080, "lon": -72.9150, "elevation_ft": 2900,
-        "bands": _bands((43.1130, -72.9070, 1872, "base"), (43.1080, -72.9150, 2900, "mid-mountain"),
+        "lat": 43.1041, "lon": -72.9200, "elevation_ft": 2900,
+        "bands": _bands((43.1130, -72.9070, 1872, "base"), (43.1041, -72.9200, 2900, "mid-mountain"),
                         (43.1010, -72.9240, 3370, "upper mountain")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-18",  # announced
@@ -566,7 +566,7 @@ RESORTS = {
         "site": "https://www.snowshoemtn.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 38.4100, "lon": -80.0020, "elevation_ft": 4100,
         # Upside down: the village sits at the top and the runs drop below it.
-        "bands": _bands((38.4080, -80.0080, 3348, "base"), (38.4100, -80.0020, 4100, "mid-mountain"),
+        "bands": _bands((38.4059, -80.0210, 3348, "base"), (38.4100, -80.0020, 4100, "mid-mountain"),
                         (38.4110, -79.9940, 4848, "Village")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-25",  # announced
@@ -581,7 +581,7 @@ RESORTS = {
         "name": "Sugarloaf", "region": "Maine", "pass": "Ikon",
         "site": "https://www.sugarloaf.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 45.0400, "lon": -70.3100, "elevation_ft": 2800,
-        "bands": _bands((45.0540, -70.3090, 1417, "base"), (45.0400, -70.3100, 2800, "mid-mountain"),
+        "bands": _bands((45.0640, -70.3100, 1417, "base"), (45.0400, -70.3100, 2800, "mid-mountain"),
                         (45.0314, -70.3131, 4237, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-20",  # Ikon list
@@ -600,8 +600,8 @@ RESORTS = {
     "loon": {
         "name": "Loon Mountain", "region": "New Hampshire", "pass": "Ikon",
         "site": "https://www.loonmtn.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 44.0450, "lon": -71.6380, "elevation_ft": 2000,
-        "bands": _bands((44.0563, -71.6299, 950, "base"), (44.0450, -71.6380, 2000, "mid-mountain"),
+        "lat": 44.0445, "lon": -71.6288, "elevation_ft": 2000,
+        "bands": _bands((44.0563, -71.6299, 950, "base"), (44.0445, -71.6288, 2000, "mid-mountain"),
                         (44.0360, -71.6210, 3050, "North Peak")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
@@ -612,7 +612,7 @@ RESORTS = {
         "site": "https://whiteface.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 44.3600, "lon": -73.8800, "elevation_ft": 2400,
         "bands": _bands((44.3600, -73.8590, 1220, "base"), (44.3600, -73.8800, 2400, "Mid Station"),
-                        (44.3660, -73.9030, 4386, "Lookout Mountain")),
+                        (44.3634, -73.8995, 4386, "Lookout Mountain")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-26",  # est.
         "enabled": False, "stage": "shadow",
@@ -650,8 +650,8 @@ RESORTS = {
     "grand-targhee": {
         "name": "Grand Targhee", "region": "Wyoming", "pass": "Mountain Collective",
         "site": "https://www.grandtarghee.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 43.7800, "lon": -110.9420, "elevation_ft": 9000,
-        "bands": _bands((43.7890, -110.9580, 7851, "base"), (43.7800, -110.9420, 9000, "mid-mountain"),
+        "lat": 43.7883, "lon": -110.9448, "elevation_ft": 9000,
+        "bands": _bands((43.7890, -110.9580, 7851, "base"), (43.7883, -110.9448, 9000, "mid-mountain"),
                         (43.7870, -110.9340, 9862, "Fred's Mountain")),
         "snotel": ["1082:WY:SNTL"], "snotel_label": "Grand Targhee",
         "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-21",  # est.; the resort says it is delaying opening day, no date yet
@@ -660,9 +660,9 @@ RESORTS = {
     "revelstoke": {
         "name": "Revelstoke", "region": "British Columbia", "pass": "Ikon",
         "site": "https://www.revelstokemountainresort.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 50.9390, "lon": -118.0930, "elevation_ft": 5600,
-        "bands": _bands((50.9580, -118.1640, 1680, "base"), (50.9390, -118.0930, 5600, "Mackenzie Outpost"),
-                        (50.9530, -118.2300, 7300, "summit")),
+        "lat": 50.9571, "lon": -118.1161, "elevation_ft": 5600,
+        "bands": _bands((50.9580, -118.1640, 1680, "base"), (50.9571, -118.1161, 5600, "Mackenzie Outpost"),
+                        (50.9640, -118.1031, 7300, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-05",  # announced
         "enabled": False, "stage": "shadow",
@@ -682,7 +682,7 @@ RESORTS = {
         "site": "https://skiloveland.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 39.6700, "lon": -105.9050, "elevation_ft": 11500,
         "bands": _bands((39.6800, -105.8980, 10800, "Loveland Basin"), (39.6700, -105.9050, 11500, "mid-mountain"),
-                        (39.6600, -105.9100, 13010, "summit")),
+                        (39.6622, -105.9098, 13010, "summit")),
         "snotel": ["602:CO:SNTL", "505:CO:SNTL"], "snotel_label": "Loveland Basin",
         "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-07",  # opened
         "enabled": False, "stage": "shadow",
@@ -691,8 +691,8 @@ RESORTS = {
         "name": "Wolf Creek", "region": "Colorado", "pass": "Independent",
         "site": "https://wolfcreekski.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 37.4700, "lon": -106.8000, "elevation_ft": 11000,
-        "bands": _bands((37.4740, -106.7930, 10300, "base"), (37.4700, -106.8000, 11000, "mid-mountain"),
-                        (37.4650, -106.8100, 11904, "summit")),
+        "bands": _bands((37.4734, -106.7861, 10300, "base"), (37.4700, -106.8000, 11000, "mid-mountain"),
+                        (37.4560, -106.7951, 11904, "summit")),
         "snotel": ["874:CO:SNTL", "840:CO:SNTL"], "snotel_label": "Wolf Creek Summit",
         "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-10-31",  # opened
         "enabled": False, "stage": "shadow",
@@ -711,8 +711,8 @@ RESORTS = {
         "name": "Big White", "region": "British Columbia", "pass": "Indy",
         "site": "https://www.bigwhite.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 49.7210, "lon": -118.9290, "elevation_ft": 5757,
-        "bands": _bands((49.7180, -118.9250, 4950, "base"), (49.7210, -118.9290, 5757, "Village"),
-                        (49.7330, -118.9440, 7606, "summit")),
+        "bands": _bands((49.7450, -118.9820, 4950, "base"), (49.7210, -118.9290, 5757, "Village"),
+                        (49.7444, -118.9354, 7606, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-11-26",  # est.
         "enabled": False, "stage": "shadow",
