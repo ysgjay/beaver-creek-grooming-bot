@@ -6,6 +6,7 @@ GET /api/page?resort=vail&date=...    -> that day's archived report
 GET /api/page?resort=colorado         -> every Colorado resort in one table (also utah)
 GET /api/page?resort=vail&date=guide  -> how Vail's report works (evergreen)
 GET /api/page?feed=1[&resort=vail]    -> RSS: newest post per resort, or one resort's posts
+GET /api/page?pass=epic-blackout-dates -> Epic (or Ikon) blackout dates, with "is today blacked out?"
 GET /api/page?sitemap=1               -> sitemap.xml
 (vercel.json rewrites the clean URLs /resorts, /resorts/<slug>[/<date>] and /sitemap.xml here.)
 """
@@ -68,6 +69,11 @@ class handler(Handler):
                 return self.send(200, pages.sitemap(store), "application/xml", "public, s-maxage=3600")
             if self.query("llms"):
                 return self.send(200, llm.llms_txt(), "text/plain", "public, max-age=3600, s-maxage=86400")
+            pass_key = self.query("pass")
+            if pass_key:
+                if pass_key not in pages.PASSES:
+                    return self.not_found()
+                return self.send(200, pages.pass_page(pass_key), cache="public, max-age=600, s-maxage=3600")
             slug, day_str = self.query("resort"), self.query("date")
             fmt = None
             for ext in ("md", "json"):

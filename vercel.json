@@ -44,6 +44,10 @@
       "destination": "/api/page"
     },
     {
+      "source": "/passes/:pass",
+      "destination": "/api/page?pass=:pass"
+    },
+    {
       "source": "/resorts/:slug",
       "destination": "/api/page?resort=:slug"
     },

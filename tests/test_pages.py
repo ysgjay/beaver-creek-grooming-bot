@@ -19,18 +19,19 @@ DAY = {
 
 def test_summary_uses_only_real_numbers():
     s = pages.summary(dict(DAY, resort_name="Vail"))
-    assert s[0] == "Vail grooming and snow report for Wednesday 11/18: 4 runs groomed, including Born Free, Riva Ridge."
+    assert s[0] == "Vail snow report for Wednesday 11/18: 4 runs groomed, including Born Free, Riva Ridge."
     assert 'The resort reports 3" of new snow in the last 24 hours, 18" base and 31" so far this season.' in s
     assert "The snow report posted at 6:42 AM." in s
     assert any(x.startswith("Expect 20°F at 8 AM") and "gusts to 26 mph" in x for x in s)
     assert 'The next 5 days look like 2 to 7" of snow, most likely 4".' in s
     bare = pages.summary({"date": "2026-11-18", "resort_name": "Alta"})
-    assert bare == ["Alta grooming and snow report for Wednesday 11/18."]
+    assert bare == ["Alta snow report for Wednesday 11/18."]
 
 
 def test_resort_page_is_crawlable_html_with_seo_tags():
     html = pages.resort_page("vail", DAY, ["2026-11-18", "2026-11-17", "2026-11-16"])
-    assert "<title>Vail grooming report today and snow forecast | 0xSnow</title>" in html
+    assert "<title>Vail snow report today (11/18): grooming and forecast | 0xSnow</title>" in html
+    assert "Vail trail map" in html and "Epic Pass blackout dates" in html and "Grooming map PDF" in html
     assert '<link rel="canonical" href="https://snow.0xm.studio/resorts/vail">' in html
     assert "4 runs groomed" in html and "Born Free" in html and "maps/vail/2026-11-18.jpg" in html
     assert 'href="/resorts/vail/2026-11-17"' in html and 'href="/resorts/vail/2026-11-18"' not in html
@@ -43,7 +44,7 @@ def test_resort_page_is_crawlable_html_with_seo_tags():
 def test_dated_post_has_its_own_canonical_and_blogposting():
     html = pages.resort_page("vail", DAY, ["2026-11-18"], dated=True)
     assert '<link rel="canonical" href="https://snow.0xm.studio/resorts/vail/2026-11-18">' in html
-    assert '"@type":"BlogPosting"' in html and "Vail grooming report, Wed 11/18" in html
+    assert '"@type":"BlogPosting"' in html and "Vail snow report, Wed 11/18" in html
 
 
 def test_archive_index_backfills_from_listing_then_appends(tmp_path):
@@ -160,3 +161,20 @@ def test_report_page_without_map_or_grooming():
     day = {"date": "2026-11-18", "resort": {"last_24h_in": 0}}
     html = pages.resort_page("alta", day, ["2026-11-18"])
     assert "hasn't posted grooming for this day" in html and "First chair to last" not in html
+
+
+def test_pass_pages_answer_is_today_blacked_out():
+    from datetime import date
+    assert pages.pass_status("epic-blackout-dates", date(2026, 11, 27))[0] is True
+    on, nxt = pages.pass_status("epic-blackout-dates", date(2026, 11, 19))
+    assert on is False and nxt[0] == "2026-11-27"
+    assert pages.pass_status("ikon-blackout-dates", date(2027, 3, 1)) == (False, None)
+    html = pages.pass_page("epic-blackout-dates", date(2026, 11, 19))
+    assert "<h1 class=\"page\">Epic Pass blackout dates 2026/27</h1>" in html
+    assert "The next one is Fri 11/27 to Sat 11/28 (Thanksgiving), 8 days away." in html
+    assert "restricted peak dates" in html and 'href="/resorts/vail"' in html
+    for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html):
+        json.loads(block)
+    html = pages.pass_page("ikon-blackout-dates", date(2026, 12, 27))
+    assert "Yes. Today (12/27) is a blackout date for the Ikon Base Pass." in html
+    assert 'href="/resorts/copper"' in html
