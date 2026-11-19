@@ -717,6 +717,129 @@ RESORTS = {
         "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-11-26",  # est.
         "enabled": False, "stage": "shadow",
     },
+    # ---------- Wave 4 (11/19/2026): shadow mode only ----------
+    # Smaller independents. Forecast + snow stations until the page reader exists. Opening days (est.) and pass
+    # labels get checked before launch.
+    "powder-mountain": {
+        "name": "Powder Mountain", "region": "Utah", "pass": "Independent",
+        "site": "https://powdermountain.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 41.3775, "lon": -111.7826, "elevation_ft": 8000,
+        "bands": _bands((41.3600, -111.8075, 6900, "base"), (41.3775, -111.7826, 8000, "mid-mountain"),
+                        (41.3914, -111.7931, 9422, "James Peak")),
+        "snotel": ["1300:UT:SNTL", "582:UT:SNTL"], "snotel_label": "Powder Mountain",
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-11",  # announced
+        "enabled": False, "stage": "shadow",
+    },
+    "saddleback": {
+        "name": "Saddleback", "region": "Maine", "pass": "Indy",
+        "site": "https://www.saddlebackmaine.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.9420, "lon": -70.5150, "elevation_ft": 3200,
+        "bands": _bands((44.9520, -70.5300, 2120, "base"), (44.9420, -70.5150, 3200, "mid-mountain"),
+                        (44.9360, -70.5050, 4120, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-27",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "holiday-valley": {
+        "name": "Holiday Valley", "region": "New York", "pass": "Independent",
+        "site": "https://www.holidayvalley.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 42.2605, "lon": -78.6770, "elevation_ft": 1900,
+        "bands": _bands((42.2625, -78.6655, 1500, "base"), (42.2605, -78.6770, 1900, "mid-mountain"),
+                        (42.2573, -78.6825, 2250, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-12-05",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "bretton-woods": {
+        "name": "Bretton Woods", "region": "New Hampshire", "pass": "Independent",
+        "site": "https://www.brettonwoods.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.2480, "lon": -71.4620, "elevation_ft": 2300,
+        "bands": _bands((44.2575, -71.4425, 1500, "base"), (44.2480, -71.4620, 2300, "mid-mountain"),
+                        (44.2400, -71.4600, 3100, "Mt. Rosebrook")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "smugglers-notch": {
+        "name": "Smugglers' Notch", "region": "Vermont", "pass": "Indy",
+        "site": "https://www.smuggs.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.5660, "lon": -72.7681, "elevation_ft": 2500,
+        "bands": _bands((44.5880, -72.7890, 1030, "Morse base"), (44.5660, -72.7681, 2500, "mid-mountain"),
+                        (44.5610, -72.7592, 3640, "Madonna summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-12-05",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "mad-river-glen": {
+        "name": "Mad River Glen", "region": "Vermont", "pass": "Independent",
+        "site": "https://www.madriverglen.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.1963, "lon": -72.9276, "elevation_ft": 2800,
+        "bands": _bands((44.2030, -72.9170, 1600, "base"), (44.1963, -72.9276, 2800, "mid-mountain"),
+                        (44.1940, -72.9340, 3637, "General Stark")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-12-12",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "cannon": {
+        "name": "Cannon Mountain", "region": "New Hampshire", "pass": "Indy",
+        "site": "https://www.cannonmt.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.1635, "lon": -71.6916, "elevation_ft": 3000,
+        "bands": _bands((44.1695, -71.6870, 2000, "Tram base"), (44.1635, -71.6916, 3000, "mid-mountain"),
+                        (44.1563, -71.6985, 4080, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-27",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "waterville-valley": {
+        "name": "Waterville Valley", "region": "New Hampshire", "pass": "Indy",
+        "site": "https://www.waterville.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 43.9661, "lon": -71.5474, "elevation_ft": 3000,
+        "bands": _bands((43.9650, -71.5270, 1984, "base"), (43.9661, -71.5474, 3000, "mid-mountain"),
+                        (43.9663, -71.5567, 4004, "Mt. Tecumseh")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-27",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "purgatory": {
+        "name": "Purgatory", "region": "Colorado", "pass": "Independent",
+        "site": "https://www.purgatory.ski", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 37.6250, "lon": -107.8300, "elevation_ft": 9800,
+        "bands": _bands((37.6300, -107.8150, 8793, "base"), (37.6250, -107.8300, 9800, "mid-mountain"),
+                        (37.6200, -107.8400, 10822, "summit")),
+        "snotel": ["387:CO:SNTL", "780:CO:SNTL"], "snotel_label": "Cascade #2",
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-20",  # announced
+        "enabled": False, "stage": "shadow",
+    },
+    "tamarack": {
+        "name": "Tamarack", "region": "Idaho", "pass": "Indy",
+        "site": "https://tamarackidaho.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.6750, "lon": -116.1450, "elevation_ft": 6500,
+        "bands": _bands((44.6700, -116.1220, 4900, "base"), (44.6750, -116.1450, 6500, "mid-mountain"),
+                        (44.6727, -116.1649, 7700, "summit")),
+        "snotel": ["1016:ID:SNTL", "782:ID:SNTL"], "snotel_label": "Long Valley",
+        "cams": [], "patrol": None, "tz": "America/Boise", "opening_day": "2026-12-12",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "sun-peaks": {
+        "name": "Sun Peaks", "region": "British Columbia", "pass": "Mountain Collective",
+        "site": "https://www.sunpeaksresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 50.8970, "lon": -119.9040, "elevation_ft": 5800,
+        "bands": _bands((50.8840, -119.8860, 4117, "Village"), (50.8970, -119.9040, 5800, "mid-mountain"),
+                        (50.9089, -119.9266, 6824, "Tod Mountain")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-11-21",  # announced
+        "enabled": False, "stage": "shadow",
+    },
+    "mt-baker": {
+        "name": "Mt. Baker", "region": "Washington", "pass": "Independent",
+        "site": "https://www.mtbaker.us", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 48.8600, "lon": -121.6800, "elevation_ft": 4200,
+        "bands": _bands((48.8617, -121.6570, 3500, "White Salmon"), (48.8600, -121.6800, 4200, "mid-mountain"),
+                        (48.8527, -121.6776, 5089, "Panorama Dome")),
+        "snotel": ["909:WA:SNTL", "999:WA:SNTL"], "snotel_label": "Wells Creek",
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-27",  # est.
+        "enabled": False, "stage": "shadow",
+    },
 }
 
 SNOW_REPORT_PATH = "/the-mountain/mountain-conditions/snow-and-weather-report.aspx"

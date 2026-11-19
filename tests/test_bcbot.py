@@ -1386,6 +1386,12 @@ def test_wave_2_resorts_are_in_shadow_and_read_no_resort_page_yet():
 def test_wave_3_and_4_resorts_are_in_shadow():
     wave3 = ["sugarloaf", "sunday-river", "loon", "whiteface", "gore", "taos", "whitefish", "grand-targhee", "revelstoke",
              "jay-peak", "loveland", "wolf-creek", "mt-hood-meadows", "big-white"]
-    for slug in wave3:
+    wave4 = ["powder-mountain", "saddleback", "holiday-valley", "bretton-woods", "smugglers-notch", "mad-river-glen",
+             "cannon", "waterville-valley", "purgatory", "tamarack", "sun-peaks", "mt-baker"]
+    for slug in wave3 + wave4:
         assert slug in resorts.shadow() and slug not in resorts.enabled(), slug
         assert resorts.get(slug)["snow_report"] is None and resorts.is_static(slug), slug
+
+
+def test_the_next_50_are_all_registered():
+    assert len(resorts.RESORTS) == 72 and len(resorts.shadow()) == 50

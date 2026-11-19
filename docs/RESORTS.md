@@ -103,6 +103,18 @@ resort page read yet. Opening days and pass labels were checked 11/19 (Ikon, Mou
 Grand Targhee and Loon have no date yet. Whiteface is Mountain Collective, Gore is on no multi-resort pass, and Loveland,
 Mt. Hood Meadows and Big White are Indy.
 
+### Wave 4 (added 11/19/2026, shadow mode)
+
+Smaller independents: Powder Mountain (SNOTEL Powder Mountain 1300), Saddleback, Holiday Valley, Bretton Woods,
+Smugglers' Notch, Mad River Glen, Cannon, Waterville Valley, Purgatory (Cascade #2 387), Tamarack (Long Valley 1016),
+Sun Peaks and Mt. Baker (Wells Creek 909). Same setup as Waves 2 and 3. Passes checked 11/19: Saddleback, Smugglers'
+Notch, Cannon, Waterville Valley and Tamarack are Indy; Sun Peaks is Mountain Collective. Announced openings: Purgatory
+11/20, Sun Peaks 11/21, Powder Mountain 12/11; the rest are estimates.
+
+Base/mid/peak points for all 50 were terrain-checked 11/19 (Copernicus and Terrarium DEMs): each sits within about
+300 ft of its stated elevation on the ski area. Re-check against the trail map before launch. With Wave 4 all 50 resorts in the plan are
+registered: 22 live, 50 in shadow.
+
 ## What differs between resorts
 - **Grooming map layouts.** Beaver Creek's PDF has "Groomers of the day", "Last night's grooming" and
   "Morning grooming" sections with number and name on alternating lines. Vail's lists runs under area
