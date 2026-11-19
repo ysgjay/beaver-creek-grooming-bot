@@ -16,6 +16,7 @@ All of it lives in `bcbot/facts.py`.
    - `IKON_BASE_DATES`: Ikon Base Pass blackout dates.
    - `ANNOUNCED`: opening and closing dates from the Vail Resorts release, the Ikon dates page or the resort.
    - `TRAIL_MAPS`: official trail map pages.
+   - `LIFT_HOURS`: lift hours from each resort's own hours page (WebFetch reads most of them, Vail Resorts sites included).
    When a pass changes, edit the table once and set `CHECKED_SHARED` to the day you read it.
 2. **`CURATED` (hand-checked per resort).** Anything read from the resort's own site: hours, ticket prices, lessons,
    exact map PDFs. A `CURATED` entry wins over the shared tables for that fact.

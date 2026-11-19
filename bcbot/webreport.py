@@ -11,7 +11,6 @@ from . import mailer, report
 from .mailer import DISPLAY, MONO
 
 CSS = f"""
-.wrap.wide{{max-width:1040px}}
 .wrap.wide .lead,.wrap.wide .cta{{max-width:760px}}
 .rp .card{{background:var(--paper);border:1px solid var(--edge);border-radius:20px;box-shadow:var(--shadow);padding:16px;margin:0 0 14px}}
 .rp h2{{margin:0 0 10px}}
@@ -58,6 +57,14 @@ ol.days .r{{display:block;color:var(--snow);min-height:1.25em}}
  .rp .cols+.actions{{margin-top:14px}}
  ol.days{{grid-template-columns:repeat(5,1fr)}}
  h1.page{{font-size:30px}}
+}}
+@media (min-width:1200px){{
+ .rp:not(.gd){{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);column-gap:14px;align-items:start}}
+ .rp:not(.gd)>.ticket{{grid-column:2;grid-row:1}}
+ .rp:not(.gd)>#grooming{{grid-column:1;grid-row:1 / span 2}}
+ .rp:not(.gd)>.cols{{grid-column:2;grid-row:2;display:block}}
+ .rp:not(.gd)>.cols .card{{margin:0 0 14px}}
+ .rp:not(.gd)>.actions{{grid-column:1 / -1}}
 }}
 @media (max-width:420px){{.ticket .tk-stub{{width:92px}} dl.stats{{grid-template-columns:1fr 1fr}} table.hours th{{padding-right:2px;font-size:9px}} .rp .card{{padding:14px 12px}}}}
 """
