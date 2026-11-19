@@ -349,7 +349,8 @@ def hub_page():
         body += (f"<h2>{escape(region)}</h2><p style=\"margin:0 0 6px\"><a href=\"{resort_path(region.lower())}\">"
                  f"{escape(region)} snow report today: every resort in one table</a></p><ul class=\"list\">") + "".join(
             f'<li><a href="{resort_path(r["slug"])}">{escape(r["name"])} snow report</a> '
-            f'<span style="color:var(--ink2);font-size:13px">({escape(r["pass"])} pass)</span></li>'
+            f'<span style="color:var(--ink2);font-size:13px">({escape(r["pass"])} pass) · '
+            f'<a href="{resort_path(r["slug"], "guide")}">guide</a></span></li>'
             for r in sorted(groups[region], key=lambda r: r["name"])) + "</ul>"
     body += ('<h2>Pass blackout dates</h2><ul class="list">'
              + "".join(f'<li><a href="/passes/{k}">{escape(v["h1"])}</a></li>' for k, v in PASSES.items()) + "</ul>")

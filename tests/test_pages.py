@@ -67,6 +67,7 @@ def test_sitemap_and_hub_list_every_resort(tmp_path):
     assert "<loc>https://snow.0xm.studio/resorts/alta</loc>" in xml
     hub = pages.hub_page()
     assert 'href="/resorts/snowbird"' in hub and "<h2>Utah</h2>" in hub and "<h2>Colorado</h2>" in hub
+    assert 'href="/resorts/snowbird/guide"' in hub  # every resort's guide is one click from the hub
 
 
 def test_valid_date_rejects_junk():
@@ -190,3 +191,12 @@ def test_pass_calendar_marks_blackout_days_and_ics_has_one_event_per_range():
     ics = pages.pass_ics("ikon-blackout-dates")
     assert ics.count("BEGIN:VEVENT") == 3
     assert "DTSTART;VALUE=DATE:20261226\r\nDTEND;VALUE=DATE:20261231" in ics
+
+
+def test_guide_article_ld_has_date_and_resort_details():
+    html = pages.guide_page("vail", None, None)
+    blocks = [json.loads(b) for b in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html)]
+    art = next(b for b in blocks if b.get("@type") == "Article")
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", art["dateModified"])
+    assert art["about"]["geo"]["latitude"] and art["about"]["url"].startswith("https://")
+    assert "Not read yet" not in pages.guide_page("alta", None, None)

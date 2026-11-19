@@ -67,6 +67,11 @@ def llms_txt():
             lines.append(f"- [{r['name']} report today]({_site(f'resorts/{s}.md')}): grooming, new snow, base, hourly "
                          f"weather and snow forecast ({r['pass']} pass). JSON: {_site(f'resorts/{s}.json')}. "
                          f"Resort facts: {_site(f'resorts/{s}/guide.md')}")
+    from . import pages  # local: pages imports this module
+    lines += ["", "## Pass blackout dates", ""]
+    for key, p in pages.PASSES.items():
+        lines.append(f"- [{p['h1']}]({_site(f'passes/{key}')}): every blackout date, which passes they apply to and "
+                     f"which resorts each pass covers. Calendar file: {_site(f'passes/{key}.ics')}")
     lines += ["", "## Optional", "",
               f"- [Sitemap]({_site('sitemap.xml')}): every page, including dated archive reports",
               f"- [RSS feed]({_site('feed.xml')}): the newest report for each resort",
