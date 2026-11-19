@@ -299,9 +299,9 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 
 /* Radar card on the Forecast tab: a fixed tile grid centred on the resort. */
 .radar-map { position: relative; width: 100%; height: 260px; max-width: 768px; margin-inline: auto; overflow: hidden; border-radius: 10px; border: 1px solid var(--line); background: var(--radar-land, #e6eff8); }
-/* Frost base map: the street map drained to one pale blue tone, so only the radar and the resorts carry colour. */
+/* Fallback base map: the street map drained to one warm gray tone, so only the blue radar and the resorts carry colour. */
 .radar-base { filter: grayscale(1) contrast(.82) brightness(1.1); }
-.radar-tint { position: absolute; inset: 0; background: #cfe2f6; mix-blend-mode: multiply; pointer-events: none; }
+.radar-tint { position: absolute; inset: 0; background: #f2f1ee; mix-blend-mode: multiply; pointer-events: none; }
 .radar-tiles { position: absolute; display: grid; grid-template-columns: repeat(4, 256px); width: 1024px; height: 768px; }
 .radar-tiles img { display: block; width: 256px; height: 256px; }
 .radar-frame { opacity: 0; pointer-events: none; }
