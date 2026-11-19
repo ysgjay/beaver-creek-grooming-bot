@@ -304,13 +304,14 @@ RESORTS = {
     # "stage": "shadow" = the Render worker runs these in shadow mode (no sends, nothing shown in the app)
     # until their readers have matched the resorts' own pages for 3 days. Then set enabled True and drop stage.
     # Snow report path and Brown Rice cam ids were checked on each site 11/19/2026. None posts a Lumiplan
-    # grooming map. Points are approximate on-mountain spots; check them against the trail map when tuning.
+    # grooming map. Base/mid/peak points were snapped 11/19 to the nearest terrain at their stated elevation (Copernicus
+    # 90 m DEM via the Open-Meteo elevation API); check them against the trail map when tuning.
     "whistler-blackcomb": {
         "name": "Whistler Blackcomb", "region": "British Columbia", "pass": "Epic",
         "site": "https://www.whistlerblackcomb.com", "grooming_pdf": None,
-        "lat": 50.0670, "lon": -122.9480, "elevation_ft": 6069,
-        "bands": _bands((50.1145, -122.9540, 2214, "Whistler Village"), (50.0670, -122.9480, 6069, "Roundhouse"),
-                        (50.0610, -122.9580, 7160, "Whistler Peak")),
+        "lat": 50.0682, "lon": -122.9575, "elevation_ft": 6069,
+        "bands": _bands((50.1151, -122.9561, 2214, "Whistler Village"), (50.0682, -122.9575, 6069, "Roundhouse"),
+                        (50.0583, -122.9561, 7160, "Whistler Peak")),
         "snotel": [], "snotel_label": None,  # no SNOTEL in Canada
         "cams": _cams([("whistlerroundhouse", "Roundhouse"), ("whistlerpeak", "Whistler Peak"),
                        ("whistlerblackcomb", "Blackcomb"), ("whistlersnowstack", "Snow stake"),
@@ -321,9 +322,9 @@ RESORTS = {
     "heavenly": {
         "name": "Heavenly", "region": "California", "pass": "Epic",
         "site": "https://www.skiheavenly.com", "grooming_pdf": None,
-        "lat": 38.9200, "lon": -119.9150, "elevation_ft": 8500,
-        "bands": _bands((38.9350, -119.9400, 6565, "California Lodge"), (38.9200, -119.9150, 8500, "mid-mountain"),
-                        (38.9050, -119.8920, 10067, "Monument Peak")),
+        "lat": 38.9254, "lon": -119.9215, "elevation_ft": 8500,
+        "bands": _bands((38.9344, -119.9446, 6565, "California Lodge"), (38.9254, -119.9215, 8500, "mid-mountain"),
+                        (38.9173, -119.9006, 10067, "Monument Peak")),
         "snotel": ["518:CA:SNTL", "508:CA:SNTL"], "snotel_label": "Heavenly Valley",
         "cams": _cams([("heavenlydipper", "Dipper"), ("heavenlymidstation", "Mid-station"), ("heavenlytram", "Tram"),
                        ("heavenlyeastpeak", "East Peak")]),
@@ -332,9 +333,9 @@ RESORTS = {
     "northstar": {
         "name": "Northstar", "region": "California", "pass": "Epic",
         "site": "https://www.northstarcalifornia.com", "grooming_pdf": None,
-        "lat": 39.2640, "lon": -120.1290, "elevation_ft": 7600,
-        "bands": _bands((39.2740, -120.1210, 6330, "Village"), (39.2640, -120.1290, 7600, "mid-mountain"),
-                        (39.2540, -120.1340, 8610, "Mt. Pluto")),
+        "lat": 39.2586, "lon": -120.1361, "elevation_ft": 7600,
+        "bands": _bands((39.2757, -120.1199, 6330, "Village"), (39.2586, -120.1361, 7600, "mid-mountain"),
+                        (39.2415, -120.1385, 8610, "Mt. Pluto")),
         "snotel": ["834:CA:SNTL", "809:CA:SNTL"], "snotel_label": "Truckee #2",
         "cams": _cams([("northstarsnowstake", "Snow stake"), ("northstarspluto", "Mt. Pluto"),
                        ("northstarmidmountain", "Mid-mountain"), ("northstarvillage", "Village")]),
@@ -343,9 +344,9 @@ RESORTS = {
     "kirkwood": {
         "name": "Kirkwood", "region": "California", "pass": "Epic",
         "site": "https://www.kirkwood.com", "grooming_pdf": None,
-        "lat": 38.6720, "lon": -120.0700, "elevation_ft": 8800,
-        "bands": _bands((38.6850, -120.0650, 7800, "base"), (38.6720, -120.0700, 8800, "mid-mountain"),
-                        (38.6650, -120.0780, 9876, "summit")),
+        "lat": 38.6659, "lon": -120.0525, "elevation_ft": 8800,
+        "bands": _bands((38.6848, -120.0664, 7800, "base"), (38.6659, -120.0525, 8800, "mid-mountain"),
+                        (38.6623, -120.0606, 9876, "summit")),
         "snotel": ["1067:CA:SNTL", "1049:CA:SNTL"], "snotel_label": "Carson Pass",
         "cams": _cams([("kirkwoodcornice", "Cornice"), ("kirkwoodredcliffs", "Red Cliffs")]),
         "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04", "enabled": False, "stage": "shadow",
@@ -354,9 +355,9 @@ RESORTS = {
         "name": "Stevens Pass", "region": "Washington", "pass": "Epic",
         "site": "https://www.stevenspass.com", "snow_report_path": "/the-mountain/mountain-conditions/weather-report.aspx",
         "grooming_pdf": None,
-        "lat": 47.7380, "lon": -121.0960, "elevation_ft": 4800,
-        "bands": _bands((47.7450, -121.0890, 4061, "base"), (47.7380, -121.0960, 4800, "mid-mountain"),
-                        (47.7310, -121.0990, 5845, "summit")),
+        "lat": 47.7362, "lon": -121.0987, "elevation_ft": 4800,
+        "bands": _bands((47.7443, -121.0893, 4061, "base"), (47.7362, -121.0987, 4800, "mid-mountain"),
+                        (47.7317, -121.1027, 5845, "summit")),
         "snotel": ["791:WA:SNTL", "1338:WA:SNTL"], "snotel_label": "Stevens Pass",
         "cams": _cams([("stevenspasssnowstake", "Snow stake"), ("stevenspasscourtyard", "Courtyard"),
                        ("stevenspassschool", "Ski school"), ("stevenspassjupiter", "Jupiter"),
@@ -366,9 +367,9 @@ RESORTS = {
     "stowe": {
         "name": "Stowe", "region": "Vermont", "pass": "Epic",
         "site": "https://www.stowe.com", "grooming_pdf": None,
-        "lat": 44.5320, "lon": -72.7950, "elevation_ft": 2700,
-        "bands": _bands((44.5300, -72.7810, 1559, "base"), (44.5320, -72.7950, 2700, "mid-mountain"),
-                        (44.5310, -72.8060, 3625, "Cliff House")),
+        "lat": 44.5274, "lon": -72.8003, "elevation_ft": 2700,
+        "bands": _bands((44.5310, -72.7801, 1559, "base"), (44.5274, -72.8003, 2700, "mid-mountain"),
+                        (44.5229, -72.8104, 3625, "Cliff House")),
         "snotel": [], "snotel_label": None,  # no SNOTEL in the East
         "cams": _cams([("stowesnowstake", "Snow stake"), ("stowemidwaybasestation", "Midway"),
                        ("stowevillage", "Village")]),
@@ -378,9 +379,9 @@ RESORTS = {
     "okemo": {
         "name": "Okemo", "region": "Vermont", "pass": "Epic",
         "site": "https://www.okemo.com", "grooming_pdf": None,
-        "lat": 43.4010, "lon": -72.7330, "elevation_ft": 2300,
-        "bands": _bands((43.4020, -72.7180, 1144, "base"), (43.4010, -72.7330, 2300, "mid-mountain"),
-                        (43.4015, -72.7520, 3344, "summit")),
+        "lat": 43.4033, "lon": -72.7343, "elevation_ft": 2300,
+        "bands": _bands((43.3997, -72.7095, 1144, "base"), (43.4033, -72.7343, 2300, "mid-mountain"),
+                        (43.4033, -72.7517, 3344, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": _cams([("okemosnowstake", "Snow stake"), ("okemosummit", "Summit"), ("okemosugarhouse", "Sugar House"),
                        ("okemoroundhouse", "Roundhouse")]),
@@ -390,9 +391,9 @@ RESORTS = {
         "name": "Mount Snow", "region": "Vermont", "pass": "Epic",
         "site": "https://www.mountsnow.com", "snow_report_path": "/the-mountain/mountain-conditions/weather-report.aspx",
         "grooming_pdf": None,
-        "lat": 42.9640, "lon": -72.9280, "elevation_ft": 2800,
-        "bands": _bands((42.9600, -72.9200, 1900, "base"), (42.9640, -72.9280, 2800, "mid-mountain"),
-                        (42.9680, -72.9330, 3600, "summit")),
+        "lat": 42.9667, "lon": -72.9135, "elevation_ft": 2800,
+        "bands": _bands((42.9658, -72.8913, 1900, "base"), (42.9667, -72.9135, 2800, "mid-mountain"),
+                        (42.9595, -72.9245, 3600, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": _cams([("mountsnowsnowstake", "Snow stake"), ("mountsnowsummit", "Summit"), ("mountsnowcarinthia", "Carinthia"),
                        ("mountsnowbase", "Base")]),
@@ -401,9 +402,9 @@ RESORTS = {
     "seven-springs": {
         "name": "Seven Springs", "region": "Pennsylvania", "pass": "Epic",
         "site": "https://www.7springs.com", "grooming_pdf": None,
-        "lat": 40.0240, "lon": -79.2950, "elevation_ft": 2600,
-        "bands": _bands((40.0200, -79.2990, 2240, "base"), (40.0240, -79.2950, 2600, "mid-mountain"),
-                        (40.0280, -79.2920, 2994, "summit")),
+        "lat": 40.0204, "lon": -79.2977, "elevation_ft": 2600,
+        "bands": _bands((40.0159, -79.2871, 2240, "base"), (40.0204, -79.2977, 2600, "mid-mountain"),
+                        (40.0240, -79.3106, 2994, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": _cams([("sevensprings", "Main"), ("sevenspringsnorthface", "North Face")]),
         # Opening day not announced yet (11/19).
@@ -415,9 +416,9 @@ RESORTS = {
     "killington": {
         "name": "Killington", "region": "Vermont", "pass": "Ikon",
         "site": "https://www.killington.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 43.6220, "lon": -72.8060, "elevation_ft": 3200,
-        "bands": _bands((43.6290, -72.7950, 2200, "Snowshed base"), (43.6220, -72.8060, 3200, "mid-mountain"),
-                        (43.6045, -72.8200, 4241, "Killington Peak")),
+        "lat": 43.6158, "lon": -72.8120, "elevation_ft": 3200,
+        "bands": _bands((43.6284, -72.7958, 2200, "Snowshed base"), (43.6158, -72.8120, 3200, "mid-mountain"),
+                        (43.6041, -72.8207, 4241, "Killington Peak")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York",
         "opening_day": "2026-11-01",  # already open per Ikon (11/19); Killington sets no date in advance
@@ -426,9 +427,9 @@ RESORTS = {
     "mt-bachelor": {
         "name": "Mt. Bachelor", "region": "Oregon", "pass": "Ikon",
         "site": "https://www.mtbachelor.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 43.9850, "lon": -121.6830, "elevation_ft": 7775,
-        "bands": _bands((43.9910, -121.6780, 6300, "West Village"), (43.9850, -121.6830, 7775, "Pine Marten"),
-                        (43.9790, -121.6886, 9065, "summit")),
+        "lat": 43.9868, "lon": -121.6832, "elevation_ft": 7775,
+        "bands": _bands((44.0012, -121.6694, 6300, "West Village"), (43.9868, -121.6832, 7775, "Pine Marten"),
+                        (43.9787, -121.6882, 9065, "summit")),
         "snotel": ["815:OR:SNTL", "545:OR:SNTL"], "snotel_label": "Three Creeks Meadow",
         "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04",
         "enabled": False, "stage": "shadow",
