@@ -53,22 +53,55 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .resort-btn span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .resort-btn svg { flex: none; width: 12px; height: 8px; color: var(--ink-2); transition: transform .15s; }
 .resort-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
-.resort-menu { position: fixed; z-index: 40; max-height: calc(100dvh - 90px); overflow-y: auto; width: min(300px, calc(100vw - 32px)); padding: 6px;
+.resort-menu { position: fixed; z-index: 40; display: flex; flex-direction: column; max-height: calc(100dvh - 90px); width: min(1080px, calc(100vw - 32px)); padding: 6px;
   background: color-mix(in oklab, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
   border: 1px solid color-mix(in oklab, var(--surface) 70%, var(--line)); border-radius: 18px; box-shadow: 0 18px 44px rgba(12, 42, 74, .22); }
-.rm-row { display: flex; align-items: center; gap: 2px; }
-.rm-pick { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 12px;
-  background: none; color: var(--ink); font: inherit; font-weight: 600; font-size: 16px; line-height: 1.2; text-align: left; cursor: pointer; }
+.rm-head { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 8px 8px 10px; border-bottom: 1px solid color-mix(in oklab, var(--line) 70%, transparent); }
+.rm-top { display: none; align-items: center; justify-content: space-between; }
+.rm-top h2 { margin: 0; font: var(--display-weight) 22px/1.1 var(--font-display); color: var(--ink); }
+.rm-close { width: 44px; height: 44px; margin-right: -8px; border: 0; border-radius: 12px; background: none; color: var(--ink-2); font: 300 30px/1 var(--font-body); cursor: pointer; }
+.rm-search { flex: 0 1 300px; min-width: 0; min-height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font: 16px var(--font-body); }
+.resort-menu .rm-search:focus-visible { outline: 1px solid color-mix(in oklab, var(--accent) 60%, var(--line)); outline-offset: 0; border-color: color-mix(in oklab, var(--accent) 60%, var(--line)); }
+.rm-chip:focus-visible, .rm-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.rm-chips { flex: 1 1 300px; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; scrollbar-width: none; }
+.rm-chips::-webkit-scrollbar { display: none; }
+.rm-chip { flex: none; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: none; color: var(--ink-2); font: 600 13px var(--font-body); cursor: pointer; white-space: nowrap; }
+.rm-chip:hover { background: color-mix(in oklab, var(--snow, #376F9B) 14%, transparent); color: var(--ink); }
+.rm-body { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 4px 4px; }
+.rm-group { padding: 12px 0 4px; }
+.rm-group + .rm-group { border-top: 1px solid color-mix(in oklab, var(--line) 55%, transparent); }
+.resort-menu .rm-area { margin: 0 12px 2px; font: var(--display-weight) 18px/1.2 var(--font-display); color: var(--ink); text-transform: none; letter-spacing: 0; }
+.rm-cols { columns: 4 220px; column-gap: 14px; }
+.rm-state { break-inside: auto; }
+.rm-state + .rm-state { margin-top: 6px; }
+.rm-row { display: flex; align-items: center; gap: 2px; break-inside: avoid; }
+.rm-pick { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 38px; padding: 0 10px 0 12px; border: 0; border-radius: 10px;
+  background: none; color: var(--ink); font: inherit; font-weight: 600; font-size: 15px; line-height: 1.2; text-align: left; cursor: pointer; }
+.rm-pick span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rm-pick:hover, .rm-star:hover { background: color-mix(in oklab, var(--accent) 10%, transparent); }
 .rm-pick[aria-current="true"] { background: color-mix(in oklab, var(--accent) 14%, transparent); color: var(--accent); }
 .rm-pick strong, .fav-tile strong { font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.rm-star { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 12px; background: none; color: var(--ink-2); cursor: pointer; }
-.rm-star svg { width: 21px; height: 21px; fill: none; }
+.rm-star { flex: none; width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 10px; background: none; color: var(--ink-2); cursor: pointer; }
+.rm-star svg { width: 19px; height: 19px; fill: none; }
 .rm-star[aria-pressed="true"] { color: var(--accent); }
 .rm-star[aria-pressed="true"] svg { fill: currentColor; }
-.resort-menu p { margin: 6px 12px 8px; }
-.rm-region { margin: 10px 12px 2px; font-size: 12px; }
-.rm-region:first-child { margin-top: 4px; }
+.rm-empty { margin: 18px 12px; }
+.rm-foot { flex: none; margin: 0; padding: 8px 12px 6px; border-top: 1px solid color-mix(in oklab, var(--line) 55%, transparent); }
+.rm-region { margin: 6px 12px 2px; font-size: 11px; break-after: avoid; }
+/* Phones: a full-screen sheet with its own title and close button; rows keep 44 px touch targets. */
+@media (max-width: 899px) {
+  html.rm-open, html.rm-open body { overflow: hidden; }
+  .resort-menu, html[data-brand] .resort-menu.resort-menu { inset: 0; width: auto; max-height: none; padding: 0 0 env(safe-area-inset-bottom); border-radius: 0; border: 0; box-shadow: none; }
+  .rm-head { padding: calc(10px + env(safe-area-inset-top)) 16px 10px; }
+  .rm-head { display: grid; }
+  .rm-top { display: flex; }
+  .rm-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .rm-body { padding: 0 6px 8px; }
+  .rm-cols { columns: 1; }
+  .rm-pick { min-height: 44px; font-size: 16px; }
+  .rm-star { width: 44px; height: 44px; }
+  .rm-star svg { width: 21px; height: 21px; }
+}
 .favs { order: 9; flex: 1 0 100%; display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .favs::-webkit-scrollbar { display: none; }
 .top-tabs, .favs .fav-label, .favs .fav-edit { display: none; }   /* wide screens only */
