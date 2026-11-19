@@ -570,6 +570,150 @@ RESORTS = {
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-26",  # est.
         "enabled": False, "stage": "shadow",
     },
+    # ---------- Wave 3 (11/19/2026): shadow mode only ----------
+    # Boyne (Sugarloaf, Sunday River, Loon), ORDA (Whiteface, Gore) and top independents. Same as Wave 2: no resort
+    # page is read yet (no open feed found; the page reader isn't built), so forecast + snow stations only.
+    # Pass labels for the independents and every opening day (est.) get checked before launch.
+    "sugarloaf": {
+        "name": "Sugarloaf", "region": "Maine", "pass": "Ikon",
+        "site": "https://www.sugarloaf.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 45.0400, "lon": -70.3100, "elevation_ft": 2800,
+        "bands": _bands((45.0540, -70.3090, 1417, "base"), (45.0400, -70.3100, 2800, "mid-mountain"),
+                        (45.0314, -70.3131, 4237, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "sunday-river": {
+        "name": "Sunday River", "region": "Maine", "pass": "Ikon",
+        "site": "https://www.sundayriver.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.4650, "lon": -70.8750, "elevation_ft": 1800,
+        "bands": _bands((44.4730, -70.8570, 800, "South Ridge"), (44.4650, -70.8750, 1800, "mid-mountain"),
+                        (44.4580, -70.9000, 3140, "Oz")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-14",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "loon": {
+        "name": "Loon Mountain", "region": "New Hampshire", "pass": "Ikon",
+        "site": "https://www.loonmtn.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.0450, "lon": -71.6380, "elevation_ft": 2000,
+        "bands": _bands((44.0360, -71.6210, 950, "base"), (44.0450, -71.6380, 2000, "mid-mountain"),
+                        (44.0530, -71.6510, 3050, "North Peak")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "whiteface": {
+        "name": "Whiteface", "region": "New York", "pass": "Ikon",
+        "site": "https://whiteface.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.3600, "lon": -73.8800, "elevation_ft": 2400,
+        "bands": _bands((44.3600, -73.8590, 1220, "base"), (44.3600, -73.8800, 2400, "Mid Station"),
+                        (44.3660, -73.9030, 4386, "Lookout Mountain")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-26",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "gore": {
+        "name": "Gore Mountain", "region": "New York", "pass": "Ikon",
+        "site": "https://goremountain.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 43.6650, "lon": -74.0300, "elevation_ft": 2500,
+        "bands": _bands((43.6730, -74.0060, 1500, "base"), (43.6650, -74.0300, 2500, "mid-mountain"),
+                        (43.6580, -74.0520, 3600, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-26",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "taos": {
+        "name": "Taos Ski Valley", "region": "New Mexico", "pass": "Ikon",
+        "site": "https://www.skitaos.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 36.5850, "lon": -105.4500, "elevation_ft": 10500,
+        "bands": _bands((36.5960, -105.4540, 9207, "base"), (36.5850, -105.4500, 10500, "mid-mountain"),
+                        (36.5720, -105.4460, 12481, "Kachina Peak")),
+        "snotel": ["1168:NM:SNTL", "1307:NM:SNTL"], "snotel_label": "Taos Powderhorn",
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "whitefish": {
+        "name": "Whitefish Mountain", "region": "Montana", "pass": "Independent",
+        "site": "https://skiwhitefish.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 48.4930, "lon": -114.3620, "elevation_ft": 5800,
+        "bands": _bands((48.4840, -114.3530, 4464, "base"), (48.4930, -114.3620, 5800, "mid-mountain"),
+                        (48.5040, -114.3700, 6817, "summit")),
+        "snotel": ["1311:MT:SNTL"], "snotel_label": "Stryker Basin",  # nearest SNOTEL is 30 km away
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-05",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "grand-targhee": {
+        "name": "Grand Targhee", "region": "Wyoming", "pass": "Mountain Collective",
+        "site": "https://www.grandtarghee.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 43.7800, "lon": -110.9420, "elevation_ft": 9000,
+        "bands": _bands((43.7890, -110.9580, 7851, "base"), (43.7800, -110.9420, 9000, "mid-mountain"),
+                        (43.7720, -110.9350, 9862, "Fred's Mountain")),
+        "snotel": ["1082:WY:SNTL", "689:WY:SNTL"], "snotel_label": "Grand Targhee",
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-21",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "revelstoke": {
+        "name": "Revelstoke", "region": "British Columbia", "pass": "Mountain Collective",
+        "site": "https://www.revelstokemountainresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 50.9620, "lon": -118.1920, "elevation_ft": 5600,
+        "bands": _bands((50.9580, -118.1640, 1680, "base"), (50.9620, -118.1920, 5600, "Mackenzie Outpost"),
+                        (50.9530, -118.2300, 7300, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-05",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "jay-peak": {
+        "name": "Jay Peak", "region": "Vermont", "pass": "Indy",
+        "site": "https://jaypeakresort.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 44.9300, "lon": -72.5150, "elevation_ft": 2900,
+        "bands": _bands((44.9370, -72.5040, 1815, "base"), (44.9300, -72.5150, 2900, "mid-mountain"),
+                        (44.9244, -72.5252, 3968, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-26",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "loveland": {
+        "name": "Loveland", "region": "Colorado", "pass": "Independent",
+        "site": "https://skiloveland.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 39.6700, "lon": -105.9050, "elevation_ft": 11500,
+        "bands": _bands((39.6800, -105.8980, 10800, "Loveland Basin"), (39.6700, -105.9050, 11500, "mid-mountain"),
+                        (39.6600, -105.9100, 13010, "summit")),
+        "snotel": ["602:CO:SNTL", "505:CO:SNTL"], "snotel_label": "Loveland Basin",
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-06",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "wolf-creek": {
+        "name": "Wolf Creek", "region": "Colorado", "pass": "Independent",
+        "site": "https://wolfcreekski.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 37.4700, "lon": -106.8000, "elevation_ft": 11000,
+        "bands": _bands((37.4740, -106.7930, 10300, "base"), (37.4700, -106.8000, 11000, "mid-mountain"),
+                        (37.4650, -106.8100, 11904, "summit")),
+        "snotel": ["874:CO:SNTL", "840:CO:SNTL"], "snotel_label": "Wolf Creek Summit",
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-07",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "mt-hood-meadows": {
+        "name": "Mt. Hood Meadows", "region": "Oregon", "pass": "Independent",
+        "site": "https://www.skihood.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 45.3350, "lon": -121.6680, "elevation_ft": 6500,
+        "bands": _bands((45.3310, -121.6650, 5250, "base"), (45.3350, -121.6680, 6500, "mid-mountain"),
+                        (45.3420, -121.6720, 7300, "Cascade Express top")),
+        "snotel": ["651:OR:SNTL", "1314:OR:SNTL"], "snotel_label": "Mt Hood Test Site",
+        "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-05",  # est.
+        "enabled": False, "stage": "shadow",
+    },
+    "big-white": {
+        "name": "Big White", "region": "British Columbia", "pass": "Independent",
+        "site": "https://www.bigwhite.com", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 49.7210, "lon": -118.9290, "elevation_ft": 5757,
+        "bands": _bands((49.7180, -118.9250, 4950, "base"), (49.7210, -118.9290, 5757, "Village"),
+                        (49.7330, -118.9440, 7606, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-11-26",  # est.
+        "enabled": False, "stage": "shadow",
+    },
 }
 
 SNOW_REPORT_PATH = "/the-mountain/mountain-conditions/snow-and-weather-report.aspx"

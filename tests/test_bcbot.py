@@ -1373,3 +1373,9 @@ def test_wave_2_resorts_are_in_shadow_and_read_no_resort_page_yet():
     for slug in wave2:
         r = resorts.get(slug)
         assert r["snow_report"] is None and resorts.is_static(slug), slug  # no keyed feeds, no page reader yet
+
+
+def test_wave_3_and_4_resorts_are_in_shadow():
+    later = [k for k, r in resorts.RESORTS.items() if r.get("stage") == "shadow"]
+    for slug in ("sugarloaf", "whiteface", "taos", "revelstoke", "wolf-creek", "big-white"):
+        assert slug in later and slug in resorts.shadow() and slug not in resorts.enabled(), slug

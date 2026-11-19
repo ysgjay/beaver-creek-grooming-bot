@@ -94,6 +94,13 @@ depths in the East and forecast only in Canada. Opening days are typical-season 
 
 Canadian resorts still show inches and °F; the cm/°C choice is open (see the plan).
 
+### Wave 3 (added 11/19/2026, shadow mode)
+
+Boyne (Sugarloaf, Sunday River, Loon), ORDA (Whiteface, Gore) and the top independents: Taos, Whitefish (SNOTEL
+Stryker Basin 1311, 30 km), Grand Targhee (Grand Targhee 1082), Revelstoke, Jay Peak, Loveland (Loveland Basin 602),
+Wolf Creek (Wolf Creek Summit 874), Mt. Hood Meadows (Mt Hood Test Site 651) and Big White. Same setup as Wave 2: no
+resort page read yet, opening days and independent pass labels are estimates to confirm before launch.
+
 ## What differs between resorts
 - **Grooming map layouts.** Beaver Creek's PDF has "Groomers of the day", "Last night's grooming" and
   "Morning grooming" sections with number and name on alternating lines. Vail's lists runs under area
