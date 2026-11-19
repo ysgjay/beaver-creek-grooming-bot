@@ -15,9 +15,13 @@ This task works the queue and opens **one PR**. Young merges it. Never merge it 
    - If the queue is empty, stop. Make no PR.
 2. **Re-read each source page, at most 40 items, changes first.** Use WebFetch. epicpass.com blocks WebFetch, so
    skip it and list it in the PR. For each item, find the sentence on the page that gives the value.
-3. **Update `bcbot/facts.py` only where the value really changed or was newly posted.**
-   - Shared facts: edit `ANNOUNCED`, `LIFT_HOURS`, `TRAIL_MAPS`, `EPIC_ACCESS` or `IKON_ACCESS`.
-   - Hand-checked facts: edit `CURATED` / `CURATED_1119` / the `_NOT_POSTED` block.
+3. **Update the data files only where the value really changed or was newly posted.**
+   - Shared facts: edit `announced`, `lift_hours`, `trail_maps`, `epic_access` or `ikon_access` in
+     `bcbot/facts_data/shared.json`. Bump `checked_shared` only if you re-read the Epic or Ikon page.
+   - Hand-checked facts: edit `bcbot/facts_data/curated.json` (resort, then kind).
+   - Add `"evidence": "<quote>"` to each fact you change in curated.json.
+   - Keep the JSON sorted and indented the way it is (`json.dumps(..., indent=1, sort_keys=True, ensure_ascii=False)`).
+   - Don't edit `bcbot/facts.py`.
    - Set `checked` to today. Dates are ISO in code and MM/DD in prose.
    - Write values in the house style: plain sentences, "9 AM to 4 PM", no copied marketing text.
    - If a page still says the same thing, change nothing. The watch confirms those on its own.

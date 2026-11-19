@@ -1,0 +1,1066 @@
+{
+ "alta": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.alta.com/ski-school",
+   "source_name": "Alta: Alf Engen Ski School",
+   "value": "Alf Engen Ski School: private lessons and private guided tours, adult classes, and kids classes and camps. Ski only."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Alta sells online rates, window rates and window-only tickets but doesn't list a fixed price. Alta is skiers-only; snowboarding isn't allowed.",
+   "source": "https://www.alta.com/tickets-and-passes",
+   "source_name": "Alta: Lift Tickets and Season Passes",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 trail map (on alta.com)",
+   "maps": [
+    {
+     "image": "https://res.cloudinary.com/altaskiarea/image/upload/f_auto,q_auto/v1793054037/resources/Maps/AltaSkiArea_TrailMap_2026-27.jpg",
+     "label": "Winter trail map",
+     "pdf": "https://res.cloudinary.com/altaskiarea/image/upload/v1793054038/resources/Maps/26_27_Alta_Trailmap_WEB.pdf",
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.alta.com/plan-your-trip#maps",
+   "source_name": "Alta: Plan Your Trip, Maps",
+   "value": "https://www.alta.com/plan-your-trip#maps"
+  }
+ },
+ "arapahoe-basin": {
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "A-Basin lists closing day 2027 as TBD.",
+   "source": "https://www.arapahoebasin.com/tickets-and-passes/",
+   "source_name": "Arapahoe Basin: Tickets & Passes",
+   "value": null
+  },
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.arapahoebasin.com/lessons/",
+   "source_name": "Arapahoe Basin: Ski School",
+   "value": "Group lessons, private lessons (including 4 for 3 early-season privates), clinics and guided tours (15+), Lil Kids Club (3 to 4), Kids Club Arapahoe (5 to 12), Xtreme Teens (11 to 14), the Legendary Learning Package (4 lessons with lift access and rentals, then a $119 season pass), and adaptive programs with the BOEC."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Full-day ticket prices vary by date, and the sooner you buy the bigger the discount. Tickets must be bought online in advance and may sell out.",
+   "source": "https://www.arapahoebasin.com/tickets-and-passes/",
+   "source_name": "Arapahoe Basin: Tickets & Passes",
+   "value": null
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "note": "Ikon lists A-Basin as open; the resort's own pages don't print the date.",
+   "source": "https://www.denvergazette.com/2026/10/28/photos-ski-season-comes-early-as-arapahoe-basin-opens/",
+   "source_name": "Denver Gazette: Arapahoe Basin opens",
+   "value": "2026-10-28"
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Full trail map plus Front Side, Montezuma Bowl and East Wall maps (on arapahoebasin.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Full trail map",
+     "pdf": "https://www.arapahoebasin.com/uploaded/trailmaps/a%20basin%20map%202025.pdf",
+     "season": "2025"
+    },
+    {
+     "image": null,
+     "label": "Front Side, Pallavicini and The Beavers",
+     "pdf": "https://www.arapahoebasin.com/uploaded/trailmaps/a%20basin%20front-01.2%2009182023forweb.pdf",
+     "season": "2023 file"
+    },
+    {
+     "image": null,
+     "label": "Montezuma Bowl",
+     "pdf": "https://www.arapahoebasin.com/uploaded/trailmaps/a%20basin%20zuma-01.2%2009182023forweb.pdf",
+     "season": "2023 file"
+    },
+    {
+     "image": "https://www.arapahoebasin.com/uploaded/trailmaps/east-wall.jpg",
+     "label": "East Wall",
+     "pdf": null,
+     "season": "Not dated"
+    }
+   ],
+   "source": "https://www.arapahoebasin.com/trail-maps/",
+   "source_name": "Arapahoe Basin: Trail Maps",
+   "value": "https://www.arapahoebasin.com/trail-maps/"
+  }
+ },
+ "aspen-highlands": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.aspensnowmass.com/visit/lessons",
+   "source_name": "Aspen Snowmass: Ski & Snowboard Lessons",
+   "value": "Child and teen group lessons (ages 2.5 to 17), adult group lessons, private lessons, specialty camps and adaptive clinics (Challenge Aspen and Ascendigo), offered at all four mountains. Kids 7 to 17 and adults get a discounted lift ticket with a group lesson."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Aspen Snowmass prices tickets by date and doesn't list a fixed 1-day price. Buying 30+ days ahead saves up to 25%, 7+ days up to 20%. Kids 6 and under ski free every day. With a group lesson, kids 7 to 17 get an $86 lift ticket and adults $174. One ticket works at all four mountains.",
+   "source": "https://www.aspensnowmass.com/visit/tickets-and-passes/lift-tickets",
+   "source_name": "Aspen Snowmass: Lift Tickets",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Aspen Highlands winter trail map (PDF, on aspensnowmass.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Aspen Highlands winter trail map",
+     "pdf": "https://www.aspensnowmass.com/-/media/aspen-snowmass/documents/pdfs/25-26/2526-mountain-maps/2526highlands-map-layeredwebsite.pdf",
+     "season": "2025/26 file, still the one linked for 2026/27"
+    }
+   ],
+   "source": "https://www.aspensnowmass.com/four-mountains/aspen-highlands/trail-maps",
+   "source_name": "Aspen Highlands: Trail Maps",
+   "value": "https://www.aspensnowmass.com/four-mountains/aspen-highlands/trail-maps"
+  }
+ },
+ "aspen-mountain": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.aspensnowmass.com/visit/lessons",
+   "source_name": "Aspen Snowmass: Ski & Snowboard Lessons",
+   "value": "Child and teen group lessons (ages 2.5 to 17), adult group lessons, private lessons, specialty camps and adaptive clinics (Challenge Aspen and Ascendigo), offered at all four mountains. Kids 7 to 17 and adults get a discounted lift ticket with a group lesson."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Aspen Snowmass prices tickets by date and doesn't list a fixed 1-day price. Buying 30+ days ahead saves up to 25%, 7+ days up to 20%. Kids 6 and under ski free every day. With a group lesson, kids 7 to 17 get an $86 lift ticket and adults $174. One ticket works at all four mountains.",
+   "source": "https://www.aspensnowmass.com/visit/tickets-and-passes/lift-tickets",
+   "source_name": "Aspen Snowmass: Lift Tickets",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Aspen Mountain winter trail map (PDF, on aspensnowmass.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Aspen Mountain winter trail map",
+     "pdf": "https://www.aspensnowmass.com/-/media/aspen-snowmass/documents/pdfs/25-26/2526-mountain-maps/2526aspenmountainwebsite.pdf",
+     "season": "2025/26 file, still the one linked for 2026/27"
+    }
+   ],
+   "source": "https://www.aspensnowmass.com/four-mountains/aspen-mountain/trail-maps",
+   "source_name": "Aspen Mountain: Trail Maps",
+   "value": "https://www.aspensnowmass.com/four-mountains/aspen-mountain/trail-maps"
+  }
+ },
+ "beaver-creek": {
+  "blackout_dates": {
+   "checked": "2026-11-19",
+   "source": "https://www.epicpass.com/info/peak-restricted-dates.aspx",
+   "source_name": "Epic Pass: Restricted Peak Dates",
+   "value": "11/27 to 11/28/2026, 12/26 to 12/31/2026, 1/16/2027 and 2/13 to 2/14/2027. These apply to the Epic Local Pass and Epic Day Pass. The full Epic Pass has none."
+  },
+  "closing_day": {
+   "checked": "2026-11-19",
+   "source": "https://www.beavercreek.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Beaver Creek: Hours of Operation",
+   "value": null
+  },
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.beavercreek.com/plan-your-trip/ski-and-ride-lessons.aspx",
+   "source_name": "Beaver Creek: Ski & Snowboard Lessons",
+   "value": "Child group lessons, adult group lessons (including first-time lessons) and Epic Ascent private lessons. Kids save 20% on the third straight day of group lessons and every day after, and Epic pass holders get 20% off group lessons."
+  },
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Lift hours for 2026/27 aren't posted yet. The resort says operations begin 11/25.",
+   "source": "https://www.beavercreek.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Beaver Creek: Hours of Operation",
+   "value": null
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "source": "https://www.beavercreek.com/plan-your-trip/lift-access/tickets.aspx",
+   "source_name": "Beaver Creek: Lift Tickets",
+   "value": "$211 online for a 1-day adult ticket (ages 13 to 64) on opening day, 11/25, against $250 full price. Child (5 to 12): $146. Prices change by date, and buying 4+ weeks ahead saves the most."
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "source": "https://www.beavercreek.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Beaver Creek: Hours of Operation",
+   "value": "2026-11-25"
+  },
+  "passes": {
+   "checked": "2026-11-19",
+   "source": "https://www.epicpass.com/passes/epic-local-pass.aspx",
+   "source_name": "Epic Pass: Epic Local Pass",
+   "value": "Epic Pass: unlimited, no blackout dates. Epic Local Pass: 10 days total, shared with Vail and Whistler Blackcomb, not valid on peak dates. Epic Day Pass: not valid on peak dates."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 trail map (PDF, on beavercreek.com)",
+   "maps": [
+    {
+     "image": "https://scene7.vailresorts.com/is/image/vailresorts/20261110_BC_winter-trail_map_001?wid=4000&fit=constrain,1&resMode=sharp2",
+     "label": "Winter trail map",
+     "pdf": "https://www.beavercreek.com/-/aemasset/digital-experience-assets-library/destination-resorts/beaver-creek/mountain-operations/winter-2026-2027/20261110_BC_winter-trail_map_001.pdf",
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.beavercreek.com/the-mountain/about-the-mountain/trail-map.aspx",
+   "source_name": "Beaver Creek: Trail and Mountain Maps",
+   "value": "https://www.beavercreek.com/-/aemasset/digital-experience-assets-library/destination-resorts/beaver-creek/mountain-operations/winter-2026-2027/20261110_BC_winter-trail_map_001.pdf"
+  }
+ },
+ "big-bear": {
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "Not announced.",
+   "source": "https://www.bigbearmountainresort.com/hours",
+   "source_name": "Big Bear: Hours",
+   "value": null
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "note": "Big Bear hasn't confirmed opening day. 11/26 is the earliest date it may open.",
+   "source": "https://www.bigbearmountainresort.com/hours",
+   "source_name": "Big Bear: Hours",
+   "value": null
+  }
+ },
+ "big-sky": {
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Big Sky doesn't list a fixed 1-day price. Booking ahead gets the lowest price, multi-day tickets cost less per day, and kids 6 and under ski for $1 a day.",
+   "source": "https://www.bigskyresort.com/winter-tickets/lift-ticket",
+   "source_name": "Big Sky: Lift Tickets",
+   "value": null
+  }
+ },
+ "breckenridge": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.breckenridge.com/plan-your-trip/ski-and-ride-lessons.aspx",
+   "source_name": "Breckenridge: Ski & Snowboard Lessons",
+   "value": "Child group lessons (3 to 14), adult group lessons (15+, including first-timer lessons), private lessons, women's programs, seasonal youth programs, Breck Club, Teen Camp and adaptive programs. Kids save 20% on the third straight day of group lessons and adults on the second, Epic pass holders get an extra 20% off group lessons, and a group lesson unlocks discounted lift tickets and rentals."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Prices change by date and the advance price needs 7+ days' notice. The Epic 1-Day Pass is sold only for a limited time, is non-refundable and isn't valid on peak dates. Breckenridge limits tickets each day, and buying 4+ weeks ahead saves the most.",
+   "source": "https://www.breckenridge.com/plan-your-trip/lift-access/tickets.aspx",
+   "source_name": "Breckenridge: Lift Tickets",
+   "value": "$299 online for a 1-day adult ticket (13+) bought 7+ days ahead (price shown for 11/18). The Epic 1-Day Pass is $155 while it's on sale."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 trail map (on breckenridge.com)",
+   "maps": [
+    {
+     "image": "https://scene7.vailresorts.com/is/image/vailresorts/20261103_BR_winter-trail_map_001?wid=4000&fit=constrain,1&resMode=sharp2",
+     "label": "Winter trail map, five peaks",
+     "pdf": "https://www.breckenridge.com/-/aemasset/digital-experience-assets-library/destination-resorts/breckenridge/mountain-operations/winter-2026-2027/20261103_BR_winter-trail_map_001.pdf",
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.breckenridge.com/the-mountain/about-the-mountain/trail-map.aspx",
+   "source_name": "Breckenridge: Trail and Mountain Maps",
+   "value": "https://www.breckenridge.com/the-mountain/about-the-mountain/trail-map.aspx"
+  }
+ },
+ "brighton": {
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "Not announced.",
+   "source": "https://www.brightonresort.com",
+   "source_name": "Brighton: Home",
+   "value": null
+  },
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.brightonresort.com/lessons/daily-winter-lessons",
+   "source_name": "Brighton: Daily Winter Lessons",
+   "value": "Kids group lessons (4 to 12), adult group lessons (13+), private lessons (3+), 4-pack group lessons (4+), a Learn to Ride package (13+, lesson, rental and learner ticket; 50% off before 12/18) and Thursday night group lessons (8+)."
+  },
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Brighton hasn't posted 2026/27 lift hours. It runs night skiing, and its weekly closed day moves to Tuesday this season.",
+   "source": "https://www.brightonresort.com/hours",
+   "source_name": "Brighton: Hours of Operation",
+   "value": null
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Prices vary by ticket type, age and date.",
+   "source": "https://www.brightonresort.com/lift-tickets",
+   "source_name": "Brighton: Lift Tickets",
+   "value": "From $72 for winter lift tickets (all-day, afternoon and night tickets)."
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "note": "Brighton says \"Opening Day To Be Announced.\"",
+   "source": "https://www.brightonresort.com",
+   "source_name": "Brighton: Home",
+   "value": null
+  }
+ },
+ "buttermilk": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.aspensnowmass.com/visit/lessons",
+   "source_name": "Aspen Snowmass: Ski & Snowboard Lessons",
+   "value": "Child and teen group lessons (ages 2.5 to 17), adult group lessons, private lessons, specialty camps and adaptive clinics (Challenge Aspen and Ascendigo), offered at all four mountains. Kids 7 to 17 and adults get a discounted lift ticket with a group lesson."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Aspen Snowmass prices tickets by date and doesn't list a fixed 1-day price. Buying 30+ days ahead saves up to 25%, 7+ days up to 20%. Kids 6 and under ski free every day. With a group lesson, kids 7 to 17 get an $86 lift ticket and adults $174. One ticket works at all four mountains.",
+   "source": "https://www.aspensnowmass.com/visit/tickets-and-passes/lift-tickets",
+   "source_name": "Aspen Snowmass: Lift Tickets",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Buttermilk winter trail map (PDF, on aspensnowmass.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Buttermilk winter trail map",
+     "pdf": "https://www.aspensnowmass.com/-/media/aspen-snowmass/documents/pdfs/25-26/2526-mountain-maps/2526buttermilk-map-layeredwebsite.pdf",
+     "season": "2025/26 file, still the one linked for 2026/27"
+    }
+   ],
+   "source": "https://www.aspensnowmass.com/four-mountains/buttermilk/trail-maps",
+   "source_name": "Buttermilk: Trail Maps",
+   "value": "https://www.aspensnowmass.com/four-mountains/buttermilk/trail-maps"
+  }
+ },
+ "cannon": {
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "Not announced.",
+   "source": "https://www.cannonmt.com/hours",
+   "source_name": "Cannon: Hours of Operation",
+   "value": null
+  },
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Cannon hasn't posted lift or tram hours yet.",
+   "source": "https://www.cannonmt.com/hours",
+   "source_name": "Cannon: Hours of Operation",
+   "value": null
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "note": "Cannon hasn't announced 26/27 opening day.",
+   "source": "https://www.cannonmt.com/hours",
+   "source_name": "Cannon: Hours of Operation",
+   "value": null
+  }
+ },
+ "copper": {
+  "blackout_dates": {
+   "checked": "2026-11-19",
+   "source": "https://www.ikonpass.com/en/help/blackout-dates/what-are-the-ikon-base-pass-blackout-dates",
+   "source_name": "Ikon Pass: Ikon Base Pass blackout dates",
+   "value": "12/26 to 12/30/2026, 1/16 to 1/17/2027 and 2/13 to 2/14/2027 on the Ikon Base Pass. The full Ikon Pass has none."
+  },
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "Copper's closing weekend page still shows last season's dates.",
+   "source": "https://www.coppercolorado.com/events-activities/events-calendar/closing-weekend/",
+   "source_name": "Copper Mountain: Closing Weekend",
+   "value": null
+  },
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.coppercolorado.com/lessons-rentals/lessons/",
+   "source_name": "Copper Mountain: Lessons & Programs",
+   "value": "Adult group lessons (18+), youth group lessons (3 to 17), private and family private lessons, adult and youth seasonal programs, Copper Guides, Woodward park privates, adult clinics and adaptive lessons."
+  },
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "source": "https://www.coppercolorado.com/the-mountain/trail-lift-info/lift-hours/",
+   "source_name": "Copper Mountain: Lift Hours",
+   "value": "Base area lifts 9 AM to 4 PM. Storm King, Resolution, Blackjack and Mountain Chief close at 3 PM; Timberline Express, Excelerator, Sierra, Lumberjack and Rendezvous at 3:30 PM; Three Bears at 2:30 PM. Fast Tracks gets 30 minutes early on American Eagle."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Copper prices tickets by date and doesn't list a fixed price. Buy online at least 1 day ahead for the online price; walk-up window rates may be higher.",
+   "source": "https://www.coppercolorado.com/tickets-passes/lift-tickets/tickets/",
+   "source_name": "Copper Mountain: Lift Tickets",
+   "value": null
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "source": "https://www.coppercolorado.com/events-activities/events-calendar/opening-day-2627/",
+   "source_name": "Copper Mountain: 26/27 Opening Day",
+   "value": "2026-11-08"
+  },
+  "passes": {
+   "checked": "2026-11-19",
+   "source": "https://www.ikonpass.com/en/compare-passes",
+   "source_name": "Ikon Pass: Compare 26/27 Passes",
+   "value": "Ikon Pass: unlimited, no blackout dates. Ikon Base Pass: unlimited, with blackout dates. Ikon Session Pass: 2, 3 or 4 days total. Copper also sells its own Copper Season Pass."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "2026/27 winter trail maps: Frontside, Copper Bowl, Spaulding Bowl (on coppercolorado.com)",
+   "source": "https://www.coppercolorado.com/the-mountain/trail-area-maps/winter-trail-map/",
+   "source_name": "Copper Mountain: Winter Trail Map",
+   "value": "https://www.coppercolorado.com/the-mountain/trail-area-maps/winter-trail-map/"
+  }
+ },
+ "crested-butte": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.skicb.com/plan-your-trip/ski-and-ride-lessons.aspx",
+   "source_name": "Crested Butte: Ski & Snowboard Lessons",
+   "value": "Child group lessons (3 to 15), adult group lessons (15+, including first-timer lessons), private lessons, the Mountain Sports Team, kids' winter programs, women's programs and Ski with an Olympian. Kids save 20% on the third straight day of group lessons and adults on the second, Epic pass holders get an extra 20% off group lessons, and a group lesson unlocks discounted lift tickets and rentals."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Prices change by date and the advance price needs 7+ days' notice.",
+   "source": "https://www.skicb.com/plan-your-trip/lift-access/tickets.aspx",
+   "source_name": "Crested Butte: Lift Tickets",
+   "value": "$199 online for a 1-day adult ticket (13+) on opening day, 11/25, bought 7+ days ahead."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter trail map (PDF, on skicb.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Winter trail map",
+     "pdf": "https://www.skicb.com/-/aemasset/sitecore/crested-butte/maps/winter-2025-2026/20251103_CB_winter-trail_map_001.pdf",
+     "season": "2025/26 file, still the one linked"
+    }
+   ],
+   "source": "https://www.skicb.com/the-mountain/about-the-mountain/trail-maps.aspx",
+   "source_name": "Crested Butte: Trail Maps",
+   "value": "https://www.skicb.com/the-mountain/about-the-mountain/trail-maps.aspx"
+  }
+ },
+ "crystal-mountain": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Crystal says winter hours are coming soon.",
+   "source": "https://www.crystalmountainresort.com/about/hours-of-operations",
+   "source_name": "Crystal Mountain: Hours of Operation",
+   "value": null
+  }
+ },
+ "deer-valley": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.deervalley.com/plan-your-trip/ski-school",
+   "source_name": "Deer Valley: Ski School",
+   "value": "Private lessons (3 to 18+), adult group lessons of up to 4 (18+), Teen Escape (13 to 17), Adventure Club (7 to 12), Reindeer Club (5 to 6), Bambi Club (4), Fawn Special (3), a women's 3-day program, multi-week kids programs, the Ted Ligety Performance Camp (2/5 to 2/7/2027) and adaptive lessons with the National Ability Center. Deer Valley is ski-only."
+  },
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Deer Valley hasn't posted 2026/27 lift hours yet. Ikon lists opening day as 12/5.",
+   "source": "https://www.deervalley.com/explore-the-mountain/hours-of-operation",
+   "source_name": "Deer Valley: Hours of Operation",
+   "value": null
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Deer Valley caps tickets each day and shows prices by date on its booking calendar. Ages: adult 13 to 64, child 5 to 12, senior 65+, tot 4 and under. Learning Area tickets are $68. Holidays usually sell out, so buy ahead.",
+   "source": "https://www.deervalley.com/plan-your-trip/tickets-and-passes/lift-tickets",
+   "source_name": "Deer Valley: Lift Tickets",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 trail map (on deervalley.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Winter trail map",
+     "pdf": "https://www.deervalley.com/-/media/deer-valley/skier-services/maps/DeerValleyWinterTrailMap2627Compressed",
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.deervalley.com/explore-the-mountain/interactive-grooming-map",
+   "source_name": "Deer Valley: Trail Maps",
+   "value": "https://www.deervalley.com/explore-the-mountain/interactive-grooming-map"
+  }
+ },
+ "eldora": {
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "Eldora usually runs November to April and hasn't posted a closing day.",
+   "source": "https://www.eldora.com/the-mountain/questions/hours-faq/",
+   "source_name": "Eldora: Hours FAQ",
+   "value": null
+  },
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.eldora.com/lessons-rentals/ski-ride-school/",
+   "source_name": "Eldora: Ski & Ride School",
+   "value": "Multi-week youth programs, adult programs, Learn in 3 (a 3-step beginner program), and single-day private, group and Nordic lessons. Everything is sold online, and buying ahead saves the most."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "All tickets are sold online and cost less the earlier you buy. Tickets bought in person at the Indian Peaks Lodge get no discount.",
+   "source": "https://www.eldora.com/tickets-passes/tickets/",
+   "source_name": "Eldora: Single Day Tickets",
+   "value": null
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "note": "Eldora hasn't set a date. Ikon lists it as TBA, and Eldora's site counts down to the 26/27 season.",
+   "source": "https://www.ikonpass.com/en/opening-closing-dates",
+   "source_name": "Ikon Pass: Opening and Closing Dates",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Alpine trail map (on eldora.com)",
+   "maps": [
+    {
+     "image": "https://cms.eldora.com/sites/default/files/inline-images/Eldora_25.26_Alpine%20Map_Web.jpg",
+     "label": "Alpine trail map",
+     "pdf": "https://cms.eldora.com/sites/default/files/2025-11/Eldora_25.26_Alpine%20Map_Web.pdf",
+     "season": "2025/26 file, still the one linked"
+    }
+   ],
+   "source": "https://www.eldora.com/the-mountain/maps/alpine-trail-map/",
+   "source_name": "Eldora: Alpine Trail Map",
+   "value": "https://www.eldora.com/the-mountain/maps/alpine-trail-map/"
+  }
+ },
+ "grand-targhee": {
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "Not announced.",
+   "source": "https://www.grandtarghee.com",
+   "source_name": "Grand Targhee: Home",
+   "value": null
+  },
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Grand Targhee hasn't posted winter lift hours.",
+   "source": "https://www.grandtarghee.com/the-mountain/cams-conditions/hours-of-operation",
+   "source_name": "Grand Targhee: Hours of Operation",
+   "value": null
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "note": "Grand Targhee planned 11/20 but is delaying opening day and hasn't set a new date.",
+   "source": "https://www.grandtarghee.com",
+   "source_name": "Grand Targhee: Home",
+   "value": null
+  }
+ },
+ "jackson-hole": {
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "The best rates are tiered and sold in limited numbers. Buying earlier, booking 3+ days and skiing non-peak dates save the most.",
+   "source": "https://www.jacksonhole.com/lift-tickets",
+   "source_name": "Jackson Hole: Lift Tickets",
+   "value": "From $85 online for a 1-day adult ticket on select dates."
+  }
+ },
+ "jay-peak": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Jay Peak hasn't posted 2026/27 lift hours.",
+   "source": "https://jaypeakresort.com/resort/hours-operation",
+   "source_name": "Jay Peak: Hours of Operation",
+   "value": null
+  }
+ },
+ "keystone": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.keystoneresort.com/plan-your-trip/ski-and-ride-lessons.aspx",
+   "source_name": "Keystone: Ski & Snowboard Lessons",
+   "value": "Child group lessons (3 to 14), adult group lessons (15+, including first-timer lessons), private lessons, seasonal youth programs and adaptive programs. Kids save 20% on the third straight day of group lessons and adults on the second, Epic pass holders get an extra 20% off group lessons, and a group lesson unlocks discounted lift tickets and rentals."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Prices change by date and the advance price needs 7+ days' notice. The Epic 1-Day Pass is sold only for a limited time, is non-refundable and isn't valid on peak dates.",
+   "source": "https://www.keystoneresort.com/plan-your-trip/lift-access/tickets.aspx",
+   "source_name": "Keystone: Lift Tickets",
+   "value": "$229 online for a 1-day adult ticket (13+) bought 7+ days ahead (price shown for 11/18). The Epic 1-Day Pass is $124 while it's on sale."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 trail map (on keystoneresort.com)",
+   "maps": [
+    {
+     "image": "https://scene7.vailresorts.com/is/image/vailresorts/20261020_KY_winter-trail_map_001?wid=4000&fit=constrain,1&resMode=sharp2",
+     "label": "Winter trail map, three peaks",
+     "pdf": "https://www.keystoneresort.com/-/aemasset/digital-experience-assets-library/destination-resorts/keystone/mountain-operations/winter-2026-2027/20261020_KY_winter-trail_map_001.pdf",
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.keystoneresort.com/the-mountain/about-the-mountain/trail-map.aspx",
+   "source_name": "Keystone: Trail and Mountain Maps",
+   "value": "https://www.keystoneresort.com/the-mountain/about-the-mountain/trail-map.aspx"
+  }
+ },
+ "kirkwood": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Kirkwood hasn't posted 2026/27 lift hours. It plans to open 12/4.",
+   "source": "https://www.kirkwood.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Kirkwood: Hours of Operation",
+   "value": null
+  }
+ },
+ "loon": {
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "Not announced.",
+   "source": "https://www.loonmtn.com/hours",
+   "source_name": "Loon: Hours",
+   "value": null
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "note": "Loon says \"Opening Day TBD.\" It usually opens mid-November.",
+   "source": "https://www.loonmtn.com/hours",
+   "source_name": "Loon: Hours",
+   "value": null
+  }
+ },
+ "mad-river-glen": {
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "Not announced.",
+   "source": "https://www.madriverglen.com/hours/",
+   "source_name": "Mad River Glen: Hours of Operation",
+   "value": null
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "note": "Mad River Glen usually opens the second Saturday in December, snow permitting.",
+   "source": "https://www.madriverglen.com/hours/",
+   "source_name": "Mad River Glen: Hours of Operation",
+   "value": null
+  }
+ },
+ "mt-bachelor": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Mt. Bachelor says full winter 26/27 hours are coming soon. It plans to open 12/4.",
+   "source": "https://www.mtbachelor.com/the-mountain/hours-of-operation/",
+   "source_name": "Mt. Bachelor: Hours of Operation",
+   "value": null
+  }
+ },
+ "mt-baker": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Mt. Baker sets days and hours by conditions and posts them as a calendar image.",
+   "source": "https://www.mtbaker.us/the-mountain/operations-hours/",
+   "source_name": "Mt. Baker: Operations Schedule",
+   "value": null
+  }
+ },
+ "okemo": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Okemo says ski lift hours are coming soon.",
+   "source": "https://www.okemo.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Okemo: Hours of Operation",
+   "value": null
+  }
+ },
+ "palisades-tahoe": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Palisades Tahoe hasn't posted winter lift hours. It opens 11/21.",
+   "source": "https://www.palisadestahoe.com/mountain-information/hours-of-operation",
+   "source_name": "Palisades Tahoe: Hours of Operation",
+   "value": null
+  }
+ },
+ "park-city": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.parkcitymountain.com/plan-your-trip/ski-and-ride-lessons.aspx",
+   "source_name": "Park City: Ski & Ride Lessons",
+   "value": "Child group lessons (3 to 14), adult group lessons (15+, including first-timer lessons), private lessons, local youth programs, adult programs and adaptive lessons. Kids save 20% on the third straight day of group lessons and adults on the second, Epic pass holders get an extra 20% off group lessons, and a group lesson unlocks discounted lift tickets and rentals."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Prices change by date and the advance price needs 7+ days' notice. The Epic 1-Day Pass is sold only for a limited time, is non-refundable and isn't valid on peak dates.",
+   "source": "https://www.parkcitymountain.com/plan-your-trip/lift-access/tickets.aspx",
+   "source_name": "Park City: Lift Tickets",
+   "value": "$325 online for a 1-day adult ticket (13+) on opening day, 11/20, bought 7+ days ahead. The Epic 1-Day Pass is $155 while it's on sale."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter trail map (PDF, on parkcitymountain.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Winter trail map, Park City and Canyons",
+     "pdf": "https://www.parkcitymountain.com/-/aemasset/sitecore/park-city/maps/20251114_PC_winter-trail_map_001.pdf",
+     "season": "2025/26 file, still the one linked"
+    }
+   ],
+   "source": "https://www.parkcitymountain.com/the-mountain/about-the-mountain/trail-map.aspx",
+   "source_name": "Park City: Trail Map",
+   "value": "https://www.parkcitymountain.com/the-mountain/about-the-mountain/trail-map.aspx"
+  }
+ },
+ "saddleback": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Saddleback hasn't posted lift hours. It opens 12/4.",
+   "source": "https://www.saddlebackmaine.com/hours-of-operation/",
+   "source_name": "Saddleback: Hours of Operation",
+   "value": null
+  }
+ },
+ "seven-springs": {
+  "closing_day": {
+   "checked": "2026-11-19",
+   "note": "Not announced.",
+   "source": "https://www.7springs.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Seven Springs: Hours of Operation",
+   "value": null
+  },
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Seven Springs says slope hours will be posted soon.",
+   "source": "https://www.7springs.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Seven Springs: Hours of Operation",
+   "value": null
+  },
+  "opening_day": {
+   "checked": "2026-11-19",
+   "note": "Seven Springs hasn't announced opening day.",
+   "source": "https://www.7springs.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Seven Springs: Hours of Operation",
+   "value": null
+  }
+ },
+ "snowbasin": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.snowbasin.com/lessons/",
+   "source_name": "Snowbasin: Ski and Snowboard Lessons",
+   "value": "Adult all-day group lessons (13+), youth half- and full-day group lessons (3 to 12), private lessons for up to 5, Learn & Earn for first-timers (4+, lessons, season rentals and a season pass), multi-week youth programs, Women of Winter and adaptive lessons with OVAS."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Snowbasin doesn't list a fixed price; buying online ahead gets the best price. Ages: adult and teen 13 to 64, youth 5 to 12, senior 65+. Kids 4 and under ski free.",
+   "source": "https://www.snowbasin.com/tickets-passes/lift-tickets/",
+   "source_name": "Snowbasin: Lift Tickets",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter trail map (on snowbasin.com)",
+   "maps": [
+    {
+     "image": "https://www.snowbasin.com/azure/snowbasin/media/siteassets/pdf/maps/winter/winter-trail-map-2025-26-(22-5in-x-12in).jpg?w=4000&mode=crop&scale=both",
+     "label": "Winter trail map",
+     "pdf": "https://www.snowbasin.com/getmedia/969afd05-b39b-4ecd-b123-6c0669d41d77/Winter-Trail-Map-2025-26-(22-5in-x-12in)-for-Ikon-reduced.pdf",
+     "season": "2025/26 file, still the one linked"
+    }
+   ],
+   "source": "https://www.snowbasin.com/the-mountain/trail-maps/",
+   "source_name": "Snowbasin: Trail Maps",
+   "value": "https://www.snowbasin.com/the-mountain/trail-maps/"
+  }
+ },
+ "snowbird": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.snowbird.com/guiding-lessons/programs/",
+   "source_name": "Snowbird: Mountain Guiding & Ski School",
+   "value": "Private and group ski and snowboard lessons from first-timer to advanced, multi-week programs, camps, women's programs, guiding (including snowcat skiing) and AIARE avalanche classes."
+  },
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Snowbird hasn't posted 2026/27 lift hours. It plans to open lift-served terrain 11/27.",
+   "source": "https://www.snowbird.com/the-mountain/mountain-report/lift-trail-report/",
+   "source_name": "Snowbird: Lift & Trail Report",
+   "value": null
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Prices rise on peak and holiday dates (holiday: 12/24 to 1/1, 1/16 to 1/17, 2/13 to 2/15). Buying online 2+ weeks ahead saves up to 15% over the window.",
+   "source": "https://www.snowbird.com/tickets-passes/tickets/",
+   "source_name": "Snowbird: Lift Tickets",
+   "value": "From $195 for a 1-day adult ticket (13 to 64), $117 youth (7 to 12), $166 senior (65+). Kids 6 and under ski free."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 trail map (on snowbird.com)",
+   "maps": [
+    {
+     "image": "https://cms.snowbird.com/sites/default/files/2026-10/TrailMap_1920x2318_2627.jpg",
+     "label": "Winter trail map",
+     "pdf": null,
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.snowbird.com/the-mountain/maps/winter-trail-map/",
+   "source_name": "Snowbird: Winter Trail Map",
+   "value": "https://www.snowbird.com/the-mountain/maps/winter-trail-map/"
+  }
+ },
+ "snowmass": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.aspensnowmass.com/visit/lessons",
+   "source_name": "Aspen Snowmass: Ski & Snowboard Lessons",
+   "value": "Child and teen group lessons (ages 2.5 to 17), adult group lessons, private lessons, specialty camps and adaptive clinics (Challenge Aspen and Ascendigo), offered at all four mountains. Kids 7 to 17 and adults get a discounted lift ticket with a group lesson."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Aspen Snowmass prices tickets by date and doesn't list a fixed 1-day price. Buying 30+ days ahead saves up to 25%, 7+ days up to 20%. Kids 6 and under ski free every day. With a group lesson, kids 7 to 17 get an $86 lift ticket and adults $174. One ticket works at all four mountains.",
+   "source": "https://www.aspensnowmass.com/visit/tickets-and-passes/lift-tickets",
+   "source_name": "Aspen Snowmass: Lift Tickets",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Snowmass winter trail map (PDF, on aspensnowmass.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Snowmass winter trail map",
+     "pdf": "https://www.aspensnowmass.com/-/media/aspen-snowmass/documents/pdfs/25-26/2526-mountain-maps/2526snowmass-map-layeredwebsite.pdf",
+     "season": "2025/26 file, still the one linked for 2026/27"
+    }
+   ],
+   "source": "https://www.aspensnowmass.com/four-mountains/snowmass/trail-maps",
+   "source_name": "Snowmass: Trail Maps",
+   "value": "https://www.aspensnowmass.com/four-mountains/snowmass/trail-maps"
+  }
+ },
+ "solitude": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.solitudemountain.com/plan-your-trip/snowboarding-ski-lessons",
+   "source_name": "Solitude: Ski & Snowboard Lessons",
+   "value": "Group lessons (including first-timer lessons), private lessons for up to 5, Team Solitude (all-mountain, freeride and race for kids and teens), Cruisers multi-week kids programs, skills camps and clinics, and seasonal programs including Women on Wednesdays and Women on Weekends. Multi-pack lesson vouchers save money and have no blackout days."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Solitude prices vary by date; buying online ahead locks in the lowest price. Kids 4 and under ski free. Multi-day S-Cards and transferable Ticket Paks bring days under $100.",
+   "source": "https://www.solitudemountain.com/plan-your-trip/snowboarding-ski-lift-tickets-passes",
+   "source_name": "Solitude: Lift Tickets & Season Pass",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 trail map (PDF, on solitudemountain.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Winter trail map",
+     "pdf": "https://www.solitudemountain.com/-/media/Solitude/Trail-Map-PDFs/Solitude_Winter_Trail_Map_2627.pdf",
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.solitudemountain.com/mountain-and-village/conditions-and-maps",
+   "source_name": "Solitude: Conditions & Maps",
+   "value": "https://www.solitudemountain.com/mountain-and-village/conditions-and-maps"
+  }
+ },
+ "steamboat": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.steamboat.com/plan-your-trip/snowboarding-ski-lessons",
+   "source_name": "Steamboat: Snowboard & Ski Lessons",
+   "value": "Group lessons, private lessons, Family Private Experience, Learn 2 Ski or Ride (2-day beginner series), afternoon beginner group lessons, seasonal programs (ages 3 to 18+), a 3-day camp with Olympian Deb Armstrong, and private and Heli-Ready guided experiences. Booking early saves up to 30%."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Steamboat doesn't list a fixed price; prices shift by date. It advertises up to 30% off when you book by 11/27. A day ticket includes night skiing that day, and late-afternoon tickets are sold only on site.",
+   "source": "https://www.steamboat.com/plan-your-trip/lift-tickets-ski-pass",
+   "source_name": "Steamboat: Lift Tickets",
+   "value": null
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 Adventure Map (on steamboat.com)",
+   "maps": [
+    {
+     "image": "https://www.steamboat.com/-/media/steamboat/maps/winter-26-27/steamboat-adventure-map-final-2026.jpg?rev=0e2ed2aab7354f22ac7745067e9ff9af",
+     "label": "Adventure Map",
+     "pdf": null,
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.steamboat.com/the-mountain/trail-map/adventure-map",
+   "source_name": "Steamboat: Adventure Map",
+   "value": "https://www.steamboat.com/the-mountain/trail-map/adventure-map"
+  }
+ },
+ "stevens-pass": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Stevens Pass lists day and night lift hours as TBD.",
+   "source": "https://www.stevenspass.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Stevens Pass: Hours of Operation",
+   "value": null
+  }
+ },
+ "stowe": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Stowe's hours page still shows summer hours; opening dates are TBD.",
+   "source": "https://www.stowe.com/explore-the-resort/about-the-resort/hours-of-operation.aspx",
+   "source_name": "Stowe: Hours of Operation",
+   "value": null
+  }
+ },
+ "sugarbush": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Sugarbush's hours page still shows summer hours.",
+   "source": "https://www.sugarbush.com/mountain/hours",
+   "source_name": "Sugarbush: Hours",
+   "value": null
+  }
+ },
+ "sunday-river": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Sunday River's hours page still shows the 2025/26 schedule (9 AM to 4 PM weekdays, 8 AM to 4 PM weekends).",
+   "source": "https://www.sundayriver.com/hours-of-operation",
+   "source_name": "Sunday River: Hours of Operation",
+   "value": null
+  }
+ },
+ "telluride": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://tellurideskiresort.com/ski-school/",
+   "source_name": "Telluride: Ski School",
+   "value": "Children's group lessons (Otters 3 to 4, Bears 5 to 6, Eagles 7 to 14), Cubs Camp nursery lessons (2.5 to 4), adult group lessons (full, half and 3-day), private and Private Premier lessons, a 3-day steep and off-piste program, Kids Snow Camp (5 to 10) and Telluride Adaptive Sports. Lessons cost less from 12/5 to 12/17, and group lessons unlock discounted lift tickets and rentals."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Buy in advance for the best rate. Group lessons can add a discounted lift ticket.",
+   "source": "https://shop.tellurideskiresort.com/s/winter-lift-tickets",
+   "source_name": "Telluride: Winter Lift Tickets",
+   "value": "From $164 online for a 1-day lift ticket. Pricing varies by date."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter trail map plus Palmyra and Revelation Bowl maps (on tellurideskiresort.com)",
+   "maps": [
+    {
+     "image": "https://tellurideskiresort.com/wp-content/uploads/2425_TSR_Trail-Map_layered-trailmap.jpg",
+     "label": "Winter trail map",
+     "pdf": "https://tellurideskiresort.com/wp-content/uploads/2425_TSR_Trail-Map_layered-trailmap.pdf",
+     "season": "2024/25 file, still the one linked"
+    },
+    {
+     "image": "https://tellurideskiresort.com/wp-content/uploads/palmyra-23.24.png",
+     "label": "Palmyra Peak",
+     "pdf": null,
+     "season": "2023/24"
+    },
+    {
+     "image": "https://tellurideskiresort.com/wp-content/uploads/revvy-23.24-1.png",
+     "label": "Revelation Bowl",
+     "pdf": null,
+     "season": "2023/24"
+    }
+   ],
+   "source": "https://tellurideskiresort.com/mountain/",
+   "source_name": "Telluride: The Mountain",
+   "value": "https://tellurideskiresort.com/mountain/"
+  }
+ },
+ "tremblant": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Tremblant lists season dates but points to the Ikon app for lift hours.",
+   "source": "https://www.tremblant.ca/mountain-village/opening-hours",
+   "source_name": "Tremblant: Opening Hours",
+   "value": null
+  }
+ },
+ "vail": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.vail.com/plan-your-trip/ski-and-ride-lessons.aspx",
+   "source_name": "Vail: Ski & Snowboard Lessons",
+   "value": "Child group lessons (3 to 15), adult group lessons (16+, including first-timer lessons), private lessons, Epic Ascent private lessons, adaptive programs, adult signature programs and the DEVO program. Kids save 20% on the third straight day of group lessons and adults on the second, Epic pass holders get an extra 20% off group lessons, and a group lesson unlocks discounted lift tickets and rentals."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Prices change by date and the advance price needs 7+ days' notice. The Epic 1-Day Pass is sold only for a limited time, is non-refundable and isn't valid on peak dates.",
+   "source": "https://www.vail.com/plan-your-trip/lift-access/tickets.aspx",
+   "source_name": "Vail: Lift Tickets",
+   "value": "$335 online for a 1-day adult ticket (13+) bought 7+ days ahead (price shown for 11/18). The Epic 1-Day Pass is $155 while it's on sale."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 trail maps: Front Side, Back Bowls, Blue Sky (on vail.com)",
+   "maps": [
+    {
+     "image": "https://scene7.vailresorts.com/is/image/vailresorts/20261014_VL_front-side-winter-trail-partners_map_001?wid=4000&hei=2467&fit=constrain,1&resMode=sharp2",
+     "label": "Front Side",
+     "pdf": null,
+     "season": "2026/27"
+    },
+    {
+     "image": "https://scene7.vailresorts.com/is/image/vailresorts/20261014_VL_back-bowls-winter-trail-partners_map_001-1?wid=4000&hei=2000&fit=constrain,1&resMode=sharp2",
+     "label": "Back Bowls",
+     "pdf": null,
+     "season": "2026/27"
+    },
+    {
+     "image": "https://scene7.vailresorts.com/is/image/vailresorts/20261014_VL_blue-sky-winter-trail-partners_map_001-1?wid=4000&hei=3111&fit=constrain,1&resMode=sharp2",
+     "label": "Blue Sky Basin",
+     "pdf": null,
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.vail.com/the-mountain/about-the-mountain/trail-map.aspx",
+   "source_name": "Vail: Trail and Mountain Maps",
+   "value": "https://www.vail.com/the-mountain/about-the-mountain/trail-map.aspx"
+  }
+ },
+ "waterville-valley": {
+  "lift_hours": {
+   "checked": "2026-11-19",
+   "note": "Waterville Valley hasn't posted lift hours. It opens 11/28.",
+   "source": "https://www.waterville.com/hours-of-operation",
+   "source_name": "Waterville Valley: Hours of Operation",
+   "value": null
+  }
+ },
+ "winter-park": {
+  "lessons": {
+   "checked": "2026-11-19",
+   "source": "https://www.winterparkresort.com/plan-your-trip/snowboard-ski-lessons",
+   "source_name": "Winter Park: Snowboard & Ski Lessons",
+   "value": "Kids group lessons (full day, lunch included), adult group lessons (morning or afternoon), Learn to Ski and Ride packages, multi-week lessons, Flex 5-packs, private and early-season private lessons, 60-minute Pro Tips, skills clinics, a Spanish clinic, and adaptive lessons through the NSCD. Winter Park and Ikon pass holders get 10% off group lessons booked online, and kids get a free lift ticket with a kids group lesson booked by 11/30."
+  },
+  "lift_tickets": {
+   "checked": "2026-11-19",
+   "note": "Booking online 48+ hours ahead saves up to 40%. Tickets are refundable.",
+   "source": "https://www.winterparkresort.com/plan-your-trip/lift-tickets-ski-pass",
+   "source_name": "Winter Park: Tickets & Passes",
+   "value": "From $113 online for a 1-day adult ticket, all season with no blackout dates. Thursday tickets are $89 (1/7 to 2/25/2027, with blackout dates)."
+  },
+  "trail_map": {
+   "checked": "2026-11-19",
+   "label": "Winter 2026/27 trail map (PDF, on winterparkresort.com)",
+   "maps": [
+    {
+     "image": null,
+     "label": "Winter trail map",
+     "pdf": "https://www.winterparkresort.com/-/media/winter-park/winter/winterparkresort_wintertrailmap.pdf?rev=3913478cfedb4536a70c66c41ae30530",
+     "season": "2026/27"
+    }
+   ],
+   "source": "https://www.winterparkresort.com/the-mountain/mountain-information/maps",
+   "source_name": "Winter Park: Trails and Maps",
+   "value": "https://www.winterparkresort.com/the-mountain/mountain-information/maps"
+  }
+ }
+}
