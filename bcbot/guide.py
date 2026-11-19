@@ -63,7 +63,7 @@ table.glance td:first-child{{color:var(--ink2);width:40%}}
  .gd .hero .qa{{grid-column:1 / -1}}
  .answers{{grid-template-columns:repeat(6,minmax(0,1fr))}}
  .gd .layout{{grid-template-columns:minmax(0,1fr) 300px;align-items:start}}
- .gd aside{{position:sticky;top:76px}}
+ .gd aside{{position:sticky;top:calc(var(--hdr,112px) + 12px)}}
 }}
 @media (min-width:1300px){{
  .gd .hero{{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) minmax(0,1.2fr)}}
@@ -160,7 +160,7 @@ def _blackout(slug, name, kinds, today):
     else:
         tile = ("At " + name, "None")
         body = f'<p class="answer">{escape(f["value"])}</p>'
-    html_ = (f'<section class="card" id="blackout-dates"><h2>{escape(name)} blackout dates and passes</h2>{body}'
+    html_ = (f'<section class="card" id="blackout-dates"><h2 tabindex="-1">{escape(name)} blackout dates and passes</h2>{body}'
              + _src(f, "blackout_dates", today)
              + (f'<h3 class="kick" style="margin-top:16px">Which passes work at {escape(name)}</h3>{table}'
                 + _src(passes, "passes", today) if passes else "")
@@ -217,6 +217,19 @@ def faq(slug, name, kinds, timing, today):
     return {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": qa}
 
 
+def chips(slug):
+    """Level-2 nav for the guide: one chip per section, in page order (scroll-spy in pages.NAV_JS)."""
+    from . import facts as F
+    r = resorts.get(slug)
+    kinds = F.FACTS.get(slug) or {}
+    items = [("hours", "Lift hours"), ("blackout-dates", "Blackout dates") if kinds.get("blackout_dates") else None,
+             ("trail-map", "Trail map and cams") if (kinds.get("trail_map") or r.get("cams")) else None,
+             ("season", "Opening day"), ("tickets", "Tickets and lessons") if (kinds.get("lift_tickets") or kinds.get("lessons")) else None,
+             ("grooming", "Grooming times"), ("how", "How it works")]
+    links = "".join(f'<a href="#{i}">{escape(t)}</a>' for i, t in filter(None, items))
+    return f'<nav class="chips" aria-label="On this page">{links}</nav>'
+
+
 def render(slug, summary=None, day=None, today=None):
     """-> (title, description, h1, body html, [json-ld]) for the guide page."""
     from . import facts as F
@@ -270,7 +283,7 @@ def render(slug, summary=None, day=None, today=None):
     else:
         hours_body = (f'<p class="sub" style="margin:0">0xSnow hasn\'t checked {escape(name)}\'s lift hours yet. '
                       f'<a href="{escape(r["site"])}" rel="nofollow">See the resort\'s site</a>.</p>')
-    hours = (f'<div class="hourscard" id="hours"><h2>{escape(name)} lift hours</h2>'
+    hours = (f'<div class="hourscard" id="hours"><h2 tabindex="-1">{escape(name)} lift hours</h2>'
              f'<section class="card">{hours_body}</section></div>')
 
     tiles = []
@@ -309,18 +322,18 @@ def render(slug, summary=None, day=None, today=None):
             links += f'<a href="{app}">{len(r["cams"])} live cams in the app</a>'
         if r.get("grooming_pdf"):
             links += f'<a href="{escape(r["grooming_pdf"])}" rel="nofollow">Tonight\'s grooming map (PDF) ↗</a>'
-        sections.append(f'<section class="card" id="trail-map"><h2>{escape(name)} trail map and webcams</h2>'
+        sections.append(f'<section class="card" id="trail-map"><h2 tabindex="-1">{escape(name)} trail map and webcams</h2>'
                         f'<p class="sub" style="margin:0 0 10px">0xSnow links to the resort\'s own trail map and shows its '
                         f'public cams in the app.</p><div class="links">{links}</div>'
                         + (_src(tm, "trail_map", today) if tm else "") + "</section>")
     season = _fact_rows(kinds, ("opening_day", "closing_day"), today, name)
-    sections.append(f'<section class="card" id="season"><h2>{escape(name)} opening and closing day</h2>'
+    sections.append(f'<section class="card" id="season"><h2 tabindex="-1">{escape(name)} opening and closing day</h2>'
                     + (season or f'<p class="answer">{escape(open_sentence)}</p>') + "</section>")
     tickets = _fact_rows(kinds, ("lift_tickets", "lessons"), today, name)
     if tickets:
-        sections.append(f'<section class="card" id="tickets"><h2>{escape(name)} lift tickets and lessons</h2>{tickets}'
+        sections.append(f'<section class="card" id="tickets"><h2 tabindex="-1">{escape(name)} lift tickets and lessons</h2>{tickets}'
                         f'<p class="src">Prices change by date. Check the source before you buy.</p></section>')
-    sections.append(f'<section class="card" id="grooming"><h2>{escape(name)} grooming report: when it posts</h2>'
+    sections.append(f'<section class="card" id="grooming"><h2 tabindex="-1">{escape(name)} grooming report: when it posts</h2>'
                     f'<p style="margin:0 0 8px">{escape(timing)}</p><p style="margin:0">{escape(groom)}</p></section>')
 
     bands = {b["key"]: b for b in r.get("bands") or []}
@@ -330,7 +343,7 @@ def render(slug, summary=None, day=None, today=None):
               ("Snow station", f'{r["snotel_label"]} SNOTEL' if r.get("snotel_label") else "Resort report only"),
               ("Cams in the app", str(len(r.get("cams") or [])) if r.get("cams") else "Not yet")]
     sections.append(
-        f'<section class="card" id="how"><h2>How the 0xSnow {escape(name)} report works</h2>'
+        f'<section class="card" id="how"><h2 tabindex="-1">How the 0xSnow {escape(name)} report works</h2>'
         f'<p style="margin:0 0 8px">Before opening day, 0xSnow sends the {escape(name)} report at 7:00 AM. From opening day, '
         f'it goes out as soon as both the new grooming and that morning\'s snow report are in, and by 9:00 AM at the latest.</p>'
         f'<p style="margin:0">New snow, base and season totals come from the resort\'s own report when it posts, or the nearest '
@@ -339,15 +352,9 @@ def render(slug, summary=None, day=None, today=None):
         f'<table class="glance">' + "".join(f"<tr><td>{escape(k)}</td><td>{escape(v)}</td></tr>" for k, v in glance)
         + "</table></section>")
 
-    toc = [("#blackout-dates", "Blackout dates and passes") if bo_html else None,
-           ("#trail-map", "Trail map and webcams") if (tm or r.get("cams")) else None,
-           ("#hours", "Lift hours"), ("#season", "Opening and closing day"), ("#tickets", "Lift tickets and lessons") if tickets else None,
-           ("#grooming", "Grooming report times"), ("#how", "How the report works")]
     aside = (pages._cta(slug, name)
-             + '<nav class="toc" aria-label="On this page"><p class="kick" style="margin:0">On this page</p><ol>'
-             + "".join(f'<li><a href="{h}">{escape(t)}</a></li>' for h, t in filter(None, toc))
-             + f'</ol><p class="src">Every fact links to the page it came from. <a href="{pages.resort_path(slug, "guide")}.md">'
-               f'Markdown version</a></p></nav>')
+             + f'<p class="src">Every fact links to the page it came from. '
+               f'<a href="{pages.resort_path(slug, "guide")}.md">Markdown version</a></p>')
 
     words = covers(slug)
     h1 = f"{name} guide: " + _join((words[:3] + ["more"]) if len(words) > 4 else (words or ["snow report", "grooming"])) + " 2026/27"

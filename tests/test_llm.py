@@ -39,7 +39,7 @@ def test_pages_link_markdown_twin_and_follow_app_theme():
     html = pages.resort_page("vail", DAY, ["2026-11-18"])
     assert '<link rel="alternate" type="text/markdown" title="Markdown version" href="/resorts/vail.md">' in html
     assert '<script src="/appearance.js"></script>' in html and 'html[data-appearance="dark"]' in html
-    assert 'href="/?resort=vail">Open in the app' in html and 'class="resort" href="/resorts/vail">Vail</a>' in html and 'aria-current="page">Snow report' in html
+    assert 'href="/?resort=vail"><span class="full">Open in the app' in html and 'class="resort" href="/resorts/vail">Vail</a>' in html and 'aria-current="page"><span class="full">Snow report' in html
     dated = pages.resort_page("vail", DAY, ["2026-11-18"], dated=True)
     assert 'href="/resorts/vail/2026-11-18.md"' in dated
     assert 'href="/resorts/copper/guide.md"' in pages.guide_page("copper", {})
