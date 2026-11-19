@@ -554,6 +554,340 @@
    "pass": "Ikon",
    "snow_report": false,
    "grooming": false
+  },
+  {
+   "slug": "whistler-blackcomb",
+   "name": "Whistler Blackcomb",
+   "timezone": "America/Vancouver",
+   "cams": [
+    {
+     "label": "Roundhouse",
+     "image": "https://player.brownrice.com/snapshot/whistlerroundhouse",
+     "live": "https://player.brownrice.com/embed/whistlerroundhouse"
+    },
+    {
+     "label": "Whistler Peak",
+     "image": "https://player.brownrice.com/snapshot/whistlerpeak",
+     "live": "https://player.brownrice.com/embed/whistlerpeak"
+    },
+    {
+     "label": "Blackcomb",
+     "image": "https://player.brownrice.com/snapshot/whistlerblackcomb",
+     "live": "https://player.brownrice.com/embed/whistlerblackcomb"
+    },
+    {
+     "label": "Snow stake",
+     "image": "https://player.brownrice.com/snapshot/whistlersnowstack",
+     "live": "https://player.brownrice.com/embed/whistlersnowstack"
+    },
+    {
+     "label": "7th Heaven",
+     "image": "https://player.brownrice.com/snapshot/whistler7thheaven",
+     "live": "https://player.brownrice.com/embed/whistler7thheaven"
+    },
+    {
+     "label": "Village",
+     "image": "https://player.brownrice.com/snapshot/whistlervillage",
+     "live": "https://player.brownrice.com/embed/whistlervillage"
+    },
+    {
+     "label": "Creekside",
+     "image": "https://player.brownrice.com/snapshot/whistlercreekside",
+     "live": "https://player.brownrice.com/embed/whistlercreekside"
+    }
+   ],
+   "patrol": null,
+   "snotel": null,
+   "site": "https://www.whistlerblackcomb.com",
+   "lat": 50.0682,
+   "lon": -122.9575,
+   "region": "British Columbia",
+   "pass": "Epic",
+   "snow_report": true,
+   "grooming": false
+  },
+  {
+   "slug": "heavenly",
+   "name": "Heavenly",
+   "timezone": "America/Los_Angeles",
+   "cams": [
+    {
+     "label": "Dipper",
+     "image": "https://player.brownrice.com/snapshot/heavenlydipper",
+     "live": "https://player.brownrice.com/embed/heavenlydipper"
+    },
+    {
+     "label": "Mid-station",
+     "image": "https://player.brownrice.com/snapshot/heavenlymidstation",
+     "live": "https://player.brownrice.com/embed/heavenlymidstation"
+    },
+    {
+     "label": "Tram",
+     "image": "https://player.brownrice.com/snapshot/heavenlytram",
+     "live": "https://player.brownrice.com/embed/heavenlytram"
+    },
+    {
+     "label": "East Peak",
+     "image": "https://player.brownrice.com/snapshot/heavenlyeastpeak",
+     "live": "https://player.brownrice.com/embed/heavenlyeastpeak"
+    }
+   ],
+   "patrol": null,
+   "snotel": "Heavenly Valley",
+   "site": "https://www.skiheavenly.com",
+   "lat": 38.9254,
+   "lon": -119.9215,
+   "region": "California",
+   "pass": "Epic",
+   "snow_report": true,
+   "grooming": false
+  },
+  {
+   "slug": "northstar",
+   "name": "Northstar",
+   "timezone": "America/Los_Angeles",
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://player.brownrice.com/snapshot/northstarsnowstake",
+     "live": "https://player.brownrice.com/embed/northstarsnowstake"
+    },
+    {
+     "label": "Mt. Pluto",
+     "image": "https://player.brownrice.com/snapshot/northstarspluto",
+     "live": "https://player.brownrice.com/embed/northstarspluto"
+    },
+    {
+     "label": "Mid-mountain",
+     "image": "https://player.brownrice.com/snapshot/northstarmidmountain",
+     "live": "https://player.brownrice.com/embed/northstarmidmountain"
+    },
+    {
+     "label": "Village",
+     "image": "https://player.brownrice.com/snapshot/northstarvillage",
+     "live": "https://player.brownrice.com/embed/northstarvillage"
+    }
+   ],
+   "patrol": null,
+   "snotel": "Truckee #2",
+   "site": "https://www.northstarcalifornia.com",
+   "lat": 39.2586,
+   "lon": -120.1361,
+   "region": "California",
+   "pass": "Epic",
+   "snow_report": true,
+   "grooming": false
+  },
+  {
+   "slug": "kirkwood",
+   "name": "Kirkwood",
+   "timezone": "America/Los_Angeles",
+   "cams": [
+    {
+     "label": "Cornice",
+     "image": "https://player.brownrice.com/snapshot/kirkwoodcornice",
+     "live": "https://player.brownrice.com/embed/kirkwoodcornice"
+    },
+    {
+     "label": "Red Cliffs",
+     "image": "https://player.brownrice.com/snapshot/kirkwoodredcliffs",
+     "live": "https://player.brownrice.com/embed/kirkwoodredcliffs"
+    }
+   ],
+   "patrol": null,
+   "snotel": "Carson Pass",
+   "site": "https://www.kirkwood.com",
+   "lat": 38.6659,
+   "lon": -120.0525,
+   "region": "California",
+   "pass": "Epic",
+   "snow_report": true,
+   "grooming": false
+  },
+  {
+   "slug": "stevens-pass",
+   "name": "Stevens Pass",
+   "timezone": "America/Los_Angeles",
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://player.brownrice.com/snapshot/stevenspasssnowstake",
+     "live": "https://player.brownrice.com/embed/stevenspasssnowstake"
+    },
+    {
+     "label": "Courtyard",
+     "image": "https://player.brownrice.com/snapshot/stevenspasscourtyard",
+     "live": "https://player.brownrice.com/embed/stevenspasscourtyard"
+    },
+    {
+     "label": "Ski school",
+     "image": "https://player.brownrice.com/snapshot/stevenspassschool",
+     "live": "https://player.brownrice.com/embed/stevenspassschool"
+    },
+    {
+     "label": "Jupiter",
+     "image": "https://player.brownrice.com/snapshot/stevenspassjupiter",
+     "live": "https://player.brownrice.com/embed/stevenspassjupiter"
+    },
+    {
+     "label": "Skyline",
+     "image": "https://player.brownrice.com/snapshot/stevenspassskyline",
+     "live": "https://player.brownrice.com/embed/stevenspassskyline"
+    }
+   ],
+   "patrol": null,
+   "snotel": "Stevens Pass",
+   "site": "https://www.stevenspass.com",
+   "lat": 47.7362,
+   "lon": -121.0987,
+   "region": "Washington",
+   "pass": "Epic",
+   "snow_report": true,
+   "grooming": false
+  },
+  {
+   "slug": "stowe",
+   "name": "Stowe",
+   "timezone": "America/New_York",
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://player.brownrice.com/snapshot/stowesnowstake",
+     "live": "https://player.brownrice.com/embed/stowesnowstake"
+    },
+    {
+     "label": "Midway",
+     "image": "https://player.brownrice.com/snapshot/stowemidwaybasestation",
+     "live": "https://player.brownrice.com/embed/stowemidwaybasestation"
+    },
+    {
+     "label": "Village",
+     "image": "https://player.brownrice.com/snapshot/stowevillage",
+     "live": "https://player.brownrice.com/embed/stowevillage"
+    }
+   ],
+   "patrol": null,
+   "snotel": null,
+   "site": "https://www.stowe.com",
+   "lat": 44.5274,
+   "lon": -72.8003,
+   "region": "Vermont",
+   "pass": "Epic",
+   "snow_report": true,
+   "grooming": false
+  },
+  {
+   "slug": "okemo",
+   "name": "Okemo",
+   "timezone": "America/New_York",
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://player.brownrice.com/snapshot/okemosnowstake",
+     "live": "https://player.brownrice.com/embed/okemosnowstake"
+    },
+    {
+     "label": "Summit",
+     "image": "https://player.brownrice.com/snapshot/okemosummit",
+     "live": "https://player.brownrice.com/embed/okemosummit"
+    },
+    {
+     "label": "Sugar House",
+     "image": "https://player.brownrice.com/snapshot/okemosugarhouse",
+     "live": "https://player.brownrice.com/embed/okemosugarhouse"
+    },
+    {
+     "label": "Roundhouse",
+     "image": "https://player.brownrice.com/snapshot/okemoroundhouse",
+     "live": "https://player.brownrice.com/embed/okemoroundhouse"
+    }
+   ],
+   "patrol": null,
+   "snotel": null,
+   "site": "https://www.okemo.com",
+   "lat": 43.4033,
+   "lon": -72.7343,
+   "region": "Vermont",
+   "pass": "Epic",
+   "snow_report": true,
+   "grooming": false
+  },
+  {
+   "slug": "mount-snow",
+   "name": "Mount Snow",
+   "timezone": "America/New_York",
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://player.brownrice.com/snapshot/mountsnowsnowstake",
+     "live": "https://player.brownrice.com/embed/mountsnowsnowstake"
+    },
+    {
+     "label": "Summit",
+     "image": "https://player.brownrice.com/snapshot/mountsnowsummit",
+     "live": "https://player.brownrice.com/embed/mountsnowsummit"
+    },
+    {
+     "label": "Carinthia",
+     "image": "https://player.brownrice.com/snapshot/mountsnowcarinthia",
+     "live": "https://player.brownrice.com/embed/mountsnowcarinthia"
+    },
+    {
+     "label": "Base",
+     "image": "https://player.brownrice.com/snapshot/mountsnowbase",
+     "live": "https://player.brownrice.com/embed/mountsnowbase"
+    }
+   ],
+   "patrol": null,
+   "snotel": null,
+   "site": "https://www.mountsnow.com",
+   "lat": 42.9667,
+   "lon": -72.9135,
+   "region": "Vermont",
+   "pass": "Epic",
+   "snow_report": true,
+   "grooming": false
+  },
+  {
+   "slug": "seven-springs",
+   "name": "Seven Springs",
+   "timezone": "America/New_York",
+   "cams": [
+    {
+     "label": "Main",
+     "image": "https://player.brownrice.com/snapshot/sevensprings",
+     "live": "https://player.brownrice.com/embed/sevensprings"
+    },
+    {
+     "label": "North Face",
+     "image": "https://player.brownrice.com/snapshot/sevenspringsnorthface",
+     "live": "https://player.brownrice.com/embed/sevenspringsnorthface"
+    }
+   ],
+   "patrol": null,
+   "snotel": null,
+   "site": "https://www.7springs.com",
+   "lat": 40.0204,
+   "lon": -79.2977,
+   "region": "Pennsylvania",
+   "pass": "Epic",
+   "snow_report": true,
+   "grooming": false
+  },
+  {
+   "slug": "killington",
+   "name": "Killington",
+   "timezone": "America/New_York",
+   "cams": [],
+   "patrol": null,
+   "snotel": null,
+   "site": "https://www.killington.com",
+   "lat": 43.6158,
+   "lon": -72.812,
+   "region": "Vermont",
+   "pass": "Ikon",
+   "snow_report": true,
+   "grooming": false
   }
  ]
 }

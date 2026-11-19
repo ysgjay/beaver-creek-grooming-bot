@@ -339,7 +339,7 @@ RESORTS = {
                        ("whistlerblackcomb", "Blackcomb"), ("whistlersnowstack", "Snow stake"),
                        ("whistler7thheaven", "7th Heaven"), ("whistlervillage", "Village"),
                        ("whistlercreekside", "Creekside")]),
-        "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-11-20", "enabled": False, "stage": "shadow",
+        "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-11-20", "enabled": True,
     },
     "heavenly": {
         "name": "Heavenly", "region": "California", "pass": "Epic",
@@ -350,7 +350,7 @@ RESORTS = {
         "snotel": ["518:CA:SNTL", "508:CA:SNTL"], "snotel_label": "Heavenly Valley",
         "cams": _cams([("heavenlydipper", "Dipper"), ("heavenlymidstation", "Mid-station"), ("heavenlytram", "Tram"),
                        ("heavenlyeastpeak", "East Peak")]),
-        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-20", "enabled": False, "stage": "shadow",
+        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-20", "enabled": True,
     },
     "northstar": {
         "name": "Northstar", "region": "California", "pass": "Epic",
@@ -361,7 +361,7 @@ RESORTS = {
         "snotel": ["834:CA:SNTL", "809:CA:SNTL"], "snotel_label": "Truckee #2",
         "cams": _cams([("northstarsnowstake", "Snow stake"), ("northstarspluto", "Mt. Pluto"),
                        ("northstarmidmountain", "Mid-mountain"), ("northstarvillage", "Village")]),
-        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-20", "enabled": False, "stage": "shadow",
+        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-20", "enabled": True,
     },
     "kirkwood": {
         "name": "Kirkwood", "region": "California", "pass": "Epic",
@@ -371,7 +371,7 @@ RESORTS = {
                         (38.6623, -120.0606, 9876, "summit")),
         "snotel": ["1067:CA:SNTL", "1049:CA:SNTL"], "snotel_label": "Carson Pass",
         "cams": _cams([("kirkwoodcornice", "Cornice"), ("kirkwoodredcliffs", "Red Cliffs")]),
-        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04", "enabled": False, "stage": "shadow",
+        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04", "enabled": True,
     },
     "stevens-pass": {
         "name": "Stevens Pass", "region": "Washington", "pass": "Epic",
@@ -384,7 +384,7 @@ RESORTS = {
         "cams": _cams([("stevenspasssnowstake", "Snow stake"), ("stevenspasscourtyard", "Courtyard"),
                        ("stevenspassschool", "Ski school"), ("stevenspassjupiter", "Jupiter"),
                        ("stevenspassskyline", "Skyline")]),
-        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04", "enabled": False, "stage": "shadow",
+        "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04", "enabled": True,
     },
     "stowe": {
         "name": "Stowe", "region": "Vermont", "pass": "Epic",
@@ -396,7 +396,7 @@ RESORTS = {
         "cams": _cams([("stowesnowstake", "Snow stake"), ("stowemidwaybasestation", "Midway"),
                        ("stowevillage", "Village")]),
         # Opening day not announced yet (11/19); last season's target was the Saturday before Thanksgiving.
-        "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21", "enabled": False, "stage": "shadow",
+        "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21", "enabled": True,
     },
     "okemo": {
         "name": "Okemo", "region": "Vermont", "pass": "Epic",
@@ -407,7 +407,7 @@ RESORTS = {
         "snotel": [], "snotel_label": None,
         "cams": _cams([("okemosnowstake", "Snow stake"), ("okemosummit", "Summit"), ("okemosugarhouse", "Sugar House"),
                        ("okemoroundhouse", "Roundhouse")]),
-        "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21", "enabled": False, "stage": "shadow",
+        "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21", "enabled": True,
     },
     "mount-snow": {
         "name": "Mount Snow", "region": "Vermont", "pass": "Epic",
@@ -419,7 +419,7 @@ RESORTS = {
         "snotel": [], "snotel_label": None,
         "cams": _cams([("mountsnowsnowstake", "Snow stake"), ("mountsnowsummit", "Summit"), ("mountsnowcarinthia", "Carinthia"),
                        ("mountsnowbase", "Base")]),
-        "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21", "enabled": False, "stage": "shadow",
+        "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21", "enabled": True,
     },
     "seven-springs": {
         "name": "Seven Springs", "region": "Pennsylvania", "pass": "Epic",
@@ -430,7 +430,7 @@ RESORTS = {
         "snotel": [], "snotel_label": None,
         "cams": _cams([("sevensprings", "Main"), ("sevenspringsnorthface", "North Face")]),
         # Opening day not announced yet (11/19).
-        "patrol": None, "tz": "America/New_York", "opening_day": "2026-12-04", "enabled": False, "stage": "shadow",
+        "patrol": None, "tz": "America/New_York", "opening_day": "2026-12-04", "enabled": True,
     },
     # Killington (locally owned since POWDR sold it in 2024) and POWDR's Mt. Bachelor: no open feed like Copper's
     # (checked 11/19), so for now these two
@@ -445,7 +445,7 @@ RESORTS = {
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York",
         "opening_day": "2026-11-01",  # already open per Ikon (11/19); Killington sets no date in advance
-        "enabled": False, "stage": "shadow",
+        "enabled": True,
     },
     "mt-bachelor": {
         "name": "Mt. Bachelor", "region": "Oregon", "pass": "Ikon",
