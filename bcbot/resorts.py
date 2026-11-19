@@ -669,7 +669,7 @@ RESORTS = {
         "bands": _bands((48.4840, -114.3530, 4464, "base"), (48.4930, -114.3620, 5800, "mid-mountain"),
                         (48.5030, -114.3420, 6817, "summit")),
         "snotel": [], "snotel_label": None,  # nearest SNOTEL (Stryker Basin) is 31 km away: too far to count as truth
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-04",  # announced
+        "cams": [{"label": "Stumpy (snow stake)", "image": "https://skiwhitefish.com/inbound/cams/2425_StumpyCam.jpg", "live": None}], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-04",  # announced
         "enabled": False, "stage": "shadow",
     },
     "grand-targhee": {
@@ -690,7 +690,7 @@ RESORTS = {
         "bands": _bands((50.9580, -118.1640, 1680, "base"), (50.9571, -118.1161, 5600, "Mackenzie Outpost"),
                         (50.9640, -118.1031, 7300, "summit")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-05",  # announced
+        "cams": [{"label": "Gnorm (snow stake)", "image": "https://www.revelstokemountainresort.com/uploads/gnorm/gnorm.jpg", "live": None}], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-05",  # announced
         "enabled": False, "stage": "shadow",
     },
     "jay-peak": {
