@@ -97,7 +97,7 @@ RESORTS = {
                          ("keystonebergman", "Bergman"), ("keystoneriverrun", "River Run"), ("keystonelakeside", "Lakeside Village")]),
         "patrol": None,
         "tz": "America/Denver",
-        "opening_day": "2026-11-01",  # opened in October "as conditions allow"; any earlier date works
+        "opening_day": "2026-10-30",  # opened in October "as conditions allow"; any earlier date works
         "enabled": True,
     },
     "crested-butte": {
@@ -147,7 +147,7 @@ RESORTS = {
                         (37.9070, -107.8400, 12570, "summit")),
         "snotel": ['1344:CO:SNTL', '713:CO:SNTL'],
         "snotel_label": "Alta Lakes",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26", "enabled": True,
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-05", "enabled": True,
     },
     "snowmass": {
         "name": "Snowmass", "region": "Colorado", "pass": "Ikon",
@@ -197,7 +197,7 @@ RESORTS = {
                         (40.4520, -106.7430, 10568, "summit")),
         "snotel": ['457:CO:SNTL', '825:CO:SNTL'],
         "snotel_label": "Dry Lake",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-21", "enabled": True,
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27", "enabled": True,
     },
     "winter-park": {
         "name": "Winter Park", "region": "Colorado", "pass": "Ikon",
@@ -217,7 +217,7 @@ RESORTS = {
                         (39.4670, -106.1700, 12313, "summit")),
         "snotel": ['415:CO:SNTL', '485:CO:SNTL'],
         "snotel_label": "Copper Mountain",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-06", "enabled": True,
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-08", "enabled": True,
     },
     "arapahoe-basin": {
         "name": "Arapahoe Basin", "region": "Colorado", "pass": "Ikon",
@@ -257,7 +257,7 @@ RESORTS = {
                         (40.5960, -111.6090, 10488, "summit")),
         "snotel": ['366:UT:SNTL', '1308:UT:SNTL'],
         "snotel_label": "Brighton",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-20", "enabled": True,
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-19", "enabled": True,
     },
     "brighton": {
         "name": "Brighton", "region": "Utah", "pass": "Ikon",
@@ -367,7 +367,7 @@ RESORTS = {
         "name": "Stowe", "region": "Vermont", "pass": "Epic",
         "site": "https://www.stowe.com", "grooming_pdf": None,
         "lat": 44.5320, "lon": -72.7950, "elevation_ft": 2700,
-        "bands": _bands((44.5300, -72.7810, 1559, "Spruce Peak base"), (44.5320, -72.7950, 2700, "mid-mountain"),
+        "bands": _bands((44.5300, -72.7810, 1559, "base"), (44.5320, -72.7950, 2700, "mid-mountain"),
                         (44.5310, -72.8060, 3625, "Cliff House")),
         "snotel": [], "snotel_label": None,  # no SNOTEL in the East
         "cams": _cams([("stowesnowstake", "Snow stake"), ("stowemidwaybasestation", "Midway"),
@@ -409,7 +409,8 @@ RESORTS = {
         # Opening day not announced yet (11/19).
         "patrol": None, "tz": "America/New_York", "opening_day": "2026-12-04", "enabled": False, "stage": "shadow",
     },
-    # POWDR resorts: Killington's site has no open feed like Copper's (checked 11/19), so for now these two
+    # Killington (locally owned since POWDR sold it in 2024) and POWDR's Mt. Bachelor: no open feed like Copper's
+    # (checked 11/19), so for now these two
     # run on forecast and snow stations only, like Telluride.
     "killington": {
         "name": "Killington", "region": "Vermont", "pass": "Ikon",

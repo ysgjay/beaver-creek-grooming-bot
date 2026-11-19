@@ -9,7 +9,7 @@ class handler(Handler):
     def do_POST(self):
         ua = (self.headers.get("User-Agent") or "").lower()
         hit = None if any(b in ua for b in ("bot", "spider", "crawl", "headless", "preview")) else \
-            stats.clean_hit(self.body_json(), resorts.RESORTS)
+            stats.clean_hit(self.body_json(), resorts.enabled())
         if hit:
             try:
                 with db.connect() as conn:
