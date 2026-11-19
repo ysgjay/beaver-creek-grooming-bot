@@ -1443,6 +1443,31 @@ ${tell}
     const ro = REGIONS.map(([r]) => r);
     return out.sort((a, b) => ((ro.indexOf(a[0]) + 1) || 99) - ((ro.indexOf(b[0]) + 1) || 99));
   }
+  // Lay states out in at most `max` columns of K rows. Picks the K with the shortest columns,
+  // counting each state split across columns as two extra rows. Returns columns of [state, resorts, isContinuation].
+  function packColumns(states, max = 4) {
+    const n = states.reduce((a, [, rs]) => a + rs.length, 0);
+    const layout = (K) => {
+      const cols = []; let cur = null, used = 0, splits = 0;
+      for (const [state, rs] of states) {
+        if (rs.length > K) {
+          const c = Math.ceil(rs.length / K), per = Math.ceil(rs.length / c); splits++;
+          for (let i = 0; i < c; i++) cols.push([[state, rs.slice(i * per, (i + 1) * per), i > 0]]);
+          cur = null;
+        } else if (cur && used + 1 + rs.length <= K) { cur.push([state, rs, false]); used += 1 + rs.length; }
+        else { cols.push(cur = [[state, rs, false]]); used = rs.length; }
+      }
+      return { cols, splits };
+    };
+    const lo = Math.max(1, Math.ceil(n / max)), hi = Math.max(lo, ...states.map(([, rs]) => rs.length));
+    let best = null;
+    for (let K = lo; K <= hi; K++) {
+      const t = layout(K);
+      t.score = K + 2 * t.splits;
+      if (t.cols.length <= max && (!best || t.score < best.score)) best = t;
+    }
+    return (best || layout(hi)).cols;
+  }
   const phoneMenu = () => matchMedia("(max-width: 899px)").matches;
   function closeResortMenu() {
     const m = $("#resort-menu"); if (!m) return;
@@ -1460,8 +1485,11 @@ ${tell}
         <button class="rm-star" type="button" data-star="${r.slug}" aria-pressed="${isFav(r.slug)}" aria-label="${isFav(r.slug) ? "Remove" : "Add"} ${esc(r.name)} ${isFav(r.slug) ? "from" : "to"} favorites">${STAR}</button>
       </div>`;
     const area = byArea(R.list), favs = R.list.filter((r) => isFav(r.slug));
+    // Each column starts with a state heading. Short states share a column; a long state fills whole
+    // columns and repeats its heading at the top of the next one (hidden on phones).
     const group = (id, title, states) => `<section class="rm-group" data-group="${id}"><h3 class="rm-area">${esc(title)}</h3><div class="rm-cols">${
-      states.map(([state, rs]) => `<div class="rm-state">${state ? `<h4 class="rm-region label">${esc(state)}</h4>` : ""}${rs.map(row).join("")}</div>`).join("")}</div></section>`;
+      packColumns(states).map((col) => `<div class="rm-col">${col.map(([state, rs, cont]) =>
+        `<div class="rm-state">${state ? `<h4 class="rm-region label${cont ? " rm-cont" : ""}"${cont ? ' aria-hidden="true"' : ""}>${esc(state)}</h4>` : ""}${rs.map(row).join("")}</div>`).join("")}</div>`).join("")}</div></section>`;
     const body = () => (favs.length ? group("fav", "Favorites", [["", favs]]) : "")
       + area.map(([reg, states]) => group(reg, reg, states)).join("")
       + `<p class="rm-empty small muted" hidden>No resorts match.</p>`;
@@ -1477,7 +1505,7 @@ ${tell}
     const filter = () => {
       const t = q.value.trim().toLowerCase();
       list.querySelectorAll(".rm-row").forEach((r) => { r.hidden = !!t && !r.dataset.find.includes(t); });
-      list.querySelectorAll(".rm-state, .rm-group").forEach((g) => { g.hidden = !g.querySelector(".rm-row:not([hidden])"); });
+      list.querySelectorAll(".rm-state, .rm-col, .rm-group").forEach((g) => { g.hidden = !g.querySelector(".rm-row:not([hidden])"); });
       list.querySelector(".rm-empty").hidden = !!list.querySelector(".rm-row:not([hidden])");
     };
     fillSnow(m);
