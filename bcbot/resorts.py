@@ -601,8 +601,8 @@ RESORTS = {
         "name": "Loon Mountain", "region": "New Hampshire", "pass": "Ikon",
         "site": "https://www.loonmtn.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 44.0450, "lon": -71.6380, "elevation_ft": 2000,
-        "bands": _bands((44.0360, -71.6210, 950, "base"), (44.0450, -71.6380, 2000, "mid-mountain"),
-                        (44.0530, -71.6510, 3050, "North Peak")),
+        "bands": _bands((44.0563, -71.6299, 950, "base"), (44.0450, -71.6380, 2000, "mid-mountain"),
+                        (44.0360, -71.6210, 3050, "North Peak")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-21",  # est.
         "enabled": False, "stage": "shadow",
@@ -620,9 +620,9 @@ RESORTS = {
     "gore": {
         "name": "Gore Mountain", "region": "New York", "pass": "Independent",
         "site": "https://goremountain.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 43.6650, "lon": -74.0300, "elevation_ft": 2500,
-        "bands": _bands((43.6730, -74.0060, 1500, "base"), (43.6650, -74.0300, 2500, "mid-mountain"),
-                        (43.6580, -74.0520, 3600, "summit")),
+        "lat": 43.6740, "lon": -74.0280, "elevation_ft": 2500,
+        "bands": _bands((43.6730, -74.0060, 1500, "base"), (43.6740, -74.0280, 2500, "mid-mountain"),
+                        (43.6731, -74.0487, 3600, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-26",  # est.
         "enabled": False, "stage": "shadow",
@@ -632,7 +632,7 @@ RESORTS = {
         "site": "https://www.skitaos.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 36.5850, "lon": -105.4500, "elevation_ft": 10500,
         "bands": _bands((36.5960, -105.4540, 9207, "base"), (36.5850, -105.4500, 10500, "mid-mountain"),
-                        (36.5720, -105.4460, 12481, "Kachina Peak")),
+                        (36.5625, -105.4480, 12481, "Kachina Peak")),
         "snotel": ["1168:NM:SNTL", "1307:NM:SNTL"], "snotel_label": "Taos Powderhorn",
         "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26",  # announced
         "enabled": False, "stage": "shadow",
@@ -642,7 +642,7 @@ RESORTS = {
         "site": "https://skiwhitefish.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 48.4930, "lon": -114.3620, "elevation_ft": 5800,
         "bands": _bands((48.4840, -114.3530, 4464, "base"), (48.4930, -114.3620, 5800, "mid-mountain"),
-                        (48.5040, -114.3700, 6817, "summit")),
+                        (48.5030, -114.3420, 6817, "summit")),
         "snotel": [], "snotel_label": None,  # nearest SNOTEL (Stryker Basin) is 31 km away: too far to count as truth
         "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-04",  # announced
         "enabled": False, "stage": "shadow",
@@ -652,7 +652,7 @@ RESORTS = {
         "site": "https://www.grandtarghee.com", "snow_report_path": None, "grooming_pdf": None,
         "lat": 43.7800, "lon": -110.9420, "elevation_ft": 9000,
         "bands": _bands((43.7890, -110.9580, 7851, "base"), (43.7800, -110.9420, 9000, "mid-mountain"),
-                        (43.7720, -110.9350, 9862, "Fred's Mountain")),
+                        (43.7870, -110.9340, 9862, "Fred's Mountain")),
         "snotel": ["1082:WY:SNTL"], "snotel_label": "Grand Targhee",
         "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-21",  # est.; the resort says it is delaying opening day, no date yet
         "enabled": False, "stage": "shadow",
@@ -660,8 +660,8 @@ RESORTS = {
     "revelstoke": {
         "name": "Revelstoke", "region": "British Columbia", "pass": "Ikon",
         "site": "https://www.revelstokemountainresort.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 50.9620, "lon": -118.1920, "elevation_ft": 5600,
-        "bands": _bands((50.9580, -118.1640, 1680, "base"), (50.9620, -118.1920, 5600, "Mackenzie Outpost"),
+        "lat": 50.9390, "lon": -118.0930, "elevation_ft": 5600,
+        "bands": _bands((50.9580, -118.1640, 1680, "base"), (50.9390, -118.0930, 5600, "Mackenzie Outpost"),
                         (50.9530, -118.2300, 7300, "summit")),
         "snotel": [], "snotel_label": None,
         "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-05",  # announced
@@ -700,9 +700,9 @@ RESORTS = {
     "mt-hood-meadows": {
         "name": "Mt. Hood Meadows", "region": "Oregon", "pass": "Indy",
         "site": "https://www.skihood.com", "snow_report_path": None, "grooming_pdf": None,
-        "lat": 45.3350, "lon": -121.6680, "elevation_ft": 6500,
-        "bands": _bands((45.3310, -121.6650, 5250, "base"), (45.3350, -121.6680, 6500, "mid-mountain"),
-                        (45.3420, -121.6720, 7300, "Cascade Express top")),
+        "lat": 45.3400, "lon": -121.6760, "elevation_ft": 6500,
+        "bands": _bands((45.3310, -121.6650, 5250, "base"), (45.3400, -121.6760, 6500, "mid-mountain"),
+                        (45.3500, -121.6850, 7300, "Cascade Express top")),
         "snotel": ["651:OR:SNTL", "1314:OR:SNTL"], "snotel_label": "Mt Hood Test Site",
         "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-12-04",  # announced
         "enabled": False, "stage": "shadow",
