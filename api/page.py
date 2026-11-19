@@ -97,7 +97,8 @@ class handler(Handler):
                 return self.not_found("We don't cover that resort yet")
             if day_str == "guide":
                 summary = store.get_json("data/observer/summary.json")
-                return self.send(200, pages.guide_page(slug, summary), cache="public, max-age=3600, s-maxage=21600")
+                day = pages.latest_day(store, slug)
+                return self.send(200, pages.guide_page(slug, summary, day), cache="public, max-age=300, s-maxage=900")
             dates = pages.post_dates(store, slug)
             if day_str:
                 if not pages.valid_date(day_str):
