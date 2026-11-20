@@ -1147,6 +1147,7 @@ def is_static(slug):
 
 
 def coverage():
+    from . import groomwatch
     """What each resort has and lacks: cams and where its snow report comes from (the admin "Cams and
     reports" table, so Young can see what's missing and send cam links in the thread)."""
     rows = []
@@ -1167,6 +1168,7 @@ def coverage():
                      "cams": len(r["cams"]), "cam_labels": [c["label"] for c in r["cams"]],
                      "stake": any("stake" in c["label"].lower() for c in r["cams"]),
                      "report": report, "report_url": r["snow_report"] or "",
-                     "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"] or r["terrain_status"])})
+                     "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"] or r["terrain_status"]),
+                     "grooming_source": groomwatch.source(r)})
     return rows
 

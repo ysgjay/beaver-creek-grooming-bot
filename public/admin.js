@@ -95,11 +95,19 @@
       <th><a href="${esc(r.site)}" target="_blank" rel="noopener">${esc(r.name)}</a>${stage(r)}</th>
       <td class="fx ${r.cams ? "filled" : "missing"}" title="${esc(r.cam_labels.join(", "))}">${r.cams ? `${r.cams} cam${r.cams > 1 ? "s" : ""}${r.stake ? " · stake" : ""}` : "None"}</td>
       <td class="fx ${r.report ? "filled" : "missing"}">${r.report ? (r.report_url ? `<a href="${esc(r.report_url)}" target="_blank" rel="noopener">${esc(r.report)}</a>` : esc(r.report)) : "Forecast + SNOTEL only"}</td>
-      <td class="fx ${r.grooming ? "filled" : "missing"}">${r.grooming ? "✓" : "—"}</td></tr>`).join("");
+      <td class="fx ${r.grooming && !r.grooming_problem ? "filled" : "missing"}">${groomCell(r)}</td></tr>`).join("");
     return card("Cams and reports", `${noCams.length} of ${cv.length} resorts have no cams; ${noReport.length} have no snow report reader. Send cam page links in the project chat and Claude adds them.`,
       `<div class="ad-legend fx-legend"><button class="btn secondary" type="button" id="cv-copy">Copy missing list</button>
        <button class="btn secondary" type="button" id="cv-csv">Download CSV</button><span id="cv-done" class="sub"></span></div>
-       <div class="fx-scroll"><table class="ad-t fx-t"><thead><tr><th>Resort</th><th>Cams</th><th>Snow report</th><th>Groomed runs</th></tr></thead><tbody>${rows}</tbody></table></div>`, "wide");
+       <div class="fx-scroll"><table class="ad-t fx-t"><thead><tr><th>Resort</th><th>Cams</th><th>Snow report</th><th>Grooming</th></tr></thead><tbody>${rows}</tbody></table></div>`, "wide");
+  }
+  // Grooming column: where it comes from, the last day it had runs, and what the weekly finder turned up.
+  function groomCell(r) {
+    const md = (d) => d ? `${d.slice(5, 7)}/${d.slice(8, 10)}` : "";
+    if (r.grooming_source) return `${esc(r.grooming_source)}${r.last_grooming ? ` · last ${md(r.last_grooming)}` : ""}${r.grooming_problem ? ` · <strong>${esc(r.grooming_problem)}</strong>` : ""}`;
+    const found = (r.grooming_found || []).length ? `Found: ${esc(r.grooming_found.join(", "))}` : "";
+    const hint = [...(r.grooming_hints || []).map(esc), ...(r.grooming_links || []).slice(0, 1).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">grooming page</a>`)].join(", ");
+    return found || (hint ? `None · ${hint}` : "None");
   }
   function coverageText(cv) {
     const line = (r) => `- ${r.name} (${r.site}): cam page link = `;
@@ -107,7 +115,7 @@
     return `Cams missing for ${miss.length} resorts:\n${miss.map(line).join("\n")}`;
   }
   function coverageCsv(cv, today) {
-    const cols = ["name", "resort", "stage", "region", "pass", "site", "cams", "stake", "report", "report_url", "grooming"];
+    const cols = ["name", "resort", "stage", "region", "pass", "site", "cams", "stake", "report", "report_url", "grooming", "grooming_source", "last_grooming", "grooming_problem"];
     const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const csv = [cols.join(","), ...cv.map((r) => cols.map((c) => q(r[c])).join(","))].join("\r\n");
     const a = document.createElement("a");
