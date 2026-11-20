@@ -127,7 +127,7 @@
    "region": "Colorado",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "keystone",
@@ -173,7 +173,7 @@
    "region": "Colorado",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "crested-butte",
@@ -204,7 +204,7 @@
    "region": "Colorado",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "park-city",
@@ -604,7 +604,7 @@
    "region": "British Columbia",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "heavenly",
@@ -640,7 +640,7 @@
    "region": "California",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "northstar",
@@ -676,7 +676,7 @@
    "region": "California",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "kirkwood",
@@ -702,7 +702,7 @@
    "region": "California",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "stevens-pass",
@@ -743,7 +743,7 @@
    "region": "Washington",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "stowe",
@@ -774,7 +774,7 @@
    "region": "Vermont",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "okemo",
@@ -810,7 +810,7 @@
    "region": "Vermont",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "mount-snow",
@@ -846,7 +846,7 @@
    "region": "Vermont",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "seven-springs",
@@ -872,7 +872,7 @@
    "region": "Pennsylvania",
    "pass": "Epic",
    "snow_report": true,
-   "grooming": false
+   "grooming": true
   },
   {
    "slug": "killington",

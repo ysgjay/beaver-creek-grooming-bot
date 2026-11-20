@@ -415,6 +415,15 @@ details summary { cursor: pointer; color: var(--accent); font-weight: 600; min-h
 .card-head .link::after { content: " ›"; }
 .groom { display: grid; gap: 8px; }
 @media (min-width: 560px) { .groom { grid-template-columns: 1.4fr 1fr; align-items: start; } }
+/* Grooming card with nothing to show: same card, a short note saying why. */
+.groom-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 22px 12px; color: var(--ink-2); }
+.groom-empty svg { color: var(--ink-2); opacity: .7; }
+.groom-empty p { margin: 0; max-width: 46ch; }
+.groom-empty .groom-empty-title { color: var(--ink); font-weight: 600; font-size: 16px; }
+.groom-empty .resort-links { justify-content: center; margin-top: 4px; }
+.a-groom.is-empty { display: flex; flex-direction: column; }
+.a-groom.is-empty .groom-empty { flex: 1; }
+.groom-foot { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .cam-row { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
 .resort-links { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin: 2px 0 0; font-size: 12px; color: var(--ink-2); }
 .status-line { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
@@ -528,9 +537,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
   .view > .offline, .view > .status-line { grid-column: 1 / -1; }
 
   .v-today { grid-template-areas: "status status" "groom groom" "cond cam" "fc cam" "cta cam"; grid-template-rows: auto auto auto auto 1fr; }
-  .v-today.no-groom { grid-template-areas: "status status" "cond cam" "fc cam" "cta cam"; grid-template-rows: auto auto auto 1fr; }
   .v-today.is-offline { grid-template-areas: "off off" "status status" "groom groom" "cond cam" "fc cam" "cta cam"; grid-template-rows: auto auto auto auto auto 1fr; }
-  .v-today.is-offline.no-groom { grid-template-areas: "off off" "status status" "cond cam" "fc cam" "cta cam"; grid-template-rows: auto auto auto auto 1fr; }
   .v-today > .offline { grid-area: off; }
   .v-today > .status-line { grid-area: status; }
   .a-groom { grid-area: groom; } .a-cond { grid-area: cond; } .a-fc { grid-area: fc; } .a-cam { grid-area: cam; } .a-cta { grid-area: cta; }
@@ -590,9 +597,7 @@ html[data-material="glass"] .tabbar, html[data-material="frost"] .tabbar { backg
 
   /* Today: the grooming map takes the left 62%; conditions, forecast and cams stack on the right. */
   .v-today { grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); grid-template-areas: "groom cond" "groom fc" "groom cam" "groom cta"; grid-template-rows: auto auto auto 1fr; }
-  .v-today.no-groom { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "cond fc cam" "cta . cam"; grid-template-rows: auto 1fr; }
   .v-today.is-offline { grid-template-areas: "off off" "groom cond" "groom fc" "groom cam" "groom cta"; grid-template-rows: auto auto auto auto 1fr; }
-  .v-today.is-offline.no-groom { grid-template-areas: "off off off" "cond fc cam" "cta . cam"; grid-template-rows: auto auto 1fr; }
   .v-today .a-groom { align-self: stretch; }
   .v-today .a-cta { display: none; }   /* the top bar carries the sign-up button on wide screens */
   .v-today .groom { grid-template-columns: minmax(0, 1fr); }

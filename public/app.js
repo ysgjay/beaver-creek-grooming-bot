@@ -165,6 +165,28 @@
   const groomedRuns = (r) => r ? [...(r.featured || []), ...(r.overnight || []), ...(r.morning || []), ...(r.groomed || [])] : [];
 
   /* ---------------- shared pieces ---------------- */
+  function groomLinks() {
+    const r = resortInfo();
+    return [`<a class="link" href="/resorts/${encodeURIComponent(R.slug)}/guide">Trail map and resort info</a>`]
+      .concat(r.site ? [`<a class="link" href="${esc(r.site)}" target="_blank" rel="noopener">${esc(r.name || "Resort")} site</a>`] : [])
+      .join('<span aria-hidden="true">·</span>');
+  }
+
+  /* The Grooming card keeps its place on every resort; when there's nothing to show it says why. */
+  function groomEmptyState(g) {
+    const r = resortInfo(), name = esc(r.name || "This resort");
+    const [title, body] = g.none
+      ? ["No grooming report", `${name} doesn't publish a grooming map or groomed-run list that 0xSnow can read yet. Snow, forecast and cams are below.`]
+      : g.list ? ["No groomed runs reported yet today", "The resort's grooming list updates overnight. Groomed runs show here as soon as it marks them."]
+      : ["No grooming map yet", "Tonight's map usually posts early in the morning. It shows here as soon as it's in."];
+    return `<div class="groom-empty">
+        <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 40 18 14l8 13 5-7 13 20Z"/><path d="M14 34c4-2 8-2 12 0s8 2 12 0" opacity=".55"/></svg>
+        <p class="groom-empty-title">${title}</p>
+        <p class="muted small">${body}</p>
+        <p class="resort-links">${groomLinks()}</p>
+      </div>`;
+  }
+
   function runsBlock(runs) {
     if (!runs) return "";
     const groups = [["Groomers of the day", runs.groomers_of_the_day || runs.featured, "featured"],
@@ -428,11 +450,11 @@
     const weatherLabel = now ? `${UI.clockLabel(UI.parts(now.time, zone))} temp` : "Temp";
     const elevation = UI.number(fc.point?.elevation_ft) ? `${fc.point.elevation_ft.toLocaleString("en-US")} ft · ` : "";
     const oldMap = grooming.age !== null && grooming.age > 0;
-    const mapBadge = grooming.age === null ? "Date unavailable" : oldMap ? `${grooming.age} ${grooming.age === 1 ? "day" : "days"} old` : grooming.age === 0 ? (g.list ? "Checked today" : "Today's map") : "Dated ahead";
-    const mapNote = grooming.day ? `${g.list ? "Feed checked" : "Map from"} ${grooming.label}${oldMap ? " · awaiting a newer report" : ""}` : "Map date unavailable";
+    const mapBadge = g.none ? "Not published" : grooming.age === null ? "Date unavailable" : oldMap ? `${grooming.age} ${grooming.age === 1 ? "day" : "days"} old` : grooming.age === 0 ? (g.list ? "Checked today" : "Today's map") : "Dated ahead";
+    const mapNote = g.none ? "No grooming map or groomed-run list from this resort" : grooming.day ? `${g.list ? "Feed checked" : "Map from"} ${grooming.label}${oldMap ? " · awaiting a newer report" : ""}` : "Map date unavailable";
+    const groomEmpty = g.none || (!g.image && !groomedRuns(g.runs).length);
     const tenths = (x) => UI.number(x) ? `${Math.round(x * 10) / 10}″` : "–";
     const firstRange = outlook.startsToday && fc.next_1_5_range;
-    if (g.none) v.classList.add("no-groom");
     if (S.offline) v.classList.add("is-offline");
     v.innerHTML = `
       ${S.offline ? `<p class="offline">You're offline. Showing the report saved on ${fmtDay(L.date)}.</p>` : ""}
@@ -454,13 +476,13 @@
         <span class="outlook-eyebrow">Expected snow <span aria-hidden="true">↗</span></span>
         <span class="outlook-values"><span><small>Next 5 days</small><strong>${tenths(outlook.first)}</strong></span><span><small>${outlook.peak ? fmtDay(outlook.peak.date) : "Days 6–10"}</small><strong>${tenths(outlook.peak?.snow ?? outlook.second)}</strong></span></span>
       </a>` : ""}
-      ${g.none ? "" : `<section class="card a-groom" aria-labelledby="h-groom">
-        <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="map-age${oldMap ? " old" : ""}">${esc(mapBadge)}</span></div><p class="map-note">${esc(mapNote)}</p>
-        <div class="groom">
-          ${g.image ? mapPages.map((src, i) => `<button class="map-btn" type="button" data-map-page="${i}" aria-label="Open the grooming map${mapPages.length > 1 ? `, page ${i + 1} of ${mapPages.length},` : ""} full size"><img src="/${esc(src)}" alt="${esc(resortInfo().name)} grooming map${mapPages.length > 1 ? `, page ${i + 1}` : ""}" decoding="async"${i ? ' loading="lazy"' : ""}></button>`).join("") : g.list ? (groomedRuns(g.runs).length ? "" : `<p class="muted">No groomed runs reported yet today.</p>`) : `<p class="muted">No grooming map yet.</p>`}
+      <section class="card a-groom${groomEmpty ? " is-empty" : ""}" aria-labelledby="h-groom">
+        <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="map-age${oldMap && !g.none ? " old" : ""}">${esc(mapBadge)}</span></div><p class="map-note">${esc(mapNote)}</p>
+        ${groomEmpty ? groomEmptyState(g) : `<div class="groom">
+          ${g.image ? mapPages.map((src, i) => `<button class="map-btn" type="button" data-map-page="${i}" aria-label="Open the grooming map${mapPages.length > 1 ? `, page ${i + 1} of ${mapPages.length},` : ""} full size"><img src="/${esc(src)}" alt="${esc(resortInfo().name)} grooming map${mapPages.length > 1 ? `, page ${i + 1}` : ""}" decoding="async"${i ? ' loading="lazy"' : ""}></button>`).join("") : ""}
           ${runsBlock(g.runs)}
-        </div>
-      </section>`}
+        </div>${g.list && !g.image ? `<p class="groom-foot resort-links">Groomed runs as the resort marks them<span aria-hidden="true">·</span>${groomLinks()}</p>` : ""}`}
+      </section>
       <section class="card a-fc" aria-labelledby="h-fc">
         <div class="card-head"><h2 id="h-fc">Snow forecast</h2><a class="link" href="#forecast">Full forecast</a></div>
         <div class="status-line"><span>Next 5 days <strong class="num">${inch(outlook.first)}</strong>${firstRange ? ` (likely ${inch(firstRange[0])}–${inch(firstRange[1])})` : ""}</span><span>· Days 6–10 <strong class="num">${inch(outlook.second)}</strong></span></div>

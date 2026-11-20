@@ -1108,6 +1108,10 @@ def get(slug):
         r["snow_report"] = r["report_feed"]["url"]
     elif "snow_report_path" in r and r["snow_report_path"] is None:
         r["snow_report"] = None  # this resort's own snow report isn't read (yet)
+    # Vail Resorts' shared site platform (the .aspx snow report pages) also has a terrain status page
+    # that marks groomed runs (sources/vrterrain.py). Used when the resort posts no grooming map.
+    r["terrain_status"] = (r["site"].rstrip("/") + "/the-mountain/mountain-conditions/terrain-and-lift-status.aspx"
+                           if (r["snow_report"] or "").endswith(".aspx") else None)
     env = os.environ.get("OPENING_DAY_" + slug.upper().replace("-", "_")) or (
         os.environ.get("OPENING_DAY") if slug == DEFAULT else None)
     r["opening_day"] = date.fromisoformat(env or r.get("opening_day") or "2026-11-25")
@@ -1131,7 +1135,7 @@ def public_list():
         out.append({"slug": slug, "name": r["name"], "timezone": r["tz"], "cams": r["cams"], "patrol": r["patrol"],
                     "snotel": r["snotel_label"], "site": r["site"], "lat": r["lat"], "lon": r["lon"],
                     "region": r["region"], "pass": r["pass"], "snow_report": bool(r["snow_report"]),
-                    "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"])})
+                    "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"] or r["terrain_status"])})
     return {"default": DEFAULT, "resorts": out}
 
 
@@ -1163,6 +1167,6 @@ def coverage():
                      "cams": len(r["cams"]), "cam_labels": [c["label"] for c in r["cams"]],
                      "stake": any("stake" in c["label"].lower() for c in r["cams"]),
                      "report": report, "report_url": r["snow_report"] or "",
-                     "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"])})
+                     "grooming": bool(r["grooming_pdf"] or r["dor_api"] or r["reportpal"] or r["terrain_status"])})
     return rows
 
