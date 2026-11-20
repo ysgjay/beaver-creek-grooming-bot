@@ -3,7 +3,10 @@
 // Cron (UTC, non-overlapping so two ticks never fire in the same minute):
 //   */5 11-13      every 5 min, 4:00-6:55 a.m. MST: send within minutes of the map + snow report
 //   */15 9-10,14-17  every 15 min the rest of 2-10 a.m. MST
-//   0 21           mid-afternoon forecast refresh Cloudflare cron runs on the minute, unlike GitHub Actions' best-effort
+//   */5 19-21      Japan: every 5 min, 4:00-6:55 a.m. JST (21:00 is also the MST mid-afternoon refresh)
+//   */15 18,22-23,0-1  Japan: every 15 min, 3 a.m. and 7-10 a.m. JST
+//   0 5            Japan: 2 p.m. JST refresh
+// (5 crons, the free plan's limit. api/run.py cron_window keeps each resort to its own hours.) Cloudflare cron runs on the minute, unlike GitHub Actions' best-effort
 // schedule. Each tick calls the Vercel function, which decides what to do:
 // mostly a cheap "nothing changed", a full refresh before 7:00, and the 7:00 send.
 //

@@ -81,11 +81,19 @@ def _site(path=""):
 def send_confirmation(email, token, slugs=("beaver-creek",)):
     link = f"{config.DASHBOARD_URL.rstrip('/')}/api/confirm?t={token}"
     names = escape(_names(slugs))
+    from . import resorts
     many = len(slugs) > 1
+    groups = resorts.by_send_group(slugs)
+    if many and len(groups) > 1:   # North America and Japan: one email each, on each one's own morning
+        when = ", with your Japanese resorts in their own email on Japan time"
+    elif many and max(map(len, groups.values()), default=0) > 1:
+        when = ", all your resorts in one email by 6:30 AM local time"
+    else:
+        when = ""
     html = _shell(_card(f"""
       {_brand_row()}
       <h1 style="margin:14px 0 8px;font:600 22px/1.25 {DISPLAY};color:{INK}">Confirm your {names} report{"s" if many else ""}</h1>
-      <p style="margin:0 0 16px">Tap the button to get the grooming map, snow report and forecast by email every morning{", all your resorts in one email by 6:30 AM local time" if many else ""}.</p>
+      <p style="margin:0 0 16px">Tap the button to get the grooming map, snow report and forecast by email every morning{when}.</p>
       <p style="margin:0 0 20px"><a href="{link}" style="{BUTTON}">Confirm my email</a></p>
       <p style="margin:0;color:{INK2};font-size:13px">If you didn't ask for this, ignore this email and nothing will be sent.</p>"""))
     return _post("/emails", {

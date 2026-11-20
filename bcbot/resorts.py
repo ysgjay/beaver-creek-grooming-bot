@@ -1114,6 +1114,26 @@ def get(slug):
     return r
 
 
+# Email send groups (Young, 11/20: "Japan emails can be separate sends"). Someone who follows
+# Vail and Niseko gets the North American email on Mountain time and a separate Japan email on
+# Japan time, instead of one email where half the resorts always show "Report pending".
+SEND_GROUPS = {"JP": "jp"}   # country -> group; every other country is "na"
+
+
+def send_group(slug):
+    """'jp' for a Japanese resort, 'na' for the US and Canada."""
+    return SEND_GROUPS.get(get(slug)["country"], "na") if slug in RESORTS else "na"
+
+
+def by_send_group(slugs):
+    """{group: [slugs in the order picked]} for a subscriber's resorts."""
+    out = {}
+    for s in slugs:
+        if s in RESORTS:
+            out.setdefault(send_group(s), []).append(s)
+    return out
+
+
 def valid(slugs):
     """Keep only known, enabled slugs (in order, no repeats). Used for sign-up input."""
     on, out = set(enabled()), []

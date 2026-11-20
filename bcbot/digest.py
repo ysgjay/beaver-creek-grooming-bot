@@ -7,6 +7,12 @@ ski resort info possible by 6:30am and send out the email aggregated"), they get
 summarizing all of them with whatever each resort has posted so far, and a link to each
 resort's full report. A resort with no data for today by then shows as "report pending". One email per person per day,
 enforced by a database claim, so the Resend daily cap counts people, not people x resorts.
+
+Japan is its own send (Young, 11/20: "Japan emails can be separate sends"): a subscriber's resorts
+are split by send group (resorts.send_group), and each group with two or more resorts gets its own
+combined email at 6:30 AM in that group's zone. Japanese resorts post around 6 to 8 AM Japan time,
+which is mid-afternoon in Colorado, so one email for both would always show half of them pending.
+A group with one resort gets that resort's own Day Ticket instead (db.active_subscribers).
 """
 import logging
 import os
@@ -40,6 +46,23 @@ def resort_today(slug, now):
 def _today_day(store, slug, today):
     day = resort_store(slug, store).get_json("data/latest.json", {}) or {}
     return day if day.get("date") == today else None
+
+
+def claim_key(token, group):
+    """The once-a-day claim for one subscriber and send group. North America keeps the bare
+    token (the claims made before Japan existed); other groups add their name."""
+    return token if group == "na" else f"{token}:{group}"
+
+
+def split(subs):
+    """[(email, key, picked, maps, token, group)]: one entry per send group with two or more of
+    the subscriber's resorts."""
+    out = []
+    for email, token, picked, *rest in subs:
+        for group, slugs in resorts.by_send_group(picked).items():
+            if len(slugs) > 1:
+                out.append((email, claim_key(token, group), slugs, rest[0] if rest else False, token, group))
+    return out
 
 
 def plan(subs, sent, days, now):
@@ -84,16 +107,16 @@ def run(now=None, store=None, deadline=None):
         return {"status": "skipped (past noon)"}
     store = store or get_store()
     with db.connect() as conn:
-        subs = db.multi_resort_subscribers(conn)
+        subs = split(db.multi_resort_subscribers(conn))
         if not subs:
             return {"status": "ok", "sent": 0}
-        sub_day = {t: now.astimezone(home_zone(p)).date().isoformat() for _, t, p, *_ in subs}
+        sub_day = {k: now.astimezone(home_zone(p)).date().isoformat() for _, k, p, *_ in subs}
         done = set()
         for d in set(sub_day.values()):
-            done |= {t for t in db.digest_sent(conn, d) if sub_day.get(t) == d}
+            done |= {k for k in db.digest_sent(conn, d) if sub_day.get(k) == d}
         subs = [s for s in subs if s[1] not in done]
-        wanted = {r for _, _, picked, *_ in subs for r in picked if r in resorts.RESORTS}
-        maps_on = {t: m for _, t, _, m in subs}
+        wanted = {r for _, _, picked, *_ in subs for r in picked}
+        about = {k: (m, t, g) for _, k, _, m, t, g in subs}
         local_day = {slug: resort_today(slug, now) for slug in wanted}
         sent = set()
         for d in set(local_day.values()):
@@ -109,27 +132,32 @@ def run(now=None, store=None, deadline=None):
         radar_url = radar.snapshot(store, now) if due and left() > RADAR_SECONDS else None
         if due and left() < MIN_SECONDS:
             return {"status": "skipped (no time left this tick)", "waiting": len(subs)}
-        by_day = {}
-        for email, token, ready, pending in due:
-            today = sub_day[token]
-            if not db.claim_digest(conn, today, token, ready, pending):
+        by_batch = {}
+        for email, key, ready, pending in due:
+            today = sub_day[key]
+            maps, token, group = about[key]
+            if not db.claim_digest(conn, today, key, ready, pending):
                 continue
             local = now.astimezone(home_zone(ready + pending))
             ordered = sorted(ready, key=lambda s: -(mailer.new_snow(days[s]) or 0))
             picked = [(s, days[s]) for s in ordered]
-            by_day.setdefault(today, []).append(
+            # The US radar picture only covers North America.
+            by_batch.setdefault((today, group), []).append(
                 (email, token, mailer.digest_subject(picked, pending),
-                 mailer.digest_html(picked, pending, local, radar_url=radar_url, maps=maps_on.get(token), token=token),
-                 mailer.digest_text(picked, pending)))
-        messages = [m for ms in by_day.values() for m in ms]
+                 mailer.digest_html(picked, pending, local, radar_url=radar_url if group == "na" else None,
+                                    maps=maps, token=token),
+                 mailer.digest_text(picked, pending), key))
+        messages = [m for ms in by_batch.values() for m in ms]
         failure = None
-        for today, ms in by_day.items():
+        for (today, group), ms in by_batch.items():
             try:
-                mailer.send_personal(ms, kind="digest", day=today)
+                # Its own idempotency kind per group, so a Japan email on the same date and to the
+                # same person is never taken for a repeat of the North American one.
+                mailer.send_personal([m[:5] for m in ms], kind="digest" if group == "na" else f"digest-{group}", day=today)
             except Exception as e:
                 # Hand the claims back so the next tick tries again. The batch idempotency key
                 # stops anything that did go out from going out twice.
-                db.release_digest(conn, today, [m[1] for m in ms])
+                db.release_digest(conn, today, [m[5] for m in ms])
                 failure = e
         if failure:
             raise failure
