@@ -20,7 +20,7 @@ import sys
 from datetime import date, datetime, timedelta
 
 from . import alert, audit, config, forecast, notify, pages, report, resorts, verify
-from .sources import dor, grooming, reportpal, mountain, nws, openmeteo, resort, snotel
+from .sources import dor, grooming, reportpal, mountain, vrterrain, nws, openmeteo, resort, snotel
 from .store import get_store, resort_store
 from .util import get, now_local
 
@@ -443,7 +443,8 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
                                       "extra_images": state.get("last_map_extra") or []})
     if not config.GROOMING_PDF_URL:
         g = {"new_map": False, "image": None, "none": True}  # this resort posts no grooming map
-        feed = dor if config.DOR_API else reportpal if config.REPORTPAL else None
+        feed = (dor if config.DOR_API else reportpal if config.REPORTPAL
+                else vrterrain if config.TERRAIN_STATUS_URL else None)
         if feed:  # no map, but the resort's trail feed says which runs are groomed
             runs = _try("grooming feed", feed.fetch_grooming, errors, None)
             if runs is not None:
