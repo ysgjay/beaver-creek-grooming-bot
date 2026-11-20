@@ -35,6 +35,12 @@ def _has_data(r):
         j = r.json()
     except Exception:
         return False
+    if isinstance(j, list):  # a multi-point request answers with one object per point
+        return bool(j) and all(_point_has_data(p) for p in j)
+    return _point_has_data(j)
+
+
+def _point_has_data(j):
     if not isinstance(j, dict):
         return False
     blocks = [b for b in (j.get("hourly"), j.get("daily")) if isinstance(b, dict)]
