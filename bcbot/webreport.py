@@ -131,6 +131,11 @@ def _grooming(day, map_url):
         out += (f'<figure><a href="{map_url}" target="_blank" rel="noopener">'
                 f'<img src="{map_url}" alt="Grooming map for {name}, {report.mmdd(day["date"])}" loading="eager"></a>'
                 f'<figcaption><span>{stamp}</span><a href="{map_url}" target="_blank" rel="noopener">Open full size</a></figcaption></figure>')
+        for n, path in enumerate(g.get("extra_images") or [], start=2):
+            url = mailer._site(path)
+            out += (f'<figure><a href="{url}" target="_blank" rel="noopener">'
+                    f'<img src="{url}" alt="Grooming map for {name}, {report.mmdd(day["date"])}, page {n}" loading="lazy"></a>'
+                    f'<figcaption><span>Page {n}</span><a href="{url}" target="_blank" rel="noopener">Open full size</a></figcaption></figure>')
     if runs.get("groomers_of_the_day"):
         out += '<h3>Groomers of the day</h3><ul class="gotd">' + "".join(
             f"<li>{escape(n)}</li>" for n in runs["groomers_of_the_day"]) + "</ul>"

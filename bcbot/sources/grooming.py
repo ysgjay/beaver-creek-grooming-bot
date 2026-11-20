@@ -1,4 +1,6 @@
-"""Lumiplan grooming map PDF -> JPEG + content hash + the run names on the page.
+"""Lumiplan grooming map PDF -> one JPEG per page + content hash + the run names on the pages.
+
+Some sheets have more than one page (Vail posts two), so every page is rendered and shown.
 
 Two layouts are in use:
   Beaver Creek: section headings ("LAST NIGHT'S GROOMING"...) with number and name on
@@ -20,20 +22,32 @@ from ..util import get
 log = logging.getLogger(__name__)
 
 
-def render(pdf_bytes, max_width=2000):
-    doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
-    page = doc[0]
-    text = page.get_text()
+MAX_PAGES = 6  # a safety cap: Lumiplan sheets are one or two pages
+
+
+def _jpeg(page, max_width):
     pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2))
     img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
     pix = None
-    doc.close()
-    pymupdf.TOOLS.store_shrink(100)  # empty MuPDF's cache: it otherwise grows across renders
     if img.width > max_width:
         img = img.resize((max_width, round(img.height * max_width / img.width)), Image.LANCZOS)
     buf = io.BytesIO()
     img.save(buf, "JPEG", quality=82, optimize=True, progressive=True)
-    return buf.getvalue(), text
+    return buf.getvalue()
+
+
+def render(pdf_bytes, max_width=2000):
+    """Every page as a JPEG (in order) and the text of all pages. Pages render one at a time
+    so only one bitmap is in memory at once."""
+    doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+    try:
+        pages = [doc[i] for i in range(min(doc.page_count, MAX_PAGES))]
+        text = "\n".join(p.get_text() for p in pages)
+        jpegs = [_jpeg(p, max_width) for p in pages]
+    finally:
+        doc.close()
+        pymupdf.TOOLS.store_shrink(100)  # empty MuPDF's cache: it otherwise grows across renders
+    return jpegs, text
 
 
 _SECTIONS = {
@@ -110,24 +124,25 @@ def parse_runs(lines):
 def page_text(pdf_bytes):
     doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
     try:
-        return doc[0].get_text()
+        return "\n".join(doc[i].get_text() for i in range(min(doc.page_count, MAX_PAGES)))
     finally:
         doc.close()
 
 
 def fetch(known_hash=None):
-    """The map PDF's hash, run names and (only when the PDF changed) its JPEG. The cheap check runs
+    """The map PDF's hash, run names and (only when the PDF changed) its page JPEGs. The cheap check runs
     every few minutes, and rendering an unchanged map each time used up the Render worker's memory."""
     r = get(config.GROOMING_PDF_URL, timeout=60)
     r.raise_for_status()
     pdf = r.content
     digest = hashlib.sha256(pdf).hexdigest()[:16]
-    jpeg, text = (None, page_text(pdf)) if known_hash and digest == known_hash else render(pdf)
+    jpegs, text = ([], page_text(pdf)) if known_hash and digest == known_hash else render(pdf)
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     return {
         # Hash the PDF, not the render, so re-rendering never fakes a "new" map.
         "hash": digest,
-        "jpeg": jpeg,
+        "jpeg": jpegs[0] if jpegs else None,  # page 1
+        "extra_jpegs": jpegs[1:],  # pages 2+
         "text_lines": lines,
         "runs": parse_runs(lines),
         "last_modified": r.headers.get("Last-Modified"),

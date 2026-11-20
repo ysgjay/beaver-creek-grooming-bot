@@ -439,7 +439,8 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
     hourly = forecast.hourly_outlook(models, now=now) if models else {"hours": []}
 
     prev = store.get_json(f"data/days/{day_str}.json", {}) or {}
-    g = dict(prev.get("grooming") or {"new_map": False, "image": state.get("last_map_image")})
+    g = dict(prev.get("grooming") or {"new_map": False, "image": state.get("last_map_image"),
+                                      "extra_images": state.get("last_map_extra") or []})
     if not config.GROOMING_PDF_URL:
         g = {"new_map": False, "image": None, "none": True}  # this resort posts no grooming map
         feed = dor if config.DOR_API else reportpal if config.REPORTPAL else None
@@ -452,9 +453,14 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
     if groom and map_changed:
         store.put_bytes(f"maps/{day_str}.jpg", groom["jpeg"], "image/jpeg")
         path = _public(store, f"maps/{day_str}.jpg")
-        g = {"new_map": True, "image": path, "hash": groom["hash"], "runs": groom.get("runs"),
+        # Pages 2+ of a multi-page sheet (Vail posts two): maps/<day>-p2.jpg, ...
+        extra = []
+        for n, jpeg in enumerate(groom.get("extra_jpegs") or [], start=2):
+            store.put_bytes(f"maps/{day_str}-p{n}.jpg", jpeg, "image/jpeg")
+            extra.append(_public(store, f"maps/{day_str}-p{n}.jpg"))
+        g = {"new_map": True, "image": path, "extra_images": extra, "hash": groom["hash"], "runs": groom.get("runs"),
              "last_modified": groom.get("last_modified")}
-        state.update(last_map_hash=groom["hash"], last_map_image=path,
+        state.update(last_map_hash=groom["hash"], last_map_image=path, last_map_extra=extra,
                      last_map_change=now.isoformat(timespec="minutes"))
 
     day = {

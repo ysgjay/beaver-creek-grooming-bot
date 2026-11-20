@@ -5,7 +5,7 @@ from pathlib import Path
 import pymupdf
 import pytest
 
-from bcbot import config, forecast, main, notify, report, resorts, verify
+from bcbot import config, forecast, mailer, main, notify, report, resorts, verify, webreport
 from bcbot.store import BlobStore, LocalStore
 from bcbot.sources import grooming, nws, openmeteo, resort, snotel
 
@@ -425,19 +425,27 @@ def test_resort_parse():
     assert resort.parse("<html></html>") == {}
 
 
-def make_pdf(label="Golden Bear"):
+def make_pdf(label="Golden Bear", *more_pages):
     doc = pymupdf.open()
-    page = doc.new_page(width=600, height=400)
-    page.insert_text((50, 50), label)
+    for text in (label, *more_pages):
+        page = doc.new_page(width=600, height=400)
+        page.insert_text((50, 50), text)
     data = doc.tobytes()
     doc.close()
     return data
 
 
 def test_grooming_render():
-    jpeg, text = grooming.render(make_pdf())
-    assert jpeg[:2] == b"\xff\xd8"
+    jpegs, text = grooming.render(make_pdf())
+    assert len(jpegs) == 1 and jpegs[0][:2] == b"\xff\xd8"
     assert "Golden Bear" in text
+
+
+def test_grooming_render_every_page():
+    """Vail's sheet has two pages: both render, and run names on page 2 are read too."""
+    jpegs, text = grooming.render(make_pdf("Golden Bear", "Back Bowls"))
+    assert len(jpegs) == 2 and all(j[:2] == b"\xff\xd8" for j in jpegs)
+    assert "Golden Bear" in text and "Back Bowls" in text
 
 
 # ---------- report ----------
@@ -493,9 +501,9 @@ def sandbox(tmp_path, monkeypatch):
     pdf = {"bytes": make_pdf()}
 
     def fake_groom(known_hash=None):
-        jpeg, text = grooming.render(pdf["bytes"])
+        jpegs, text = grooming.render(pdf["bytes"])
         import hashlib
-        return {"hash": hashlib.sha256(pdf["bytes"]).hexdigest()[:16], "jpeg": jpeg,
+        return {"hash": hashlib.sha256(pdf["bytes"]).hexdigest()[:16], "jpeg": jpegs[0], "extra_jpegs": jpegs[1:],
                 "runs": {"groomers_of_the_day": [], "overnight": ["Flint"], "morning": ["Maverick"], "map_date": "November 14, 2026"},
                 "text_lines": text.splitlines(), "last_modified": None}
     monkeypatch.setattr(grooming, "fetch", fake_groom)
@@ -525,6 +533,22 @@ def test_early_run_archives_but_waits_for_send_time(sandbox):
     assert month["days"]["2026-11-14"]["snotel_new_in"] == 0.0    # settling is not negative snow
     # 6:15: nothing changed and not yet in the pre-send window -> cheap skip
     assert main.run(store=store, send=True, now=at(6, 15))["status"] == "skipped"
+
+
+def test_multi_page_map_saves_and_shows_every_page(sandbox):
+    """Vail's grooming sheet is two pages: both are saved, kept on unchanged-map runs, and shown."""
+    store, root, pdf, sent = sandbox
+    pdf["bytes"] = make_pdf("Golden Bear", "Back Bowls")
+    main.run(store=store, send=True, now=at(5, 45))
+    g = store.get_json("data/latest.json")["grooming"]
+    assert g["image"] == "maps/2026-11-15.jpg" and g["extra_images"] == ["maps/2026-11-15-p2.jpg"]
+    assert (root / "maps/2026-11-15.jpg").exists() and (root / "maps/2026-11-15-p2.jpg").exists()
+    main.run(store=store, send=True, now=at(9, 0), force=True)  # same map, later run
+    assert store.get_json("data/latest.json")["grooming"]["extra_images"] == ["maps/2026-11-15-p2.jpg"]
+    day = store.get_json("data/latest.json")
+    html = mailer.daily_html(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
+    assert "maps/2026-11-15.jpg" in html and "maps/2026-11-15-p2.jpg" in html and "page 2" in html
+    assert "maps/2026-11-15-p2.jpg" in webreport.render(day, "https://snow.0xm.studio/maps/2026-11-15.jpg")
 
 
 def test_sends_at_seven_exactly_once(sandbox):

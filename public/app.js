@@ -418,6 +418,8 @@
     v.className = "view v-today";
     if (!L) return viewTodayEmpty(v);
     const g = L.grooming || {}, fc = L.forecast || {}, rs = L.resort || {}, zone = resortInfo().timezone || RESORT_TZ;
+    // Every page of the grooming sheet (Vail posts two): page 1 is g.image, the rest g.extra_images.
+    const mapPages = g.image ? [g.image, ...(g.extra_images || [])] : [];
     const today = todayIso(), snow = UI.snowSource(rs, L.observed, zone, today);
     const weather = UI.forecastHours(L.hourly?.hours, zone), now = weather.selected;
     const outlook = UI.outlook(fc.days, today), grooming = UI.groomingDate(g, L.generated, zone, today);
@@ -455,7 +457,7 @@
       ${g.none ? "" : `<section class="card a-groom" aria-labelledby="h-groom">
         <div class="card-head"><h2 id="h-groom">Grooming</h2><span class="map-age${oldMap ? " old" : ""}">${esc(mapBadge)}</span></div><p class="map-note">${esc(mapNote)}</p>
         <div class="groom">
-          ${g.image ? `<button class="map-btn" type="button" id="map-open" aria-label="Open the grooming map full size"><img src="/${esc(g.image)}" alt="${esc(resortInfo().name)} grooming map" decoding="async"></button>` : g.list ? (groomedRuns(g.runs).length ? "" : `<p class="muted">No groomed runs reported yet today.</p>`) : `<p class="muted">No grooming map yet.</p>`}
+          ${g.image ? mapPages.map((src, i) => `<button class="map-btn" type="button" data-map-page="${i}" aria-label="Open the grooming map${mapPages.length > 1 ? `, page ${i + 1} of ${mapPages.length},` : ""} full size"><img src="/${esc(src)}" alt="${esc(resortInfo().name)} grooming map${mapPages.length > 1 ? `, page ${i + 1}` : ""}" decoding="async"${i ? ' loading="lazy"' : ""}></button>`).join("") : g.list ? (groomedRuns(g.runs).length ? "" : `<p class="muted">No groomed runs reported yet today.</p>`) : `<p class="muted">No grooming map yet.</p>`}
           ${runsBlock(g.runs)}
         </div>
       </section>`}
@@ -470,8 +472,8 @@
       </section>
       <a class="btn secondary block a-cta" href="#help" data-goto="alerts">Get this report at 7:00 by email or notification</a>`;
     if (fc.days?.length) $("#fc-mini", v).appendChild(heatStrip(fc.days));
-    const mb = $("#map-open", v);
-    if (mb) mb.addEventListener("click", () => openLightbox("/" + g.image, "Grooming map", mb));
+    v.querySelectorAll("[data-map-page]").forEach((mb) => mb.addEventListener("click", () =>
+      openLightbox("/" + mapPages[+mb.dataset.mapPage], mapPages.length > 1 ? `Grooming map, page ${+mb.dataset.mapPage + 1}` : "Grooming map", mb)));
     renderCams($("#cams", v), L);
     return v;
   }

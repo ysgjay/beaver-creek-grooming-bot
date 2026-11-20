@@ -158,6 +158,7 @@ main { display: flex; flex-direction: column; gap: var(--gap); padding-block: 4p
 /* Grooming */
 .map-btn { display: block; padding: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface-2); cursor: zoom-in; width: 100%; }
 .map-btn img { display: block; width: 100%; height: auto; }
+.map-btn + .map-btn { margin-top: 10px; }
 .runs { display: flex; flex-direction: column; gap: 6px; }
 .chips { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .chips li { padding: 2px 9px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); font-size: 14px; }
