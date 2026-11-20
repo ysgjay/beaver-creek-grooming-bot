@@ -8,7 +8,7 @@ Blueprint: `render.yaml` at the repo root. Region oregon (close to Open-Meteo's 
 | Service | Type | Plan | What it does |
 |---|---|---|---|
 | `snow-meteo` | Private service, Docker image `ghcr.io/open-meteo/open-meteo:1.8.0` | Standard (2 GB) + 40 GB disk | Our own Open-Meteo API. Reads model files on demand from Open-Meteo's open data on AWS (`REMOTE_DATA_DIRECTORY`) and caches them on the disk (`CACHE_SIZE=30GB`), so it only holds the models and places we ask for. No public URL; only other Render services reach it. |
-| `snow-worker` | Background worker, Python | Starter | `python -m bcbot.worker`: the resort readers and daily pipeline with no 60 s limit. Same UTC ticks as the Cloudflare Worker. |
+| `snow-worker` | Background worker, Python | Starter | `python -m bcbot.worker`: the resort readers and daily pipeline with no 60 s limit. Ticks every 5 minutes and runs each resort on the Cloudflare schedule read in that resort's local time (`local_due`), so Eastern and Pacific resorts get full morning coverage. |
 
 Rough cost: Standard $25 + disk 40 GB x $0.25 = $10 + Starter worker $7, about **$42/month**.
 

@@ -9,8 +9,12 @@ from bcbot.sources import openmeteo
 
 
 class Resp:
-    def __init__(self, status=200, text="{}"):
+    def __init__(self, status=200, text='{"hourly": {"time": ["t"], "precipitation": [0.1]}}'):
         self.status_code, self.text, self.ok = status, text, status < 400
+
+    def json(self):
+        import json
+        return json.loads(self.text)
 
 
 def test_forecast_uses_our_server_first(monkeypatch):
@@ -51,10 +55,16 @@ def test_history_and_unset_server_stay_public(monkeypatch):
     assert calls == [openmeteo.FORECAST_URL, openmeteo.HISTORY_URL]
 
 
-def test_worker_ticks_match_cloudflare_crons():
-    at = lambda h, m: worker.is_tick(datetime(2026, 12, 1, h, m, tzinfo=timezone.utc))
-    assert at(11, 5) and at(13, 55) and at(9, 15) and at(17, 45) and at(21, 0)
-    assert not at(11, 7) and not at(9, 5) and not at(18, 0) and not at(21, 15) and not at(3, 0)
+def test_worker_schedule_is_in_each_resorts_local_time():
+    utc = lambda h, m: datetime(2026, 12, 1, h, m, tzinfo=timezone.utc)
+    assert worker.is_tick(utc(11, 5)) and not worker.is_tick(utc(11, 7))
+    den, ny, la = "America/Denver", "America/New_York", "America/Los_Angeles"
+    # 11:05 UTC = 4:05 MT, 6:05 ET, 3:05 PT
+    assert worker.local_due(den, utc(11, 5)) and worker.local_due(ny, utc(11, 5)) and not worker.local_due(la, utc(11, 5))
+    # 13:35 UTC = 5:35 AM PT, 8:35 ET: Pacific every 5 min, East off the 15-minute marks
+    assert worker.local_due(la, utc(13, 35)) and not worker.local_due(ny, utc(13, 35))
+    assert worker.local_due(den, utc(21, 0)) and worker.local_due(ny, utc(19, 0)) and worker.local_due(la, utc(22, 0))
+    assert not worker.local_due(den, utc(3, 0))
 
 
 def test_worker_defaults_to_shadow(monkeypatch):
@@ -150,3 +160,39 @@ def test_compare_forecasts_flags_big_gaps(monkeypatch, tmp_path):
     out = worker.compare_forecasts(["vail", "keystone"])
     assert out["rows"] == ["vail 7/6", "keystone 8/1"]
     assert out["differ"] == ["keystone"]
+
+
+def test_empty_200_from_our_server_falls_back(monkeypatch):
+    calls = []
+    monkeypatch.setenv("OPEN_METEO_URL", "http://snow-meteo:8080")
+
+    def fake(url, **o):
+        calls.append(url)
+        return Resp(200, '{"hourly": {"time": ["t"], "precipitation": [null]}}') if "snow-meteo" in url else Resp()
+
+    monkeypatch.setattr(openmeteo, "_http_get", fake)
+    openmeteo.get(openmeteo.FORECAST_URL, params={})
+    assert calls == ["http://snow-meteo:8080/v1/forecast", openmeteo.FORECAST_URL]
+
+
+def test_live_mode_refuses_a_local_store(monkeypatch):
+    import pytest
+    for k in ("BLOB_READ_WRITE_TOKEN", "BLOB_PUBLIC_BASE", "STORE_MODE", "VERCEL_ENV"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("WORKER_MODE", "live")
+    with pytest.raises(RuntimeError):
+        store.get_store()
+    monkeypatch.setenv("WORKER_MODE", "shadow")
+    assert isinstance(store.get_store(), store.LocalStore)
+
+
+def test_public_api_429_waits_once_then_retries(monkeypatch):
+    import time
+    monkeypatch.delenv("OPEN_METEO_URL", raising=False)
+    monkeypatch.delenv("OPEN_METEO_HOST", raising=False)
+    answers = iter([Resp(429, "{}"), Resp()])
+    calls, waits = [], []
+    monkeypatch.setattr(openmeteo, "_http_get", lambda url, **o: calls.append(url) or next(answers))
+    monkeypatch.setattr(time, "sleep", lambda s: waits.append(s))
+    assert openmeteo.get(openmeteo.ENSEMBLE_URL, params={}).ok
+    assert len(calls) == 2 and len(waits) == 1 and 3 <= waits[0] <= 10

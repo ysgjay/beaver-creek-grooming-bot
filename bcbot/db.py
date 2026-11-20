@@ -202,6 +202,12 @@ def claim_digest(conn, day, token, ready, pending):
         return cur.fetchone() is not None
 
 
+def release_digest(conn, day, tokens):
+    """Undo today's claims for these subscribers (their combined email failed to send)."""
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM digest_sends WHERE day = %s AND token = ANY(%s)", (day, list(tokens)))
+
+
 def digest_sent(conn, day):
     """Tokens that already got today's combined email."""
     with conn.cursor() as cur:

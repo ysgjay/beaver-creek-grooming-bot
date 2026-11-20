@@ -14,15 +14,36 @@ def _from():
     return os.environ.get("EMAIL_FROM", "Snow Desk <report@snow.0xm.studio>")
 
 
-def _post(path, payload):
+RETRY_WAITS = (2, 5)   # seconds between tries on a 429, a 5xx or a dropped connection
+
+
+def _post(path, payload, idempotency_key=None):
+    """POST to Resend. With an idempotency key a retry (here, or on a later tick) can never
+    send the same email twice: Resend answers a repeat of the key with the first result, or
+    409 if the body changed since, which means it was already sent."""
+    import time
     key = os.environ.get("RESEND_API_KEY")
     if not key:
         raise RuntimeError("RESEND_API_KEY is not set")
-    r = http().post(API + path, json=payload, timeout=30,
-                    headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
-    if not r.ok:
+    headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+    if idempotency_key:
+        headers["Idempotency-Key"] = idempotency_key
+    for attempt in range(len(RETRY_WAITS) + 1):
+        try:
+            r = http().post(API + path, json=payload, timeout=20, headers=headers)
+        except Exception:
+            if attempt == len(RETRY_WAITS):
+                raise
+            time.sleep(RETRY_WAITS[attempt])
+            continue
+        if r.ok:
+            return r.json()
+        if idempotency_key and r.status_code == 409 and "idempot" in r.text.lower():
+            return {"already_sent": True}
+        if (r.status_code == 429 or r.status_code >= 500) and attempt < len(RETRY_WAITS):
+            time.sleep(RETRY_WAITS[attempt])
+            continue
         raise RuntimeError(f"Resend {path} {r.status_code}: {r.text[:300]}")
-    return r.json()
 
 
 def unsubscribe_url(token):
@@ -64,7 +85,7 @@ def send_confirmation(email, token, slugs=("beaver-creek",)):
     html = _shell(_card(f"""
       {_brand_row()}
       <h1 style="margin:14px 0 8px;font:600 22px/1.25 {DISPLAY};color:{INK}">Confirm your {names} report{"s" if many else ""}</h1>
-      <p style="margin:0 0 16px">Tap the button to get the grooming map, snow report and forecast by email every morning{", all your resorts in one email by 6:30 AM MT" if many else ""}.</p>
+      <p style="margin:0 0 16px">Tap the button to get the grooming map, snow report and forecast by email every morning{", all your resorts in one email by 6:30 AM local time" if many else ""}.</p>
       <p style="margin:0 0 20px"><a href="{link}" style="{BUTTON}">Confirm my email</a></p>
       <p style="margin:0;color:{INK2};font-size:13px">If you didn't ask for this, ignore this email and nothing will be sent.</p>"""))
     return _post("/emails", {
@@ -110,19 +131,27 @@ def _message(email, token, subject, html_body, text_body):
     }
 
 
-def send_personal(messages):
-    """messages: [(email, token, subject, html_body, text_body)], each its own content."""
+def batch_key(kind, day, tokens):
+    """Same kind, day and recipients -> same key, so a retried batch is never sent twice."""
+    import hashlib
+    return f"{kind}/{day}/" + hashlib.sha256(",".join(sorted(tokens)).encode()).hexdigest()[:32]
+
+
+def send_personal(messages, kind=None, day=None):
+    """messages: [(email, token, subject, html_body, text_body)], each its own content.
+    With kind and day, each batch carries an idempotency key (see _post)."""
     sent = 0
     for i in range(0, len(messages), BATCH_MAX):
-        batch = [_message(*m) for m in messages[i:i + BATCH_MAX]]
-        _post("/emails/batch", batch)
-        sent += len(batch)
+        chunk = messages[i:i + BATCH_MAX]
+        key = batch_key(kind, day, [m[1] for m in chunk]) if kind and day else None
+        _post("/emails/batch", [_message(*m) for m in chunk], idempotency_key=key)
+        sent += len(chunk)
     return sent
 
 
-def send_daily(recipients, subject, html_body, text_body):
+def send_daily(recipients, subject, html_body, text_body, kind=None, day=None):
     """recipients: [(email, token)]. One email each, so each has its own unsubscribe link."""
-    return send_personal([(email, token, subject, html_body, text_body) for email, token in recipients])
+    return send_personal([(email, token, subject, html_body, text_body) for email, token in recipients], kind=kind, day=day)
 
 
 def _shell(inner):
@@ -562,7 +591,9 @@ def next_7(fc):
 
 def _clock_now(now):
     h = now.hour
-    return f"{(h % 12) or 12}:{now.minute:02d} {'AM' if h < 12 else 'PM'} MT"
+    from . import resorts
+    zone = resorts.zone_names(getattr(now.tzinfo, "key", "America/Denver"))[0]
+    return f"{(h % 12) or 12}:{now.minute:02d} {'AM' if h < 12 else 'PM'} {zone}"
 
 
 SNOW_HEAT = "#88b2d5"

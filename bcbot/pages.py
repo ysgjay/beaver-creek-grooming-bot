@@ -101,7 +101,8 @@ def indexnow(urls):
     import os
     from urllib.parse import urlsplit
     from .util import http
-    if os.environ.get("VERCEL_ENV") != "production":
+    live_worker = os.environ.get("WORKER_MODE", "").strip().lower() == "live"   # Render, after cutover
+    if os.environ.get("VERCEL_ENV") != "production" and not live_worker:
         return None
     host = urlsplit(site()).netloc
     try:
@@ -577,12 +578,12 @@ def region_page(store, region, today=None):
 
 # ---------- RSS ----------
 
-def _rfc822(day_str, hhmm="07:00"):
+def _rfc822(day_str, hhmm="07:00", tz="America/Denver"):
     from datetime import datetime
     from email.utils import format_datetime
     from zoneinfo import ZoneInfo
     h, m = (int(x) for x in hhmm.split(":"))
-    return format_datetime(datetime.fromisoformat(day_str).replace(hour=h, minute=m, tzinfo=ZoneInfo("America/Denver")))
+    return format_datetime(datetime.fromisoformat(day_str).replace(hour=h, minute=m, tzinfo=ZoneInfo(tz)))
 
 
 def feed_xml(store, slug=None):
@@ -609,7 +610,7 @@ def feed_xml(store, slug=None):
         dd = date.fromisoformat(d)
         url = site(resort_path(s, d))
         out += (f"<item><title>{escape(n)} grooming report, {dd.strftime('%a')} {report.mmdd(dd)}</title>"
-                f"<link>{url}</link><guid isPermaLink=\"true\">{url}</guid><pubDate>{_rfc822(d)}</pubDate>"
+                f"<link>{url}</link><guid isPermaLink=\"true\">{url}</guid><pubDate>{_rfc822(d, tz=resorts.get(s)["tz"])}</pubDate>"
                 f"<description>{escape(f'{n} grooming, new snow, weather and forecast for {report.mmdd(dd)}.')}</description></item>")
     self_url = site(f"resorts/{slug}/feed.xml" if slug else "feed.xml")
     return ('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>'

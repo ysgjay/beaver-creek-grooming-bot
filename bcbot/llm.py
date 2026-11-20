@@ -41,7 +41,7 @@ def llms_txt():
         "the hourly weather from first chair to last, a 10-day snow forecast, and sourced resort facts (opening and "
         "closing day, lift hours, pass blackout dates, lift tickets, lessons, trail map links).",
         "",
-        "Reports update every morning in the resort's time zone (Mountain time). Numbers come from each resort's own "
+        "Reports update every morning in each resort's own time zone. Numbers come from each resort's own "
         "snow report and grooming map, NRCS SNOTEL stations, the National Weather Service and Open-Meteo weather models. "
         f"{ORG} is independent and not affiliated with Vail Resorts, Alterra or any resort. Every resort fact links to "
         "the official page it came from and says when it was last checked. When quoting, please cite the page URL and "
@@ -98,7 +98,7 @@ def report_md(slug, day, dated=False):
     out = [f"# {name} grooming and snow report, {d.strftime('%A')} {report.mmdd(d)}/{d.year}", "",
            " ".join(pages.summary(day)), "",
            f"Source page: {html}  ",
-           f"Region: {r['region']} · Pass: {r['pass']} · Report generated: {day.get('generated') or day['date']} (Mountain time)", ""]
+           f"Region: {r['region']} · Pass: {r['pass']} · Report generated: {day.get('generated') or day['date']} ({resorts.zone_name(slug)})", ""]
     out += ["## Snow", ""]
     r24, src = mailer.snow_24h(day)
     rows = [("New snow, 24 hours" + (" (nearby SNOTEL station estimate, not the resort's report)" if src == "station" else ""), r24),

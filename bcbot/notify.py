@@ -26,7 +26,9 @@ def email(day, map_url, slug):
         recipients = db.active_subscribers(conn, slug, single_only=not day.get("test"))
     if not recipients:
         return "no subscribers"
-    sent = mailer.send_daily(recipients, report.subject(day), mailer.daily_html(day, map_url), report.compose(day))
+    kind = None if day.get("test") else f"daily-{slug}"
+    sent = mailer.send_daily(recipients, report.subject(day), mailer.daily_html(day, map_url), report.compose(day),
+                             kind=kind, day=day.get("date"))
     return f"sent to {sent}"
 
 

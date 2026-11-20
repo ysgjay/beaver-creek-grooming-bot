@@ -919,6 +919,36 @@ def shadow():
     return [k for k, r in RESORTS.items() if r.get("stage") == "shadow" and not r["enabled"]]
 
 
+# By region, not by abbreviation: some zones have changed their offsets (British Columbia stays
+# on daylight time year-round from 11/2026), but people there still say "Pacific time".
+_ZONE_NAMES = {"America/Los_Angeles": ("PT", "Pacific time"), "America/Vancouver": ("PT", "Pacific time"),
+               "America/Denver": ("MT", "Mountain time"), "America/Boise": ("MT", "Mountain time"),
+               "America/Edmonton": ("MT", "Mountain time"), "America/Phoenix": ("MT", "Mountain time"),
+               "America/Chicago": ("CT", "Central time"), "America/New_York": ("ET", "Eastern time"),
+               "America/Toronto": ("ET", "Eastern time"), "America/Detroit": ("ET", "Eastern time"),
+               "America/Montreal": ("ET", "Eastern time"), "America/Halifax": ("AT", "Atlantic time")}
+
+
+def zone_names(tz):
+    """("MT", "Mountain time") for an IANA zone."""
+    if tz in _ZONE_NAMES:
+        return _ZONE_NAMES[tz]
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    abbr = datetime.now(ZoneInfo(tz)).tzname() or tz
+    return abbr, f"{abbr} time"
+
+
+def zone_label(slug):
+    """Short zone label for a resort, e.g. "PT"."""
+    return zone_names(get(slug)["tz"])[0]
+
+
+def zone_name(slug):
+    """Long zone name for a resort, e.g. "Pacific time"."""
+    return zone_names(get(slug)["tz"])[1]
+
+
 def get(slug):
     if slug not in RESORTS:
         raise KeyError(f"unknown resort {slug!r}")

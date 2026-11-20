@@ -217,7 +217,8 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
 
     if not full and decision is None:
         log.info("nothing new (map unchanged, forecast %.1fh old)", age)
-        if _watchdog(state, now, day_str, send, decision, errors):
+        retried = _retry_failed(store, state, now, day_str, slug, send, errors)
+        if _watchdog(state, now, day_str, send, decision, errors) or retried:
             store.put_json("data/state.json", state)
         return {"status": "skipped", "resort": slug, "forecast_age_h": round(age, 1), "map_new": map_new}
 
@@ -242,6 +243,10 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
                 errors.append(f"delivery: {failed}")
                 alert.admin(f"0xSnow {config.RESORT_NAME}: send failed",
                             f"{day_str} {', '.join(f'{k} {v}' for k, v in failed.items())}")
+                # Email is safe to send again (idempotency keys), so later ticks retry it.
+                if "email" in failed:
+                    state["retry"] = {"date": day_str, "channels": ["email"], "tries": 0,
+                                      "preseason": decision == "preseason"}
             day["delivery"] = {"sent_at": now_local().isoformat(timespec="seconds"), "reason": decision,
                                "new_map": map_new, "snow_report_fresh": resort_fresh, "results": delivered}
             store.put_json(f"data/days/{day_str}.json", day)
@@ -251,11 +256,50 @@ def run(store=None, force=False, send=None, now=None, slug=resorts.DEFAULT):
         state["last_sent_at"] = now.isoformat(timespec="minutes")
     elif in_window and map_new and not resort_fresh:
         log.info("new map is in; waiting for today's snow report")
+    if decision is None:
+        _retry_failed(store, state, now, day_str, slug, send, errors)
 
     _watchdog(state, now, day_str, send, decision, errors)
     store.put_json("data/state.json", state)
     return {"status": "ok", "resort": slug, "full_run": full, "map_changed": map_changed, "decision": decision,
             "sent": delivered, "errors": errors, "ok": bool(day.get("forecast")) and (groom is not None or not full or not has_map)}
+
+
+RETRY_MAX = 3   # extra tries for a failed email, one per tick, before giving up for the day
+
+
+def _retry_failed(store, state, now, day_str, slug, send, errors):
+    """The daily email failed earlier today: try it again on this tick (Resend's idempotency
+    key makes a repeat of anything that did go out a no-op). True when state changed."""
+    r = state.get("retry") or {}
+    if not send or r.get("date") != day_str or r.get("tries", 0) >= RETRY_MAX or now >= _at(now, config.SEND_CUTOFF):
+        return False
+    day = store.get_json("data/latest.json", {}) or {}
+    if day.get("date") != day_str:
+        return False
+    g = day.get("grooming", {})
+    map_url = f"{config.DASHBOARD_URL.rstrip('/')}/{g['image']}" if g.get("image") else None
+    powder = report.powder_alert(day.get("forecast"))
+    res = notify.send_all(dict(day, preseason=r.get("preseason"), powder=powder), map_url,
+                          channels=r.get("channels") or ["email"], slug=slug)
+    failed = [k for k, v in res.items() if str(v).startswith("FAILED")]
+    r["tries"] = r.get("tries", 0) + 1
+    delivery = day.get("delivery") or {}
+    delivery.setdefault("retries", []).append({"at": now.isoformat(timespec="minutes"), "results": res})
+    delivery["results"] = (delivery.get("results") or {}) | res
+    day["delivery"] = delivery
+    store.put_json(f"data/days/{day_str}.json", day)
+    store.put_json("data/latest.json", day)
+    if failed:
+        errors.append(f"delivery retry {r['tries']}: {res}")
+        state["retry"] = dict(r, channels=failed)
+        if r["tries"] >= RETRY_MAX:
+            alert.admin(f"0xSnow {config.RESORT_NAME}: email still failing",
+                        f"{day_str}: gave up after {RETRY_MAX} retries: {res}")
+    else:
+        state.pop("retry", None)
+        log.info("email retry %d worked: %s", r["tries"], res)
+    return True
 
 
 def _watchdog(state, now, day_str, send, decision, errors):

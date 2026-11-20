@@ -90,7 +90,12 @@ def test_indexnow_only_from_production(monkeypatch):
     calls = []
     monkeypatch.setattr("bcbot.util.http", lambda: type("H", (), {"post": lambda self, url, **k: calls.append((url, k)) or type("R", (), {"status_code": 200})()})())
     monkeypatch.delenv("VERCEL_ENV", raising=False)
+    monkeypatch.setenv("WORKER_MODE", "shadow")
     assert pages.indexnow(["https://snow.0xm.studio/resorts/vail"]) is None and not calls
+    monkeypatch.setenv("WORKER_MODE", "live")
+    assert pages.indexnow(["https://snow.0xm.studio/resorts/vail"]) == 200
+    calls.clear()
+    monkeypatch.delenv("WORKER_MODE")
     monkeypatch.setenv("VERCEL_ENV", "production")
     assert pages.indexnow(["https://snow.0xm.studio/resorts/vail"]) == 200
     body = calls[0][1]["json"]

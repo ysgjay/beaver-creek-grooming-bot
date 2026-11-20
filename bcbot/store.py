@@ -212,4 +212,8 @@ def get_store():
         return ShadowStore(live, os.environ.get("SHADOW_DIR") or "/tmp/0xsnow-shadow")
     if token and base:
         return BlobStore(token, base)
+    if os.environ.get("VERCEL_ENV") == "production" or os.environ.get("WORKER_MODE", "").strip().lower() == "live":
+        # On a server, a local folder is thrown away on restart: refuse instead of silently
+        # writing (and sending) from a store nobody reads.
+        raise RuntimeError("BLOB_READ_WRITE_TOKEN and BLOB_PUBLIC_BASE are required in live mode")
     return LocalStore(config.ROOT / "public")

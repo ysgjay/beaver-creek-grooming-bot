@@ -39,9 +39,19 @@ def _configure_mode():
 
 
 def is_tick(now):
-    """Same minutes as the Cloudflare crons: */5 11-13, */15 9-10 and 14-17, 0 21 (UTC)."""
-    h, m = now.hour, now.minute
-    return (11 <= h <= 13 and m % 5 == 0) or ((9 <= h <= 10 or 14 <= h <= 17) and m % 15 == 0) or (h == 21 and m == 0)
+    """Every 5 minutes; which resorts run on a tick is decided in each resort's own time zone
+    (local_due), so Eastern and Pacific resorts get the same morning coverage as Colorado."""
+    return now.minute % 5 == 0
+
+
+def local_due(tz, now):
+    """The Cloudflare schedule, read in the resort's local time instead of UTC (it was built
+    for Mountain time): every 5 min 4:00-6:55 AM, every 15 min 2:00-3:45 and 7:00-10:45 AM,
+    and the 2 PM afternoon refresh."""
+    from zoneinfo import ZoneInfo
+    t = now.astimezone(ZoneInfo(tz))
+    h, m = t.hour, t.minute
+    return (4 <= h <= 6 and m % 5 == 0) or ((2 <= h <= 3 or 7 <= h <= 10) and m % 15 == 0) or (h == 14 and m == 0)
 
 
 def tick(force=False, now=None):
@@ -51,6 +61,10 @@ def tick(force=False, now=None):
 
     # Shadow mode also runs the resorts that are being checked before launch (resorts.shadow()).
     slugs = due(resorts.enabled() + (resorts.shadow() if mode() == "shadow" else []), force=force, now=now)
+    if not force and now is not None:
+        slugs = [s for s in slugs if local_due(resorts.get(s)["tz"], now)]
+    if not slugs:
+        return {"mode": mode(), "resorts": {}, "digest": _digest_if_live()}
     # 2 at a time: each full run holds a forecast, ensembles and images, and the Starter plan has 512 MB.
     workers = max(1, int(os.environ.get("WORKER_CONCURRENCY", "2")))
 
@@ -64,16 +78,20 @@ def tick(force=False, now=None):
     started = time.monotonic()
     with ThreadPoolExecutor(max_workers=workers) as pool:
         results = dict(pool.map(one, slugs))
-    digest = None
-    if mode() == "live":
-        from api.run import _digest
-        digest = _digest()
+    digest = _digest_if_live()
     if mode() == "shadow":
         compare_forecasts([s for s, r in results.items() if r.get("full_run") and s in resorts.enabled()])
     bad = [s for s, r in results.items() if r.get("status") == "error" or (r.get("status") != "skipped" and not r.get("ok"))]
     log.info("tick (%s): %d resorts in %.0fs, %d with problems %s, %s MB", mode(), len(results),
              time.monotonic() - started, len(bad), bad, _release_memory())
     return {"mode": mode(), "resorts": results, "digest": digest}
+
+
+def _digest_if_live():
+    if mode() != "live":
+        return None
+    from api.run import _digest
+    return _digest()
 
 
 def _snow(day, n=3):
@@ -193,7 +211,8 @@ def main(argv=None):
     if a.once:
         out = tick(force=True)
         print({s: r.get("status") for s, r in out["resorts"].items()})
-        return 0
+        bad = [s for s, r in out["resorts"].items() if r.get("status") == "error"]
+        return 1 if bad else 0   # a resort that crashed fails the smoke test
     loop()
     return 0
 
