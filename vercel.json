@@ -90,6 +90,10 @@
     {
       "source": "/radar/:path*",
       "destination": "https://kpkajfy5kovso7gy.public.blob.vercel-storage.com/radar/:path*"
+    },
+    {
+      "source": "/:slug([a-z0-9-]+)",
+      "destination": "/index.html"
     }
   ],
   "headers": [

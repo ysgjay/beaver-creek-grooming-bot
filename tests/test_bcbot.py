@@ -960,10 +960,10 @@ def test_signup_input_only_keeps_enabled_resorts(monkeypatch):
 
 def test_resort_link_and_names_in_messages():
     day = {"date": "2026-11-15", "resort_slug": "vail", "resort_name": "Vail", "grooming": {"new_map": True}}
-    assert report.app_url(day).endswith("/?resort=vail")
-    assert report.push_payload(day, None)["url"].endswith("?resort=vail")
+    assert report.app_url(day).endswith("/vail")
+    assert report.push_payload(day, None)["url"].endswith("/vail")
     assert report.push_payload(day, None)["tag"] == "report-vail-2026-11-15"
-    assert report.app_url({"date": "2026-11-15", "resort_slug": "beaver-creek"}) == config.DASHBOARD_URL
+    assert report.app_url({"date": "2026-11-15", "resort_slug": "beaver-creek"}) == config.DASHBOARD_URL + "beaver-creek"
 
 
 def test_daily_email_has_a_choose_resorts_link(monkeypatch):
@@ -1211,7 +1211,7 @@ def test_digest_email_summarizes_each_resort_with_links():
     html = mailer.digest_html(picked, ["alta"], datetime(2026, 11, 16, 6, 30, tzinfo=digest.TZ))
     assert "Your mountains" in html and "Mon 11/16" in html and "2 of 3 reports in" in html
     assert "Born Free" in html and "Main Vein" in html and "Report pending" in html and "Alta" in html
-    assert "?resort=vail" in html and "maps/vail/2026-11-16.jpg" in html and "Open Snow Desk" not in html
+    assert "studio/vail\"" in html and "maps/vail/2026-11-16.jpg" in html and "Open Snow Desk" not in html
     assert mailer.digest_subject(picked, ["alta"]) == 'Vail 2" new, Copper Mountain 2 groomed, Alta pending'
     assert "Full report:" in mailer.digest_text(picked, ["alta"])
 
