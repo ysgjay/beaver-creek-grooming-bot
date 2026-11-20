@@ -75,5 +75,18 @@ def test_every_report_feed_is_wired():
 
 
 def test_live_resorts_with_page_readers():
-    assert resorts.get("telluride")["report_feed"]["start"] == "Snow depth"
+    assert resorts.get("telluride")["report_feed"]["start"] == "Snow overnight"
     assert resorts.get("arapahoe-basin")["report_feed"]["order"] == "before"
+
+
+def test_text_reader_live_layouts_11_20():
+    """Layouts seen on 11/20/2026: A-Basin's header tiles and Telluride's report block."""
+    from bcbot.sources import textpage as t
+    ab = t.parse('<div>Snowfall</div><ul><li>0" Past 24HRS</li><li>1" Past 48HRS</li><li>18" Base</li></ul>',
+                 start="Snowfall", order="before")
+    assert ab == {"last_24h_in": 0.0, "last_48h_in": 1.0, "base_in": 18.0}  # a real 0, not missing
+    tr = t.parse('<p>Last Updated: November 20, 2026 at 6:25am</p><div>Snow overnight 6"</div><div>Last 24 hours 0"</div>'
+                 '<div>Last 48 hours 0"</div><div>Last 7 days 0"</div><div>Snow depth 12"</div><div>Season total 12"</div>',
+                 start="Snow overnight")
+    assert tr["overnight_in"] == 6.0 and tr["last_24h_in"] == 0.0 and tr["base_in"] == 12.0 and tr["season_in"] == 12.0
+    assert tr["updated_time"] == "6:25 AM"

@@ -152,7 +152,7 @@ RESORTS = {
     "telluride": {
         "name": "Telluride", "region": "Colorado", "pass": "Epic",
         "site": "https://tellurideskiresort.com", "snow_report_path": None,
-        "report_feed": {"kind": "text", "url": "https://tellurideskiresort.com/snow-report/", "start": "Snow depth"}, "grooming_pdf": None,
+        "report_feed": {"kind": "text", "url": "https://tellurideskiresort.com/snow-report/", "start": "Snow overnight"}, "grooming_pdf": None,
         "lat": 37.9160, "lon": -107.8360, "elevation_ft": 10800,
         "bands": _bands((37.9360, -107.8460, 8725, "base"), (37.9160, -107.8360, 10800, "mid-mountain"),
                         (37.9070, -107.8400, 12570, "summit")),

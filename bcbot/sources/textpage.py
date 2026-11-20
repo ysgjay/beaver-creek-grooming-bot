@@ -13,8 +13,8 @@ from datetime import date
 _NUM = r"(\d{1,3}(?:\.\d)?)\s*(\"|”|″|''|in\b|inches\b|cm\b)"
 _LABELS = (  # first match wins, so the specific labels come before the broad ones
     ("overnight_in", r"overnight|new snow|since (?:lifts? close|close|last report)|12[\s-]*(?:hours?|hrs?|h)\b"),
-    ("last_24h_in", r"24[\s-]*(?:hours?|hrs?|h)\b|past 24|last 24"),
-    ("last_48h_in", r"48[\s-]*(?:hours?|hrs?|h)\b|past 48|last 48"),
+    ("last_24h_in", r"(?:past |last )?24[\s-]*(?:hours?|hrs?|h)\b|(?:past|last) 24\b"),
+    ("last_48h_in", r"(?:past |last )?48[\s-]*(?:hours?|hrs?|h)\b|(?:past|last) 48\b"),
     ("last_7d_in", r"7[\s-]*days?\b|past 7 days|last 7 days|this week"),
     ("base_in", r"base(?: depth)?|snow depth|mid[\s-]*mountain depth|summit depth"),
     ("season_in", r"season(?:al)?(?: total| to date| snowfall)?|year to date|ytd|cumulative"),
