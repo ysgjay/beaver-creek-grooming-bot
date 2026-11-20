@@ -134,9 +134,9 @@ def summary(day):
         top = runs.get("groomers_of_the_day") or groomed
         first += f", including {', '.join(top[:3])}"
     out.append(first + ".")
-    r24 = mailer.new_snow(day)
+    r24, src = mailer.snow_24h(day)
     snow = []
-    if r24 is not None:
+    if r24 is not None and src == "resort":
         snow.append(f"{_n(r24)} of new snow in the last 24 hours")
     if rs.get("base_in") is not None:
         snow.append(f"{_n(rs['base_in'])} base")
@@ -144,6 +144,9 @@ def summary(day):
         snow.append(f"{_n(rs['season_in'])} so far this season")
     if snow:
         out.append("The resort reports " + ", ".join(snow[:-1]) + (" and " if len(snow) > 1 else "") + snow[-1] + ".")
+    if r24 is not None and src == "station":
+        out.append(f"A nearby SNOTEL weather station measured about {_n(r24)} of new snow in the last 24 hours. "
+                   "That is a station estimate, not the resort's own report.")
     if rs.get("updated_time"):
         out.append(f"The snow report posted at {rs['updated_time']}.")
     hrs = mailer.ski_hours(day)
@@ -511,7 +514,8 @@ def _row(slug, day):
     runs = ((day.get("grooming") or {}).get("runs")) or {}
     fc = day.get("forecast") or {}
     return {"slug": slug, "name": resorts.get(slug)["name"], "pass": resorts.get(slug)["pass"],
-            "date": day.get("date"), "new": mailer.new_snow(day) if day else None, "base": rs.get("base_in"),
+            "date": day.get("date"), "new": mailer.new_snow(day) if day else None,
+            "new_est": mailer.new_snow_is_estimate(day) if day else False, "base": rs.get("base_in"),
             "groomed": len(mailer.groomed_runs(runs)) or None, "next5": fc.get("next_1_5"),
             "posted": rs.get("updated_time")}
 
@@ -539,7 +543,7 @@ def region_page(store, region, today=None):
     top = [r for r in fresh if (r["new"] or 0) >= 0.1][:3]
     lead = f"{label} ski resort snow report for {d.strftime('%A')} {report.mmdd(d)}, {len(rows)} resorts in one table."
     if top:
-        lead += " Most new snow: " + ", ".join(f'{r["name"]} {_n(r["new"])}' for r in top) + "."
+        lead += " Most new snow: " + ", ".join(f'{r["name"]} {"about " if r.get("new_est") else ""}{_n(r["new"])}' for r in top) + "."
     big = sorted(fresh, key=lambda r: -(r["next5"] or 0))[:1]
     if big and (big[0]["next5"] or 0) >= 1:
         lead += f' Biggest 5-day forecast: {big[0]["name"]}, {_n(big[0]["next5"])}.'
@@ -550,14 +554,14 @@ def region_page(store, region, today=None):
         stale = "" if r["date"] == today else ' style="opacity:.6"'
         trs += (f"<tr{stale}><td style=\"padding:6px 8px;border-bottom:1px solid var(--line)\"><a href=\"{resort_path(r['slug'])}\">"
                 f"{escape(r['name'])}</a> <span style=\"font-size:11px;color:var(--ink2)\">{escape(r['pass'])}</span></td>"
-                f"<td {cell}>{_n(r['new'])}</td><td {cell}>{_n(r['base'])}</td>"
+                f"<td {cell}>{'~' if r.get('new_est') else ''}{_n(r['new'])}</td><td {cell}>{_n(r['base'])}</td>"
                 f"<td {cell}>{r['groomed'] if r['groomed'] is not None else '–'}</td><td {cell}>{_n(r['next5'])}</td></tr>")
     table = (f'<div style="overflow-x:auto;background:var(--paper);border:1px solid var(--edge);border-radius:24px;padding:8px">'
              f'<table style="width:100%;border-collapse:collapse"><thead><tr>'
              f'<th style="padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;color:var(--ink2)">Resort</th>'
              f'<th {head}>New 24 hr</th><th {head}>Base</th><th {head}>Groomed</th><th {head}>Next 5 days</th></tr></thead>'
              f'<tbody>{trs}</tbody></table></div>'
-             f'<p style="font-size:12px;color:var(--ink2)">Sorted by new snow. Groomed counts only where the resort publishes '
+             f'<p style="font-size:12px;color:var(--ink2)">Sorted by new snow. ~ marks a nearby SNOTEL station estimate where the resort has no number. Groomed counts only where the resort publishes '
              f'groomed runs. Faded rows have no report for {report.mmdd(d)} yet. Updated through the morning.</p>')
     other = [k for k in REGIONS if k != region]
     body = (f'<p class="crumbs"><a href="/resorts">Resorts</a> › {label}</p>'
