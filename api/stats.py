@@ -19,5 +19,10 @@ class handler(Handler):
             return self.reply(500, {"error": "stats failed"})
         out["names"] = {k: v["name"] for k, v in resorts.RESORTS.items()}
         out["coverage"] = resorts.coverage()  # cams and snow report source per resort
-        out["facts"] = facts.grid()  # resort facts table: filled, not posted, missing, and freshness
+        try:
+            from bcbot.store import get_store
+            confirmed = (get_store().get_json("data/facts/status.json", {}) or {}).get("confirmed")
+        except Exception:
+            confirmed = None
+        out["facts"] = facts.grid(confirmed=confirmed)  # resort facts table: filled, not posted, missing, and freshness
         self.reply(200, out)
