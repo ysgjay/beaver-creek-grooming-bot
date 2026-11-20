@@ -302,7 +302,13 @@
    "slug": "aspen-mountain",
    "name": "Aspen Mountain",
    "timezone": "America/Denver",
-   "cams": [],
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://g1.ipcamlive.com/player/snapshot.php?alias=5c8193f8ba576",
+     "live": null
+    }
+   ],
    "patrol": null,
    "snotel": "Castle Peak",
    "site": "https://www.aspensnowmass.com",
@@ -332,7 +338,13 @@
    "slug": "buttermilk",
    "name": "Buttermilk",
    "timezone": "America/Denver",
-   "cams": [],
+   "cams": [
+    {
+     "label": "Snow stake",
+     "image": "https://g1.ipcamlive.com/player/snapshot.php?alias=613a4e47724d8",
+     "live": null
+    }
+   ],
    "patrol": null,
    "snotel": "Castle Peak",
    "site": "https://www.aspensnowmass.com",
@@ -362,7 +374,13 @@
    "slug": "winter-park",
    "name": "Winter Park",
    "timezone": "America/Denver",
-   "cams": [],
+   "cams": [
+    {
+     "label": "Town of Winter Park",
+     "image": "https://cams.winterparkresort.com/best-western-cam.jpg",
+     "live": null
+    }
+   ],
    "patrol": null,
    "snotel": "Berthoud Summit",
    "site": "https://www.winterparkresort.com",
@@ -403,7 +421,18 @@
    "slug": "arapahoe-basin",
    "name": "Arapahoe Basin",
    "timezone": "America/Denver",
-   "cams": [],
+   "cams": [
+    {
+     "label": "Mountain Goat Plaza",
+     "image": "https://dirigo-resorts-f4e2bde5azc2cne6.z02.azurefd.net/arapahoe/images/medium/webcams/abasincam1001m.jpg",
+     "live": null
+    },
+    {
+     "label": "Montezuma Bowl",
+     "image": "https://dirigo-resorts-f4e2bde5azc2cne6.z02.azurefd.net/arapahoe/images/medium/webcams/abasincam5.jpg",
+     "live": null
+    }
+   ],
    "patrol": null,
    "snotel": "Grizzly Peak",
    "site": "https://www.arapahoebasin.com",

@@ -181,7 +181,7 @@ RESORTS = {
                         (39.1550, -106.8170, 11212, "summit")),
         "snotel": ['1326:CO:SNTL', '1101:CO:SNTL'],
         "snotel_label": "Castle Peak",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26", "enabled": True,
+        "cams": _url_cams([("https://g1.ipcamlive.com/player/snapshot.php?alias=5c8193f8ba576", "Snow stake")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26", "enabled": True,
     },
     "aspen-highlands": {
         "name": "Aspen Highlands", "region": "Colorado", "pass": "Ikon",
@@ -201,7 +201,7 @@ RESORTS = {
                         (39.1800, -106.8850, 9900, "summit")),
         "snotel": ['1326:CO:SNTL', '1101:CO:SNTL'],
         "snotel_label": "Castle Peak",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-12", "enabled": True,
+        "cams": _url_cams([("https://g1.ipcamlive.com/player/snapshot.php?alias=613a4e47724d8", "Snow stake")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-12-12", "enabled": True,
     },
     "steamboat": {
         "name": "Steamboat", "region": "Colorado", "pass": "Ikon",
@@ -221,7 +221,7 @@ RESORTS = {
                         (39.8570, -105.7860, 12060, "summit")),
         "snotel": ['335:CO:SNTL', '1186:CO:SNTL'],
         "snotel_label": "Berthoud Summit",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-13", "enabled": True,
+        "cams": _url_cams([("https://cams.winterparkresort.com/best-western-cam.jpg", "Town of Winter Park")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-13", "enabled": True,
     },
     "copper": {
         "name": "Copper Mountain", "region": "Colorado", "pass": "Ikon",
@@ -243,7 +243,7 @@ RESORTS = {
                         (39.6270, -105.8780, 12500, "summit")),
         "snotel": ['505:CO:SNTL', '602:CO:SNTL'],
         "snotel_label": "Grizzly Peak",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-10-28", "enabled": True,
+        "cams": _url_cams([("https://dirigo-resorts-f4e2bde5azc2cne6.z02.azurefd.net/arapahoe/images/medium/webcams/abasincam1001m.jpg", "Mountain Goat Plaza"), ("https://dirigo-resorts-f4e2bde5azc2cne6.z02.azurefd.net/arapahoe/images/medium/webcams/abasincam5.jpg", "Montezuma Bowl")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-10-28", "enabled": True,
     },
     "eldora": {
         "name": "Eldora", "region": "Colorado", "pass": "Ikon",
@@ -502,7 +502,7 @@ RESORTS = {
         "bands": _bands((51.1170, -115.7545, 5440, "Gondola base"), (51.0899, -115.7645, 7082, "Sunshine Village"),
                         (51.0647, -115.7688, 7595, "upper mountain")),
         "snotel": [], "snotel_label": None,  # no SNOTEL in Canada
-        "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-06",  # reported, not confirmed
+        "cams": _url_cams([("https://cameras.skibanff.com/dynamic/17m", "Mount Assiniboine"), ("https://cameras.skibanff.com/dynamic/131m", "Sunshine Village"), ("https://cameras.skibanff.com/dynamic/15m", "Standish Express unload"), ("https://cameras.skibanff.com/dynamic/14m", "Strawberry Express unload"), ("https://cameras.skibanff.com/dynamic/10m", "Aurora"), ("https://cameras.skibanff.com/dynamic/136m", "Strawberry and Standish load")]), "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-06",  # reported, not confirmed
         "enabled": False, "stage": "shadow",
     },
     "lake-louise": {
@@ -512,7 +512,7 @@ RESORTS = {
         "bands": _bands((51.4409, -116.1642, 5400, "base"), (51.4530, -116.1400, 6800, "Whitehorn"),
                         (51.4676, -116.1417, 8650, "summit")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-01",  # opened
+        "cams": _url_cams([("https://cams.skilouise.com/cam3.jpg", "Ptarmigan top"), ("https://cams.skilouise.com/cam8.jpg", "Paradise top"), ("https://cams.skilouise.com/cam6.jpg", "Lodge of Ten Peaks"), ("https://cams.skilouise.com/cam7.jpg", "Whitehorn Bistro")]) + _cams([("lakelouisebasearea", "Base area"), ("lakelouisepipestonetop", "Pipestone top"), ("ptarmiganbackside", "Ptarmigan backside")]), "patrol": None, "tz": "America/Edmonton", "opening_day": "2026-11-01",  # opened
         "enabled": False, "stage": "shadow",
     },
     "sun-valley": {
@@ -682,7 +682,7 @@ RESORTS = {
         "bands": _bands((36.5960, -105.4540, 9207, "base"), (36.5850, -105.4500, 10500, "mid-mountain"),
                         (36.5625, -105.4480, 12481, "Kachina Peak")),
         "snotel": ["1168:NM:SNTL", "1307:NM:SNTL"], "snotel_label": "Taos Powderhorn",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26",  # announced
+        "cams": _url_cams([("https://tsvweather.brownrice.com/img/poco.jpg", "Poco")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-26",  # announced
         "enabled": False, "stage": "shadow",
     },
     "whitefish": {
@@ -746,7 +746,7 @@ RESORTS = {
         "bands": _bands((37.4734, -106.7861, 10300, "base"), (37.4700, -106.8000, 11000, "mid-mountain"),
                         (37.4560, -106.7951, 11904, "summit")),
         "snotel": ["874:CO:SNTL", "840:CO:SNTL"], "snotel_label": "Wolf Creek Summit",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-10-31",  # opened
+        "cams": _cams([("wolfcreeksummit", "Summit"), ("wolfcreektresurlift", "Treasure lift line")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-10-31",  # opened
         "enabled": False, "stage": "shadow",
     },
     "mt-hood-meadows": {
@@ -841,7 +841,7 @@ RESORTS = {
         "bands": _bands((44.1695, -71.6870, 2000, "Tram base"), (44.1635, -71.6916, 3000, "mid-mountain"),
                         (44.1563, -71.6985, 4080, "summit")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-27",  # est.
+        "cams": _url_cams([("https://g1.ipcamlive.com/player/snapshot.php?alias=6894a26492e8d", "Summit")]), "patrol": None, "tz": "America/New_York", "opening_day": "2026-11-27",  # est.
         "enabled": False, "stage": "shadow",
     },
     "waterville-valley": {
@@ -861,7 +861,7 @@ RESORTS = {
         "bands": _bands((37.6300, -107.8150, 8793, "base"), (37.6250, -107.8300, 9800, "mid-mountain"),
                         (37.6200, -107.8400, 10822, "summit")),
         "snotel": ["387:CO:SNTL", "780:CO:SNTL"], "snotel_label": "Cascade #2",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-20",  # announced
+        "cams": _cams([("purgatorysnowstake1", "Snow stake"), ("purgatoryparadise", "Purgatory Express summit"), ("purgatoryraysridge", "Legends summit"), ("purgatoryplaza", "Village Plaza")]), "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-20",  # announced
         "enabled": False, "stage": "shadow",
     },
     "tamarack": {
@@ -883,7 +883,7 @@ RESORTS = {
         "bands": _bands((50.8840, -119.8860, 4117, "Village"), (50.8970, -119.9040, 5800, "mid-mountain"),
                         (50.9089, -119.9266, 6824, "Tod Mountain")),
         "snotel": [], "snotel_label": None,
-        "cams": [], "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-11-21",  # announced
+        "cams": _url_cams([("https://www.sunpeaksresort.com/sites/default/files/spr_website_data/webcams/view%20of%20mt%20todd.jpg", "Mt. Tod from Morrisey"), ("https://www.sunpeaksresort.com/sites/default/files/spr_website_data/webcams/sundance.jpg", "Sundance"), ("https://www.sunpeaksresort.com/sites/default/files/spr_website_data/webcams/ele_view_of_morrisey.jpg", "Elevation"), ("https://www.sunpeaksresort.com/sites/default/files/spr_website_data/webcams/Valley.jpg", "Village")]), "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-11-21",  # announced
         "enabled": False, "stage": "shadow",
     },
     "mt-baker": {
