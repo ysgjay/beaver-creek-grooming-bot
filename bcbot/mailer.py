@@ -239,6 +239,16 @@ def preheader(day):
     return " ".join(bits)
 
 
+def extra_map_pages(g, day, width):
+    """Pages 2+ of a multi-page grooming sheet (Vail posts two), stacked under page 1."""
+    out = ""
+    for n, path in enumerate(g.get("extra_images") or [], start=2):
+        url = _site(path)
+        out += (f'<a href="{url}"><img src="{url}" alt="Grooming map for {escape(report.resort_name(day))}, page {n}" width="{width}" '
+                f'style="display:block;width:100%;max-width:{width}px;height:auto;margin-top:10px;border:1px solid {LINE};border-radius:12px"></a>')
+    return out
+
+
 def daily_html(day, map_url, hidden_preheader=True):
     """The morning report as an email: the Day Ticket layout (inline styles only; email clients strip CSS)."""
     from datetime import date as _date
@@ -302,6 +312,7 @@ def daily_html(day, map_url, hidden_preheader=True):
                 f'<td align="right" style="padding:4px 4px 0;font-size:13px"><a href="{map_url}" style="{LINK}">Full size</a></td></tr></table>'
                 f'<a href="{map_url}"><img src="{map_url}" alt="Grooming map for {escape(report.resort_name(day))}" width="616" '
                 f'style="display:block;width:100%;max-width:616px;height:auto;border:1px solid {LINE};border-radius:12px"></a>')
+        body += extra_map_pages(g, day, 616)
         rest = ""
         if chips:
             rest += f'<p style="{KICKER};margin-top:12px">Groomers of the day</p>{chips}'
@@ -528,6 +539,7 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
         if maps and g.get("image"):
             img = (f'<a href="{_site(g["image"])}"><img src="{_site(g["image"])}" alt="Grooming map for {escape(_resort_name(s, d))}" width="608" '
                    f'style="display:block;width:100%;max-width:608px;height:auto;margin-top:10px;border:1px solid {LINE};border-radius:12px"></a>')
+            img += extra_map_pages(g, d, 608)
         out += _card(f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>'
                      f'<td style="font:600 16px/1.3 {DISPLAY};color:{INK}">{escape(_resort_name(s, d))}</td>'
                      f'<td align="right" style="font-size:13px">{" · ".join(links)}</td></tr></table>'
