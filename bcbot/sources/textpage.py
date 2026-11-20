@@ -36,6 +36,8 @@ def page_text(html):
 
 
 def _value(text, label, order="after"):
+    if not label:
+        return None
     """order "after": label then number ("24 Hour 0\""); "before": number then label ("0\" 24 hours")."""
     after = r"(?:%s)[^\d\n]{0,16}?%s" % (label, _NUM)  # allows a short word between ("Overnight Fresh 4\"")
     before = r"%s\s*(?:of\s+)?(?:%s)\b" % (_NUM, label)
@@ -65,9 +67,44 @@ def _stamp(text, today=None):
     return None, None
 
 
-def parse(html, start=None, order="after", today=None):
+def _hm(t):
+    """ "8:44AM" / "11:39" / "8:17am" -> "8:44 AM" (24-hour times are turned into AM/PM)."""
+    t = (t or "").strip()
+    m = re.match(r"(\d{1,2})[:：](\d{2})\s*([AaPp])?\.?[Mm]?", t)
+    if not m:
+        return None
+    hh, mm, ap = int(m.group(1)), m.group(2), m.group(3)
+    if ap:
+        return f"{(hh % 12) or 12}:{mm} {ap.upper()}M"
+    return f"{(hh % 12) or 12}:{mm} {'AM' if hh < 12 else 'PM'}"
+
+
+def _stamp_re(text, pattern, today=None):
+    """A resort-specific date pattern with named groups: y (optional), m or mon (month number or name), d,
+    t (optional time, 24-hour or AM/PM). Used for pages that write dates as 23/10/2026, 2026.11.03 or 11/20."""
+    m = re.search(pattern, text, re.I)
+    if not m:
+        return None, None
+    g = m.groupdict()
+    try:
+        month = int(g["m"]) if g.get("m") else _MONTHS.index(g["mon"][:3].lower()) + 1
+        today = today or date.today()
+        if g.get("y"):
+            d = date(int(g["y"]), month, int(g["d"]))
+        else:  # no year on the page: this year, or last year in early January
+            d = date(today.year, month, int(g["d"]))
+            if d > today:
+                d = d.replace(year=today.year - 1)
+    except (KeyError, ValueError, TypeError):
+        return None, None
+    return d, _hm(g.get("t"))
+
+
+def parse(html, start=None, order="after", today=None, labels=None, stamp=None):
     """Snow numbers (inches) and the report's date, in the same shape as resort.parse.
-    `start` limits the search to the text after a heading such as "Snow Report"."""
+    `start` limits the search to the text after a heading such as "Snow Report". `labels` replaces the
+    label pattern for some keys (None turns a key off), for pages worded differently ("Snow Accumulation",
+    "積雪量"). `stamp` is a date pattern for pages without an "Updated <Month> <day>, <year>" line."""
     text = full = page_text(html)
     if start:
         i = text.lower().find(start.lower())
@@ -75,16 +112,23 @@ def parse(html, start=None, order="after", today=None):
             text = text[i:i + 3000]
     out = {}
     for key, label in _LABELS:
+        if labels and key in labels:
+            label = labels[key]
         v = _value(text, label, order)
         if v is not None:
             out[key] = v
     if not out:
         return {}
-    d, t = _stamp(text, today)
-    if not d and text is not full:
-        d, t = _stamp(full, today)  # the "Updated" line can sit above the start heading
+    if stamp:
+        d, t = _stamp_re(text, stamp, today)
+        if not d and text is not full:
+            d, t = _stamp_re(full, stamp, today)
+    else:
+        d, t = _stamp(text, today)
+        if not d and text is not full:
+            d, t = _stamp(full, today)  # the "Updated" line can sit above the start heading
     if d:
         out["stamps"] = {"updated": d.isoformat()}
         if t:
-            out["updated_time"] = re.sub(r"\s*([AP])\.?M\.?", r" \1M", t.upper()).strip().lstrip("0")
+            out["updated_time"] = t if stamp else re.sub(r"\s*([AP])\.?M\.?", r" \1M", t.upper()).strip().lstrip("0")
     return out

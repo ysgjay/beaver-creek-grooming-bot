@@ -996,7 +996,7 @@ def test_claim_is_per_day_and_resort():
 
 
 NO_SNOTEL = ("British Columbia", "Alberta", "Quebec", "Vermont", "New Hampshire", "Maine", "New York", "Pennsylvania",
-             "West Virginia")
+             "West Virginia") + tuple(resorts.JAPAN_REGIONS)
 
 
 REGION_TZ = {
@@ -1006,6 +1006,7 @@ REGION_TZ = {
     "Alberta": "America/Edmonton", "Quebec": "America/Toronto", "Vermont": "America/New_York",
     "New Hampshire": "America/New_York", "Maine": "America/New_York", "New York": "America/New_York",
     "Pennsylvania": "America/New_York", "West Virginia": "America/New_York",
+    **{p: "Asia/Tokyo" for p in resorts.JAPAN_REGIONS},
 }
 
 
@@ -1415,7 +1416,7 @@ def test_wave_3_and_4_resorts_are_in_shadow():
 
 
 def test_the_next_50_are_all_registered():
-    assert len(resorts.RESORTS) == 72 and len(resorts.shadow()) == 40
+    assert len(resorts.RESORTS) == 83 and len(resorts.shadow()) == 51  # + Whitewater and 10 Japan resorts (11/20)
 
 
 # ---------- send safety ----------
@@ -1519,3 +1520,66 @@ def test_digest_cutoff_is_in_each_subscribers_home_zone():
     assert [t for _, t, *_ in digest.plan(subs, set(), days, at_630_pt)] == ["te", "tw"]   # East still due if unsent
     noon_et = datetime(2026, 11, 16, 12, 0, tzinfo=ZoneInfo("America/New_York"))
     assert [t for _, t, *_ in digest.plan(subs, set(), days, noon_et)] == ["tw"]   # noon Eastern: too late for East
+
+
+
+# ---------- 11/20/2026: Whitewater and Japan (page text as read on the resorts' own sites, numbers filled in) ----------
+JP_PAGES = {
+    "whitewater": ("Summit Camera Webcam 24 hr Snow 0 cm Current Conditions Weather Snow report summary Weather Conditions Cloudy "
+                   "7 day Snow 16 cm Total Snow 64 cm Base Snow 32 cm View More Webcams Lift Status Conditions Snow report summary "
+                   "Weather Conditions Cloudy Overnight Snow 3 cm 24 Hour Snow 5 cm Updated on Nov 19, 2026 at 09:00 Snowfall 3 CM "
+                   "24hr 5 CM 48hr 9 CM 3 Days 16 CM 7 Days 64 CM Total Snowfall 32 CM Current Base",
+                   {"overnight_in": 1.2, "last_24h_in": 2.0, "last_7d_in": 6.3, "base_in": 12.6, "season_in": 25.2}, "2026-11-19", "9:00 AM"),
+    "niseko": ("Lift Status Live Cameras LIVE Weather / ℃ / cm ℉ / ft Snow 2026.11.13 8:44AM 24H Snowfall 12cm / Snow quality "
+               "Wet snow / Base depth Summit 40cm Base 10cm Trail Info Ski resort operating period Nov. 28, 2026 to May 5, 2027",
+               {"last_24h_in": 4.7, "base_in": 15.7}, "2026-11-13", "8:44 AM"),
+    "rusutsu": ("Weather Report Update Date : 23/10/2026(Fri.) 12:32 West Mt. -- --℃ Snow Accumulation 55cm 24-hour Snowfall 10cm "
+                "Snow Quality -- Ski Resort Conditions -- Total Snowfall 80cm East Mt. -- --℃ Snow Accumulation --cm",
+                {"last_24h_in": 3.9, "base_in": 21.7, "season_in": 31.5}, "2026-10-23", "12:32 PM"),
+    "kiroro": ("WEATHER AND LIFT STATUS November 20, 2026 Course Data Weather-related information is current as of 8:00 every "
+               "morning. Location Mountain Peak Mountain Base Weather Sunny Sunny Current Temperature 0℃ 0℃ Snow Depth 20cm 5cm "
+               "Snowfall in last 24 hours 4cm 2cm Total snowfall 109cm 31cm Snow Quality",
+               {"last_24h_in": 1.6, "base_in": 7.9, "season_in": 42.9}, "2026-11-20", None),
+    "hakuba-happo-one": ("KUROBISHI （1,680m） SnowDepth 30 cm SnowFall 8 cm Update at 2026.11.03 07:45 USAGIDAIRA （1,400m） "
+                         "SnowDepth 20 cm SnowFall 6 cm Update at 2026.11.03 05:57 GONDOLA （770m） SnowDepth 0 cm",
+                         {"last_24h_in": 2.4, "base_in": 7.9}, "2026-11-03", "5:57 AM"),
+    "nozawa-onsen": ("積雪情報 やまびこエリア 標高：1,407m 11/03 17:29 更新 天気 気温 ℃ 雪質 - 積雪量 45 cm 昨日15時～8時 までの積雪量 12 cm "
+                     "本日8時からの 積雪量 2 cm 上ノ平エリア", {"overnight_in": 4.7, "base_in": 17.7}, "2026-11-03", "5:29 PM"),
+    "shiga-kogen": ("Search Today's Shiga Kogen Friday, 20 November, 2026 8:17am -2℃ snow Snowfall: 3cm Snow Accumulation: 15cm "
+                    "Location: Hasuike", {"last_24h_in": 1.2, "base_in": 5.9}, "2026-11-20", "8:17 AM"),
+    "appi": ("Ski slope conditions Updated: 11/20 11:39 News from the ski resort -2 ℃ Snow Snow quality Snow depth 35 cm "
+             "Fresh snow 35 cm Course status Closed", {"last_24h_in": 13.8, "base_in": 13.8}, "2026-11-20", "11:39 AM"),
+}
+
+
+def test_whitewater_and_japan_readers():
+    from bcbot.sources import feeds, textpage
+    for slug, (text, nums, day, clock) in JP_PAGES.items():
+        feed = resorts.get(slug)["report_feed"]
+        got = textpage.parse(f"<div>{text}</div>", feed.get("start"), feed.get("order", "after"), today=date(2026, 11, 20),
+                             labels=feed.get("labels"), stamp=feed.get("stamp"))
+        assert {k: v for k, v in got.items() if k.endswith("_in")} == nums, slug
+        assert got["stamps"] == {"updated": day} and got.get("updated_time") == clock, slug
+    # Pre-season pages show "--cm" or blank numbers: nothing is read, so no fake zeros.
+    feed = resorts.get("rusutsu")["report_feed"]
+    assert textpage.parse("<p>Update Date : 23/10/2026(Fri.) 12:32 West Mt. -- Snow Accumulation --cm 24-hour Snowfall --cm</p>",
+                          feed["start"], labels=feed["labels"], stamp=feed["stamp"]) == {}
+    furano = resorts.get("furano")["report_feed"]
+    assert feeds.parse_json({"weathers": [{"last_snowfall": "15", "snowbase": "80cm"}]}, furano) == {"last_24h_in": 5.9, "base_in": 31.5}
+    assert feeds.parse_json({"weathers": [{"last_snowfall": "", "snowbase": ""}]}, furano) == {}
+
+
+def test_japan_resorts_setup():
+    jp = [s for s in resorts.RESORTS if resorts.get(s)["country"] == "JP"]
+    assert len(jp) == 10 and all(resorts.get(s)["tz"] == "Asia/Tokyo" and not resorts.RESORTS[s]["enabled"] for s in jp)
+    assert resorts.zone_names("Asia/Tokyo") == ("JST", "Japan time")
+    assert resorts.get("whitewater")["country"] == "CA" and resorts.RESORTS["whitewater"]["stage"] == "shadow"
+    # Japan's own model joins only for Japanese resorts; the US and Canada blends don't change.
+    config.use("niseko")
+    assert "jma_seamless" in config.models_here()
+    config.use("whitewater")
+    assert "jma_seamless" not in config.models_here() and not config.IN_US
+    config.use("beaver-creek")
+    assert "jma_seamless" not in config.models_here()
+    app = open("public/app.js").read()
+    assert '["Japan", ["Hokkaido"' in app and all(resorts.get(s)["region"] in app for s in jp)

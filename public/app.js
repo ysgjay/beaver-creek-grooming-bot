@@ -1434,6 +1434,8 @@ ${tell}
     ["Midwest", ["Michigan", "Minnesota", "Wisconsin"]],
     ["Western Canada", ["British Columbia", "Alberta"]],
     ["Eastern Canada", ["Quebec", "Ontario"]],
+    // Japan: grouped by prefecture, north to south.
+    ["Japan", ["Hokkaido", "Aomori", "Iwate", "Akita", "Yamagata", "Miyagi", "Fukushima", "Niigata", "Nagano", "Gunma", "Toyama", "Gifu"]],
   ];
   const regionOf = (state) => (REGIONS.find(([, states]) => states.includes(state)) || ["Other"])[0];
   // [[region, [[state, resorts], ...]], ...] in REGIONS order; states keep REGIONS order too.

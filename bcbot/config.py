@@ -35,7 +35,16 @@ MODELS = {
     # Higher-resolution runs that see more of the terrain. `extra` models are fetched in
     # their own request, so one being unavailable never costs the core models.
     "ecmwf_ifs": {"label": "ECMWF 9 km", "w": (2.5, 3.0), "extra": True},
+    # Japan's own models (MSM 5 km for the first days, then GSM). Only asked for Japanese resorts,
+    # so the US and Canada blends don't change.
+    "jma_seamless": {"label": "JMA (Japanese)", "w": (2.5, 2.0), "extra": True, "countries": ("JP",)},
 }
+
+
+def models_here():
+    """MODELS this resort's country can use (a model with "countries" only runs there)."""
+    country = __getattr__("COUNTRY")
+    return {m: c for m, c in MODELS.items() if not c.get("countries") or country in c["countries"]}
 # NWS forecaster-edited gridded snowfall (2.5 km, days 1-7) joins the blend as its own "model".
 NWS_MODEL = "nws"
 NWS_WEIGHT = (2.5, 2.0)
@@ -101,7 +110,7 @@ USER_AGENT = "beaver-creek-grooming-bot (github.com/ysgjay/beaver-creek-grooming
 
 _PER_RESORT = ("RESORT", "RESORT_NAME", "TZ", "OPENING_DAY", "LAT", "LON", "ELEVATION_FT", "ELEVATION_M",
                "GROOMING_PDF_URL", "RESORT_SNOW_REPORT_URL", "SNOTEL_STATIONS", "ELEVATION_BANDS", "CAMS",
-               "STAKE_SNAPSHOT_URL", "DOR_API", "REPORTPAL", "REPORT_FEED", "IN_US")
+               "STAKE_SNAPSHOT_URL", "DOR_API", "REPORTPAL", "REPORT_FEED", "IN_US", "COUNTRY")
 _current = contextvars.ContextVar("snow_desk_resort", default=None)
 _defaults = {}
 
@@ -122,6 +131,7 @@ def _settings(slug):
         "CAMS": cams, "STAKE_SNAPSHOT_URL": stake, "DOR_API": r.get("dor_api"), "REPORTPAL": r.get("reportpal"),
         "REPORT_FEED": r.get("report_feed"),
         "IN_US": r["country"] == "US",  # NWS only covers the US
+        "COUNTRY": r["country"],
     }
 
 

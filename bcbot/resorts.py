@@ -897,6 +897,138 @@ RESORTS = {
         "cams": [], "patrol": None, "tz": "America/Los_Angeles", "opening_day": "2026-11-27",  # est.
         "enabled": False, "stage": "shadow",
     },
+    # ---------- 11/20/2026: Whitewater (BC) and Japan, shadow mode only ----------
+    # Japan reports are in cm (the readers convert to inches) and most pages are English. Japanese-only:
+    # Nozawa Onsen. No reader yet: Lotte Arai (page is built by script) and Zao Onsen (off-season page shows
+    # no snow numbers). No SNOTEL or NWS outside the US. Points checked against Open-Meteo elevations.
+    "whitewater": {
+        "name": "Whitewater", "region": "British Columbia", "pass": "Independent",
+        "site": "https://whitewatermountainresort.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://whitewatermountainresort.com/conditions", "start": "Snow report summary",
+                        "labels": {"last_48h_in": None, "season_in": r"total snow(?:fall)?"},
+                        "stamp": r"Updated on (?P<mon>[A-Za-z]{3,9})\.? (?P<d>\d{1,2}), (?P<y>20\d\d)(?: at (?P<t>\d{1,2}:\d\d))?"}, "grooming_pdf": None,
+        "lat": 49.4380, "lon": -117.1530, "elevation_ft": 6280,
+        "bands": _bands((49.4436, -117.1452, 5354, "base lodge"), (49.4380, -117.1530, 6280, "snow plot level"), (49.4300, -117.1578, 6722, "Summit Chair top")),
+        "snotel": [], "snotel_label": None,
+        "cams": _url_cams([("https://webcams.skiwhitewater.com/webcams/summit/current.jpg", "Summit"),
+                          ("https://webcams.skiwhitewater.com/webcams/lodge/current.jpg", "Lodge")]), "patrol": None, "tz": "America/Vancouver", "opening_day": "2026-12-04",  # tentative, per the resort's hours page
+        "enabled": False, "stage": "shadow",
+    },
+    "niseko": {
+        "name": "Niseko United", "region": "Hokkaido", "pass": "Ikon",
+        "site": "https://www.niseko.ne.jp/en/", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://en.grand-hirafu.jp/snow/", "start": "LIVE Weather",  # Grand Hirafu, the largest of the four
+                        "stamp": r"Snow (?P<y>20\d\d)\.(?P<m>\d{1,2})\.(?P<d>\d{1,2}) (?P<t>\d{1,2}:\d\d\s*[AP]M)"}, "grooming_pdf": None,
+        "lat": 42.8660, "lon": 140.6840, "elevation_ft": 2247,
+        "bands": _bands((42.8600, 140.7020, 948, "Hirafu base"), (42.8660, 140.6840, 2247, "mid-mountain"), (42.8733, 140.6600, 4121, "below Annupuri summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-11-28",  # Grand Hirafu, scheduled
+        "enabled": False, "stage": "shadow",
+    },
+    "rusutsu": {
+        "name": "Rusutsu", "region": "Hokkaido", "pass": "Epic",
+        "site": "https://rusutsu.com/en/", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://rusutsu.com/en/snow-and-weather-report/", "start": "West Mt.",
+                        "labels": {"base_in": r"snow s?accumulation", "season_in": r"total snowfall"},
+                        "stamp": r"Update Date\s*:\s*(?P<d>\d{1,2})/(?P<m>\d{1,2})/(?P<y>20\d\d)\S*\s+(?P<t>\d{1,2}:\d\d)"}, "grooming_pdf": None,
+        "lat": 42.7600, "lon": 140.9050, "elevation_ft": 2064,
+        "bands": _bands((42.7484, 140.9034, 1368, "resort base"), (42.7600, 140.9050, 2064, "West Mountain mid"), (42.7700, 140.9067, 3255, "West Mountain summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-11-28",  # scheduled (early season 1)
+        "enabled": False, "stage": "shadow",
+    },
+    "furano": {
+        "name": "Furano", "region": "Hokkaido", "pass": "Ikon",
+        "site": "https://www.princehotels.com/en/ski/furano/", "snow_report_path": None,
+        "report_feed": {"kind": "json", "url": "https://furapuri.com/ski/data.json", "cm": True,  # the resort's own snow report app; no date in it
+                        "fields": {"last_24h_in": "weathers.0.last_snowfall", "base_in": "weathers.0.snowbase"}}, "grooming_pdf": None,
+        "lat": 43.3250, "lon": 142.3350, "elevation_ft": 2198,
+        "bands": _bands((43.3285, 142.3582, 932, "Kitanomine base"), (43.3250, 142.3350, 2198, "mid-mountain"), (43.3195, 142.3110, 3494, "ropeway top")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-11-28",  # scheduled, per the resort's snow report
+        "enabled": False, "stage": "shadow",
+    },
+    "kiroro": {
+        "name": "Kiroro", "region": "Hokkaido", "pass": "Independent",
+        "site": "https://www.kiroro.co.jp/en/", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.kiroro.co.jp/en/dashboard/", "start": "Course Data",
+                        "labels": {"season_in": r"total snowfall"},
+                        "stamp": r"WEATHER AND LIFT STATUS (?P<mon>[A-Za-z]{3,9}) (?P<d>\d{1,2}), (?P<y>20\d\d)"}, "grooming_pdf": None,
+        "lat": 43.0700, "lon": 140.9780, "elevation_ft": 2188,
+        "bands": _bands((43.0767, 140.9864, 1781, "base"), (43.0700, 140.9780, 2188, "mid-mountain"), (43.0511, 140.9789, 3455, "upper mountain")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-11-28",  # early season starts, per the operating hours page
+        "enabled": False, "stage": "shadow",
+    },
+    "hakuba-happo-one": {
+        "name": "Hakuba Happo-one", "region": "Nagano", "pass": "Epic",
+        "site": "https://www.happo-one.jp/en/", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.happo-one.jp/en/", "start": "USAGIDAIRA",
+                        "labels": {"base_in": r"snow ?depth", "last_24h_in": r"snow ?fall"},
+                        "stamp": r"Update at (?P<y>20\d\d)\.(?P<m>\d{1,2})\.(?P<d>\d{1,2}) (?P<t>\d{1,2}:\d\d)"}, "grooming_pdf": None,
+        "lat": 36.7020, "lon": 137.8140, "elevation_ft": 4705,
+        "bands": _bands((36.6990, 137.8370, 2687, "Happo base"), (36.7020, 137.8140, 4705, "Usagidaira"), (36.6980, 137.8000, 5879, "upper Kurobishi")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-12-01",  # est.; early-season tickets start 12/1
+        "enabled": False, "stage": "shadow",
+    },
+    "nozawa-onsen": {
+        "name": "Nozawa Onsen", "region": "Nagano", "pass": "Independent",
+        "site": "https://nozawaski.com", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://nozawaski.com/winter/course/", "start": "積雪情報",  # Japanese only; Yamabiko area comes first
+                        "labels": {"overnight_in": "までの積雪量", "base_in": "積雪量", "last_24h_in": None, "last_48h_in": None,
+                                   "last_7d_in": None, "season_in": None},
+                        "stamp": r"(?P<m>\d{1,2})/(?P<d>\d{1,2}) (?P<t>\d{1,2}:\d\d) 更新"}, "grooming_pdf": None,
+        "lat": 36.9100, "lon": 138.4760, "elevation_ft": 4327,
+        "bands": _bands((36.9230, 138.4470, 1844, "village base"), (36.9100, 138.4760, 4327, "Yamabiko area"), (36.9000, 138.4900, 4951, "upper mountain")),
+        "snotel": [], "snotel_label": None,
+        "cams": _url_cams([("https://nozawaski.sakura.ne.jp/livecam/yamabiko.jpg", "Yamabiko"),
+                          ("https://nozawaski.sakura.ne.jp/livecam/uenotaira.jpg", "Uenotaira"),
+                          ("https://nozawaski.sakura.ne.jp/livecam/nagasaka.jpg", "Nagasaka")]), "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-11-28",  # scheduled
+        "enabled": False, "stage": "shadow",
+    },
+    "shiga-kogen": {
+        "name": "Shiga Kogen", "region": "Nagano", "pass": "Ikon",
+        "site": "https://www.shigakogen.gr.jp/english/index.html", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.shigakogen.gr.jp/english/index.html", "start": "Today's Shiga Kogen",  # Hasuike
+                        "labels": {"last_24h_in": r"snowfall:", "base_in": r"snow accumulation:"},
+                        "stamp": r"(?P<d>\d{1,2}) (?P<mon>[A-Za-z]{3,9}),? (?P<y>20\d\d) (?P<t>\d{1,2}:\d\d\s*[ap]m)"}, "grooming_pdf": None,
+        "lat": 36.7150, "lon": 138.5150, "elevation_ft": 5682,
+        "bands": _bands((36.7120, 138.4900, 5197, "Hasuike side"), (36.7150, 138.5150, 5682, "Ichinose"), (36.6720, 138.5240, 7356, "Yokoteyama")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-11-21",  # Yokoteyama first; the others open 11/27 to 12/12
+        "enabled": False, "stage": "shadow",
+    },
+    "lotte-arai": {
+        "name": "Lotte Arai", "region": "Niigata", "pass": "Ikon",
+        "site": "https://www.lottehotel.com/arai-resort/en/snow-season", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 36.9700, "lon": 138.1350, "elevation_ft": 3510,
+        "bands": _bands((36.9700, 138.1700, 1512, "base"), (36.9700, 138.1350, 3510, "mid-mountain"), (36.9700, 138.1000, 4206, "summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-12-12",  # tentative, per the slope map page
+        "enabled": False, "stage": "shadow",
+    },
+    "zao-onsen": {
+        "name": "Zao Onsen", "region": "Yamagata", "pass": "Ikon",
+        "site": "https://www.zao-spa.or.jp/english/ski/", "snow_report_path": None, "grooming_pdf": None,
+        "lat": 38.1560, "lon": 140.4100, "elevation_ft": 3806,
+        "bands": _bands((38.1680, 140.3960, 2877, "Onsen base"), (38.1560, 140.4100, 3806, "Juhyo Kogen"), (38.1400, 140.4320, 5394, "Jizo summit")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-12-05",  # est.; not announced on the English site
+        "enabled": False, "stage": "shadow",
+    },
+    "appi": {
+        "name": "Appi Kogen", "region": "Iwate", "pass": "Ikon",
+        "site": "https://www.appi.co.jp/en/", "snow_report_path": None,
+        "report_feed": {"kind": "text", "url": "https://www.appi.co.jp/en/", "start": "Ski slope conditions",
+                        "labels": {"last_24h_in": r"fresh snow"},
+                        "stamp": r"Updated: (?P<m>\d{1,2})/(?P<d>\d{1,2}) (?P<t>\d{1,2}:\d\d)"}, "grooming_pdf": None,
+        "lat": 39.9900, "lon": 140.9630, "elevation_ft": 2700,
+        "bands": _bands((40.0060, 140.9680, 2051, "base"), (39.9900, 140.9630, 2700, "mid-mountain"), (39.9760, 140.9590, 4154, "Mt. Maemori")),
+        "snotel": [], "snotel_label": None,
+        "cams": [], "patrol": None, "tz": "Asia/Tokyo", "opening_day": "2026-12-05",  # scheduled, per the resort's course guide
+        "enabled": False, "stage": "shadow",
+    },
 }
 
 SNOW_REPORT_PATH = "/the-mountain/mountain-conditions/snow-and-weather-report.aspx"
@@ -905,6 +1037,9 @@ CAMS_PATH = "/the-mountain/mountain-conditions/mountain-cams.aspx"
 
 # Provinces of the Canadian resorts. NWS (api.weather.gov) covers only the US, so these skip it.
 CANADA_REGIONS = {"British Columbia", "Alberta", "Quebec", "Ontario", "Nova Scotia", "New Brunswick", "Newfoundland"}
+# Prefectures of the Japanese resorts (the app groups them under Japan).
+JAPAN_REGIONS = {"Hokkaido", "Aomori", "Iwate", "Akita", "Yamagata", "Miyagi", "Fukushima", "Niigata", "Nagano", "Gunma",
+                 "Tochigi", "Gifu", "Toyama"}
 
 
 def enabled():
@@ -926,7 +1061,8 @@ _ZONE_NAMES = {"America/Los_Angeles": ("PT", "Pacific time"), "America/Vancouver
                "America/Edmonton": ("MT", "Mountain time"), "America/Phoenix": ("MT", "Mountain time"),
                "America/Chicago": ("CT", "Central time"), "America/New_York": ("ET", "Eastern time"),
                "America/Toronto": ("ET", "Eastern time"), "America/Detroit": ("ET", "Eastern time"),
-               "America/Montreal": ("ET", "Eastern time"), "America/Halifax": ("AT", "Atlantic time")}
+               "America/Montreal": ("ET", "Eastern time"), "America/Halifax": ("AT", "Atlantic time"),
+               "Asia/Tokyo": ("JST", "Japan time")}
 
 
 def zone_names(tz):
@@ -962,7 +1098,7 @@ def get(slug):
     r.setdefault("dor_api", None)
     r.setdefault("reportpal", None)
     r.setdefault("report_feed", None)
-    r["country"] = "CA" if r["region"] in CANADA_REGIONS else "US"
+    r["country"] = "CA" if r["region"] in CANADA_REGIONS else "JP" if r["region"] in JAPAN_REGIONS else "US"
     if r["dor_api"]:  # POWDR's open JSON feed (sources/dor.py): snow report and groomed runs
         r["snow_report"] = r["dor_api"] + "/api/v1/dor/drupal/snow-reports"
     elif r["reportpal"]:  # Boyne's open JSON feed on the resort's own site (sources/reportpal.py)
