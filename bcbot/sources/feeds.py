@@ -1,6 +1,7 @@
 """Small per-resort snow report readers, picked by a resort's "report_feed" in resorts.py:
 
-  {"kind": "text", "url": <report page>, "start": <heading>, "order": "after"|"before"}
+  {"kind": "text", "url": <report page>, "start": <heading>, "order": "after"|"before",
+   "labels": {our key: label regex or None}, "stamp": <date regex>}
                                                                server-rendered page (sources/textpage.py)
   {"kind": "json", "url": <feed>, "fields": {our key: dotted path}, "stamp": <path>}
                                                                a resort's own report JSON (Jackson Hole, Taos)
@@ -23,7 +24,8 @@ def _num(v):
     try:
         return float(str(v).replace(",", ""))
     except (TypeError, ValueError):
-        return None
+        m = re.match(r"\s*(-?\d+(?:\.\d+)?)\s*(?:cm|in|\"|㎝)?\s*$", str(v or ""), re.I)  # "15cm" (Furano)
+        return float(m.group(1)) if m else None
 
 
 def _at(obj, path):
@@ -62,7 +64,8 @@ def parse_json(j, feed):
 
 def parse_text(html, feed=None):
     feed = feed or {}
-    return textpage.parse(html, feed.get("start"), feed.get("order", "after"))
+    return textpage.parse(html, feed.get("start"), feed.get("order", "after"), labels=feed.get("labels"),
+                          stamp=feed.get("stamp"))
 
 
 KINDS = {"json": (parse_json, "json"), "text": (parse_text, "html")}

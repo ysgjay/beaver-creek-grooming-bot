@@ -176,3 +176,31 @@ permission, and take anything down the same day an operator asks.
 Shadow resorts prove these readers for 3 days before launch. Not read yet: Alterra (keyed feed, waiting on Alterra),
 pages that fill their numbers in with JavaScript (Lake Louise, Grand Targhee, Mt. Hood Meadows, Mt. Bachelor) and
 sites that refused the check (Whiteface, Gore, Jay Peak, Purgatory, Bretton Woods, Smugglers' Notch).
+
+## Whitewater and Japan (11/20/2026, shadow mode)
+
+Added in shadow mode (Render worker only, no emails or app listing) until each has 3 clean days: Whitewater (Nelson, BC)
+and ten Japanese resorts: Niseko United, Rusutsu, Furano, Kiroro (Hokkaido), Hakuba Happo-one, Nozawa Onsen,
+Shiga Kogen (Nagano), Lotte Arai (Niigata), Zao Onsen (Yamagata) and Appi Kogen (Iwate).
+
+- **Region and time:** `region` is the prefecture; `resorts.JAPAN_REGIONS` makes the country `JP`. The app's resort menu
+  groups them under "Japan" by prefecture. Times are Asia/Tokyo ("JST", "Japan time").
+- **Units:** every Japanese page (and Whitewater) reports cm; the readers convert to inches like the rest of the app.
+- **Readers** (`report_feed`, `sources/textpage.py`): Japanese pages word things differently, so a feed can set `labels`
+  (a label pattern per key, or None to skip a key) and `stamp` (a date pattern with named groups `y`, `m`/`mon`, `d`, `t`).
+  - Niseko United: Grand Hirafu's English snow page (the largest of the four). niseko.ne.jp's own weather panel comes from
+    the yukiyama API, which answers 403 without a partner key.
+  - Rusutsu (West Mountain), Kiroro (peak), Happo-one (Usagidaira, 1,400 m), Shiga Kogen (Hasuike, from the tourism
+    association), Appi (English home page): server-rendered English text.
+  - Nozawa Onsen: Japanese-only page (積雪量 = depth, 昨日15時～8時までの積雪量 = overnight). No English report exists.
+  - Furano: the resort's snow report app JSON (`furapuri.com/ski/data.json`), which carries no date.
+  - Kiroro's date is the page's "Weather and Lift Status" date; the resort says the numbers are current as of 8:00 daily.
+  - No reader yet: Lotte Arai (page built by script), Zao Onsen (off-season page shows no snow numbers). Re-check both
+    once they open (12/12 and about 12/5).
+- **Forecast:** no SNOTEL or NWS outside the US, and HRRR/NBM don't cover Japan, so the blend is ECMWF, GFS, ICON, GEM,
+  UKMO plus JMA (`jma_seamless`, Japan's own 5 km MSM then GSM). JMA is asked for only for Japanese resorts
+  (`config.models_here()`), so US and Canada blends are unchanged. Snow calibration learns from each resort's own report.
+- **Not covered for Japan yet:** the app's radar (NEXRAD/HRRR tiles are US only), avalanche danger (avalanche.org is US
+  only), and the Cloudflare/Vercel crons (UTC windows built for North American mornings; a 7 AM JST send is 22:00 UTC).
+  The Render worker already schedules each resort in local time. The combined 6:30 AM Mountain email would carry Japan
+  as "Report pending" (Japan's morning is the US afternoon), so Japan likely needs its own send slot before launch.

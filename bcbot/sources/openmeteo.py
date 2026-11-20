@@ -123,8 +123,9 @@ def _split_models(payload, models):
 def fetch_models(models=None):
     """Core models in one request, then the `extra` (newer, higher-resolution) ones in another."""
     if models is None:
-        core = [m for m, c in config.MODELS.items() if not c.get("extra")]
-        extra = [m for m, c in config.MODELS.items() if c.get("extra")]
+        here = config.models_here()
+        core = [m for m, c in here.items() if not c.get("extra")]
+        extra = [m for m, c in here.items() if c.get("extra")]
         out = _fetch_models(core)
         if extra:
             try:
@@ -238,7 +239,7 @@ def fetch_history(start, end, models=None):
     output, so this is what the model said at the time, not a later reanalysis.
     Returns {model: {date: inches}}.
     """
-    models = list(models or config.MODELS)
+    models = list(models or config.models_here())
     params = _base_params() | {"daily": "precipitation_sum", "models": ",".join(models),
                                "start_date": start.isoformat(), "end_date": end.isoformat()}
     params.pop("forecast_days")
@@ -267,7 +268,7 @@ def fetch_history_by_lead(start, end, models=None):
 
     Returns {lead group: {model: {date: inches}}}. A day counts only when 20+ hours are present.
     """
-    models = [m for m in (models or config.MODELS) if m not in NO_PRIOR_MODELS]
+    models = [m for m in (models or config.models_here()) if m not in NO_PRIOR_MODELS]
     hourly = ",".join(f"precipitation_previous_day{n}" for n in LEAD_DAYS.values())
     params = _base_params() | {"hourly": hourly, "models": ",".join(models),
                                "start_date": start.isoformat(), "end_date": end.isoformat()}

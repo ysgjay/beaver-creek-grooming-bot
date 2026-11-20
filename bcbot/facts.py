@@ -622,6 +622,111 @@ TRAIL_MAPS.update({
     "taos": ("https://www.skitaos.com/weather", "Resort trail map (on skitaos.com, Lifts & Trails page)"),
 })
 
+
+# ---------- 11/20/2026: Whitewater and the top 10 Japan resorts (each resort's own pages, read in a browser) ----------
+_D = "2026-11-20"
+_WW = "https://whitewatermountainresort.com"
+_NU = "https://www.niseko.ne.jp/en/wp-content/uploads/2026/09/2026-27_NU_Trail-Map_"
+_HAPPO = "https://www.happo-one.jp/wp2019/wp-content/themes/happo-one2020/img/info/pamphlet/eng2025-2026/"
+IKON_ACCESS.update({s: _IKON_7 for s in ("niseko", "furano", "shiga-kogen", "lotte-arai", "zao-onsen", "appi")})
+CURATED.update({
+    "whitewater": {
+        "opening_day": _c("2026-12-04", _WW + "/hours-operation", "Whitewater: Hours of Operation", note="Tentative.", checked=_D),
+        "closing_day": _c("2027-04-04", _WW + "/hours-operation", "Whitewater: Hours of Operation", checked=_D),
+        "lift_hours": _c("Silver King and Raven chairs 9:30 AM to 4 PM, Summit Chair to 3:30 PM, Hummer Handle Tow to 3:50 PM. "
+                         "Glory Chair opens when the snowpack permits.", _WW + "/hours-operation", "Whitewater: Hours of Operation", checked=_D),
+        "trail_map": dict(_map(_WW + "/trail-maps", "Whitewater: Trail Maps",
+                               "2026/27 trail map with terrain close-ups, Short Side and Nordic maps (on whitewatermountainresort.com)", [
+                                   ("Trail map", "2026/27", _WW + "/site/assets/files/4827/trail_map_inside_2026_2027_rgb.png", None),
+                                   ("Resort overview and Raven terrain", "2026/27", _WW + "/site/assets/files/9997/trail_map_inside_2026_2027_-_resort_overview_raven_terrain.1350x760p50x50.webp", None),
+                                   ("Summit and Glory terrain", "2026/27", _WW + "/site/assets/files/9967/trail_map_inside_2026_2027_-_summit_terrain_glory_terrain.1350x760p50x50.webp", None),
+                                   ("Short Side", "2026/27", _WW + "/site/assets/files/21449/short_side_trail_map_2026_2027_for_website_card_display.600x689p50x50.webp", None),
+                                   ("Nordic trails", "2024/25", None, _WW + "/site/assets/files/2226/nordic_trail_map_2024_2025_rgb.pdf")]), checked=_D),
+    },
+    "niseko": {
+        "opening_day": _c("2026-11-28", "https://en.grand-hirafu.jp/snow/", "Niseko Tokyu Grand Hirafu: Snow",
+                          note="Grand Hirafu's scheduled season; Annupuri, Niseko Village and Hanazono set their own dates.", checked=_D),
+        "closing_day": _c("2027-05-05", "https://en.grand-hirafu.jp/snow/", "Niseko Tokyu Grand Hirafu: Snow", note="Grand Hirafu, scheduled.", checked=_D),
+        "trail_map": dict(_map("https://www.niseko.ne.jp/en/map/", "Niseko United: Trail Map",
+                               "2026/27 Niseko United map plus Annupuri, Grand Hirafu and Hanazono maps (on niseko.ne.jp)", [
+                                   ("Niseko United, all four resorts", "2026/27", _NU + "EN-scaled.jpg",
+                                    "https://www.niseko.ne.jp/ja/wp-content/uploads/2020/08/2026-27_NU_Trail-Map_EN.pdf"),
+                                   ("Annupuri", "2026/27", _NU + "Annupuri_EN-scaled.jpg", None),
+                                   ("Grand Hirafu", "2026/27", _NU + "NisekoTokyuGrandHirafu_EN-1-scaled.jpg", None),
+                                   ("Hanazono", "2026/27", _NU + "HANAZONO_EN-scaled.jpg", None)]), checked=_D),
+    },
+    "rusutsu": {
+        "opening_day": _c("2026-11-28", "https://rusutsu.com/en/winter-lift-tickets/", "Rusutsu: Winter Lift Tickets", note="Scheduled.", checked=_D),
+        "closing_day": _c("2027-03-31", "https://rusutsu.com/en/winter-lift-tickets/", "Rusutsu: Winter Lift Tickets", note="End of spring season.", checked=_D),
+        "lift_hours": _c("Night skiing 4 PM to 8 PM (last ride 7:45 PM) from mid-December to 3/30. Ticket counters open 8:15 AM.",
+                         "https://rusutsu.com/en/winter-lift-tickets/", "Rusutsu: Winter Lift Tickets", checked=_D),
+        "trail_map": dict(_map("https://rusutsu.com/en/trail-map/", "Rusutsu: Trail Map", "Winter trail map (on rusutsu.com)", [
+            ("Winter trail map", "Current winter", "https://rusutsu.com/wp-content/uploads/trail-map-winter_en-1.jpg",
+             "https://rusutsu.com/wp-content/uploads/trailmap_en-1.pdf")]), checked=_D),
+        "passes": _c("Epic Pass, Epic Local Pass and Epic Australia Pass: 5 unrestricted, consecutive days.", "https://rusutsu.com/en/epic-pass/",
+                     "Rusutsu: Epic Pass", note="Rusutsu's page still names the 2025-26 season.", checked=_D,
+                     rows=[("Epic Pass", "5 consecutive days, unrestricted"), ("Epic Local Pass", "5 consecutive days, unrestricted"),
+                           ("Epic Australia Pass", "5 consecutive days, unrestricted")]),
+    },
+    "furano": {
+        "opening_day": _c("2026-11-28", "https://furapuri.com/ski/", "Furano Ski Resort Snow Report", note="Scheduled.", checked=_D),
+        "lift_hours": _c("Furano Ropeway 9 AM to 4 PM.", "https://furapuri.com/ski/", "Furano Ski Resort Snow Report", checked=_D),
+        "trail_map": dict(_map("https://www.princehotels.com/en/ski/furano/", "Furano: Prince Snow Resorts", "Mountain map (on princehotels.com)", [
+            ("Mountain map", "Current winter", "https://www.princehotels.com/en/ski/furano/mountain_map.jpg", None)]), checked=_D),
+    },
+    "kiroro": {
+        "opening_day": _c("2026-11-28", "https://www.kiroro.co.jp/en/operating_hours/", "Kiroro: Operating Hours", checked=_D),
+        "lift_hours": _c("Early season (11/28 to 12/11): most lifts 9 AM to 3:30 PM; Gateway Express (gondola cabins) 8:30 AM to 4:15 PM.",
+                         "https://www.kiroro.co.jp/en/operating_hours/", "Kiroro: Operating Hours", checked=_D),
+        "trail_map": dict(_map("https://www.kiroro.co.jp/guide_map/", "Kiroro: Guide Map", "Guide map (on kiroro.co.jp)", [
+            ("Guide map", "2026", "https://www.kiroro.co.jp/wp-content/uploads/2026/10/map_260730_en-002.jpg", None)]), checked=_D),
+    },
+    "hakuba-happo-one": {
+        "opening_day": _c("2026-12-01", "https://www.happo-one.jp/en/ticket/", "Hakuba Happo-one: Tickets & Passes",
+                          note="Early-season lift tickets start 12/1; the opening day itself depends on snow.", checked=_D),
+        "closing_day": _c("2027-05-05", "https://www.happo-one.jp/en/ticket/", "Hakuba Happo-one: Tickets & Passes", note="End of the spring ticket season.", checked=_D),
+        "trail_map": dict(_map("https://www.happo-one.jp/en/gelande/", "Hakuba Happo-one: The Mountain", "Course map and course guide (2025/26 English file, on happo-one.jp)", [
+            ("Course map", "2025/26", _HAPPO + "course_guide.jpg", _HAPPO + "course_map.pdf")]), checked=_D),
+    },
+    "nozawa-onsen": {
+        "opening_day": _c("2026-11-28", "https://nozawaski.com/winter/course/", "Nozawa Onsen Ski Resort: Slope conditions (Japanese)", note="Scheduled.", checked=_D),
+        "closing_day": _c("2027-05-05", "https://nozawaski.com/winter/lift_price/lift_time/", "Nozawa Onsen Ski Resort: Lift hours (Japanese)",
+                          note="Spring lift schedule runs to 5/5.", checked=_D),
+        "lift_hours": _c("Nagasaka Gondola 8:30 AM to 3:30 PM (11/29 to 3/28), 8:10 AM to 3 PM in spring. Night skiing on the Nagasaka Four lift "
+                         "4:30 to 8 PM over New Year and on Saturdays from 1/9 to 3/20.", "https://nozawaski.com/winter/lift_price/lift_time/",
+                         "Nozawa Onsen Ski Resort: Lift hours (Japanese)", checked=_D),
+        "trail_map": dict(_map("https://nozawaski.com/winter/course/map/", "Nozawa Onsen Ski Resort: Slope map (Japanese)", "Slope map (on nozawaski.com)", [
+            ("Slope map", "2026", "https://nozawaski.com/cms/wp-content/themes/nozawa-ski/assets/img/gelande/gelandemap_base2026.png", None)]), checked=_D),
+    },
+    "shiga-kogen": {
+        "opening_day": _c("2026-11-21", "https://www.shigakogen.gr.jp/english/topics/shigakogen-ski-infomation.html", "Shiga Kogen: 26-27 Ski Resort Information",
+                          note="Yokoteyama first. Kumanoyu late November, Yakebitaiyama 12/4, Central 12/5 (partly), Okushiga Kogen 12/12.", checked=_D),
+        "trail_map": _c("https://www.shigakogen.gr.jp/english/topics/shigakogen-ski-infomation.html",
+                        "https://www.shigakogen.gr.jp/english/topics/shigakogen-ski-infomation.html", "Shiga Kogen: 26-27 Ski Resort Information",
+                        label="Ski area map and the SHIGA KOGEN NAVIGATOR digital map (on shigakogen.gr.jp)", checked=_D),
+    },
+    "lotte-arai": {
+        "opening_day": _c("2026-12-12", "https://www.lottehotel.com/arai-resort/en/snow/slopes-map", "Lotte Arai: Slope map", note="Tentative.", checked=_D),
+        "closing_day": _c("2027-05-09", "https://www.lottehotel.com/arai-resort/en/snow/slopes-map", "Lotte Arai: Slope map", note="Tentative.", checked=_D),
+        "lift_hours": _c("8:30 AM to 4 PM (varies by lift). Night skiing 5:30 to 10 PM on Fridays and Saturdays, 12/25 to 3/20.",
+                         "https://www.lottehotel.com/arai-resort/en/snow/slopes-map", "Lotte Arai: Slope map", checked=_D),
+        "trail_map": dict(_map("https://www.lottehotel.com/arai-resort/en/snow/slopes-map", "Lotte Arai: Slope map", "Slope map (on lottehotel.com)", [
+            ("Slope map", "Current winter", None, "https://www.lottehotel.com/cms/asset/2026/01/17/36063/%E3%82%B3%E3%83%BC%E3%82%B9%E3%83%9E%E3%83%83%E3%83%972.pdf")]), checked=_D),
+    },
+    "zao-onsen": {
+        "trail_map": dict(_map("https://www.zao-spa.or.jp/english/ski/", "Zao Onsen Ski Resort: Ski", "Ski area map (on zao-spa.or.jp)", [
+            ("Ski area map", "Current winter", "https://www.zao-spa.or.jp/english/ski/images/large_map.jpg", None)]), checked=_D),
+    },
+    "appi": {
+        "opening_day": _c("2026-12-05", "https://www.appi.co.jp/snow-mountain-resort/course/", "APPI: Course guide (Japanese)", checked=_D),
+        "closing_day": _c("2027-05-05", "https://www.appi.co.jp/snow-mountain-resort/course/", "APPI: Course guide (Japanese)",
+                          note="At the latest, depending on snow.", checked=_D),
+        "lift_hours": _c("8:30 AM to 4 PM.", "https://www.appi.co.jp/event/appi-winter2026-openning-event/", "APPI: Winter opening event (Japanese)", checked=_D),
+        "trail_map": dict(_map("https://www.appi.co.jp/snow-mountain-resort/course/", "APPI: Course guide (Japanese)", "2026-27 course map (on appi.co.jp)", [
+            ("Course map", "2026/27", "https://www.appi.co.jp/snow-mountain-resort/assets/img/course/course_2026-27_all.jpg", None)]), checked=_D),
+    },
+})
+
 # Checked and not posted yet: the page says so, so the guide shows "Not posted" with the reason.
 _NOT_POSTED = {
     "lift_hours": {

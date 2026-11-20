@@ -269,7 +269,7 @@ def fetch_replay(start, end):
     """Each model's daily liquid as forecast 1 to 7 days ahead, from Open-Meteo Previous Runs."""
     from .sources import openmeteo
     from .util import get
-    models = [m for m in config.MODELS if m not in NO_REPLAY]
+    models = [m for m in config.models_here() if m not in NO_REPLAY]
     hourly = ",".join(f"precipitation_previous_day{n}" for n in REPLAY_LEADS)
     params = openmeteo._base_params() | {"hourly": hourly, "start_date": start.isoformat(), "end_date": end.isoformat()}
     params.pop("forecast_days")
