@@ -37,14 +37,35 @@
 
   /* ---------------- resorts ----------------
      Beaver Creek's archive lives at /data/..., every other resort's one folder down
-     (/data/vail/...). The picked resort is remembered on this device; ?resort= in a link
-     (emails and notifications use it) picks one too. */
+     (/data/vail/...). Each resort has its own link (/alta), and the address bar follows the
+     resort on screen. The last resort viewed is remembered on this device (localStorage), so
+     opening the bare site (/, or the Home Screen app) reopens it. Older ?resort=alta links still
+     work and are tidied to /alta. No login: a Home Screen app keeps its own memory, separate
+     from the browser's. */
   const DEFAULT_RESORT = "beaver-creek";
   const R = { list: [{ slug: DEFAULT_RESORT, name: "Beaver Creek", timezone: RESORT_TZ }], slug: DEFAULT_RESORT };
   const resortInfo = () => R.list.find((r) => r.slug === R.slug) || R.list[0];
   const dataPath = (p) => (R.slug === DEFAULT_RESORT ? p : p.replace(/^\/data\//, `/data/${R.slug}/`));
+  const isResort = (slug) => !!slug && R.list.some((r) => r.slug === slug);
+  // The resort a link names: /alta, or the older /?resort=alta. null for the bare site.
+  function linkedResort(href) {
+    try {
+      const u = new URL(href, location.href);
+      const path = decodeURIComponent(u.pathname.replace(/^\/+|\/+$/g, "")).toLowerCase();
+      return u.searchParams.get("resort") || (/^[a-z0-9-]+$/.test(path) ? path : null);
+    } catch (e) { return null; }
+  }
+  // Point the address bar at the resort on screen, keeping the tab (#forecast) and any other
+  // query (?email=confirmed). push adds a history step so Back returns to the last resort.
+  function resortUrl(push = false) {
+    const u = new URL(location.href);
+    u.searchParams.delete("resort");
+    u.pathname = "/" + R.slug;
+    if (u.href === location.href) return;
+    try { history[push ? "pushState" : "replaceState"](null, "", u); } catch (e) {}
+  }
   function pickResort(slug, remember = true) {
-    R.slug = R.list.some((r) => r.slug === slug) ? slug : DEFAULT_RESORT;
+    R.slug = isResort(slug) ? slug : DEFAULT_RESORT;
     if (remember) { try { localStorage.setItem("resort", R.slug); } catch (e) {} }
     document.title = `0xSnow · ${resortInfo().name}`;
     const nm = $("#resort-name");
@@ -1414,10 +1435,10 @@ ${tell}
     getJSON("/data/verification.json").then((v) => { if (slug !== R.slug) return; S.verification = v; if ((location.hash || "#today") === "#forecast") route(); });
   }
 
-  async function switchResort(slug) {
-    if (slug === R.slug) return;
+  async function switchResort(slug, push = true) {
+    if (slug === R.slug || !isResort(slug)) return;
     pickResort(slug);
-    const u = new URL(location.href); u.searchParams.delete("resort"); history.replaceState(null, "", u);
+    resortUrl(push);
     $("#main").innerHTML = `<div class="skeleton"></div><div class="skeleton"></div>`;
     await loadResortData();
     route();
@@ -1560,9 +1581,14 @@ ${tell}
     if (list?.resorts?.length) R.list = list.resorts;
     let saved = null;
     try { saved = localStorage.getItem("resort"); } catch (e) {}
-    const linked = new URLSearchParams(location.search).get("resort");
-    pickResort(linked || saved || DEFAULT_RESORT, !!linked);
+    // A link to a resort wins (and becomes the remembered one); the bare site opens the last
+    // resort viewed here; a first visit opens Beaver Creek.
+    const linked = linkedResort(location.href);
+    pickResort(isResort(linked) ? linked : isResort(saved) ? saved : DEFAULT_RESORT);
+    resortUrl();
     wireResortMenu();
+    // Back and Forward between resorts.
+    window.addEventListener("popstate", () => { const s = linkedResort(location.href); if (isResort(s) && s !== R.slug) switchResort(s, false); });
     await loadResortData();
     route();
     window.addEventListener("hashchange", () => { window.scrollTo({ top: 0 }); route(); });
@@ -1586,10 +1612,10 @@ ${tell}
     return refreshing;
   }
   async function openReport(url) {
-    let slug = DEFAULT_RESORT;
-    try { slug = new URL(url, location.href).searchParams.get("resort") || DEFAULT_RESORT; } catch (e) {}
+    // A notification without a resort in its link keeps the resort on screen.
+    const slug = linkedResort(url);
     if (location.hash && location.hash !== "#today") history.replaceState(null, "", location.pathname + location.search);
-    if (slug !== R.slug && R.list.some((r) => r.slug === slug)) return switchResort(slug);
+    if (isResort(slug) && slug !== R.slug) return switchResort(slug);
     $("#main").innerHTML = `<div class="skeleton"></div><div class="skeleton"></div>`;
     return refresh();
   }

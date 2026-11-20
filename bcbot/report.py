@@ -9,10 +9,11 @@ def resort_name(day):
 
 
 def app_url(day=None):
-    """The app, opened on this report's resort (Beaver Creek is the app's default)."""
+    """The app, opened on this report's resort: every resort has its own link (/vail). Beaver
+    Creek gets one too, since the bare site reopens whichever resort the reader viewed last."""
     from .resorts import DEFAULT
     slug = (day or {}).get("resort_slug") or config.RESORT or DEFAULT
-    return config.DASHBOARD_URL if slug == DEFAULT else f"{config.DASHBOARD_URL.rstrip('/')}/?resort={slug}"
+    return f"{config.DASHBOARD_URL.rstrip('/')}/{slug}"
 
 
 def mmdd(d):
