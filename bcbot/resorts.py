@@ -283,7 +283,7 @@ RESORTS = {
                         (40.5800, -111.5600, 10500, "summit")),
         "snotel": ['366:UT:SNTL', '1308:UT:SNTL'],
         "snotel_label": "Brighton",
-        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-27", "enabled": True,
+        "cams": [], "patrol": None, "tz": "America/Denver", "opening_day": "2026-11-24", "enabled": True,
     },
     "alta": {
         "name": "Alta", "region": "Utah", "pass": "Ikon",
