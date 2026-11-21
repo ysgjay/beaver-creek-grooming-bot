@@ -6,14 +6,14 @@ not a request to redesign or deploy the interface.
 
 ## Start here
 
-1. [Selection record](0xsnow/selection.json): exact IDs, status and geometry.
-2. [Balanced brand sheet](0xsnow/0xSnow-Balanced-Brand-Sheet.pdf): selected raised-x
+1. [Selection record](brand-kit/selection.json): exact IDs, status and geometry.
+2. [Balanced brand sheet](brand-kit/0xSnow-Balanced-Brand-Sheet.pdf): selected raised-x
    alternate in light and dark, also page 5 of the full guide.
-3. [Full brand guide v1.1](0xsnow/0xSnow-Brand-Guide.pdf) and
-   [editable specification](0xsnow/Brand-Specification.md): identity, colors,
+3. [Full brand guide v1.1](brand-kit/0xSnow-Brand-Guide.pdf) and
+   [editable specification](brand-kit/Brand-Specification.md): identity, colors,
    type, material, product and applications.
-4. [Agent handoff](0xsnow/Agent-Handoff.md): preservation and application details.
-5. [Current product rules](../BRAND.md): existing CSS, icons and interactions.
+4. [Agent handoff](brand-kit/Agent-Handoff.md): preservation and application details.
+5. [Current product rules](../docs/BRAND.md): existing CSS, icons and interactions.
 
 Use the selection record for the frozen artwork and the current repository
 files for implementation state. The PDF's original code audit was from
@@ -25,12 +25,12 @@ instructions take precedence over this record.
 | Item | Status | Source |
 |---|---|---|
 | Name | 0xSnow; already used in the app, manifest and public metadata | `public/index.html`, `public/manifest.webmanifest` |
-| Standard primary wordmark | 04S-C-A; baseline-aligned snow-gauge zero and full-size xSnow | [Primary vectors](0xsnow/assets/primary/) |
-| Raised-x alternate | **Balanced / 04S-C-A-alt-A-01**, explicitly selected by the owner | [Balanced vectors](0xsnow/assets/alternate/) |
+| Standard primary wordmark | 04S-C-A; baseline-aligned snow-gauge zero and full-size xSnow | [Primary vectors](brand-kit/assets/primary/) |
+| Raised-x alternate | **Balanced / 04S-C-A-alt-A-01**, explicitly selected by the owner | [Balanced vectors](brand-kit/assets/alternate/) |
 | Slogan | **Glacial Precision** is potential/working, not frozen into the logo | Specification and selection record |
 | Current app artwork | Iced chairlift header and dark chairlift home-screen icon remain referenced | `public/brand/frosted-logo.webp`, `public/brand/app-icon-dark-*.png` |
-| Gauge app-icon exports | Prepared assets for a future identity rollout; not installed by this commit | [Gauge icons](0xsnow/app-icons/) |
-| Snow accumulation | Current motion samples for the standard primary and standalone gauge | [Motion assets and notes](0xsnow/motion/README.md) |
+| Gauge app-icon exports | Prepared assets for a future identity rollout; not installed by this commit | [Gauge icons](brand-kit/app-icons/) |
+| Snow accumulation | Current motion samples for the standard primary and standalone gauge | [Motion assets and notes](brand-kit/motion/README.md) |
 | Other raised-x studies / finish experiments | Not selected | Keep them out of the default logo system |
 
 The user chose Balanced as the **alternate**, not as a replacement for the
@@ -61,18 +61,18 @@ ice-blue x nor the frosted-lettering experiment was approved as its default.
 Supporting concepts remain separate: 21A Core Groomer for grooming reports,
 the Resort Fold family for maps/grooming, and 55B Stake Scout as a possible
 character. Their included images are concept references, not finished vectors
-or interchangeable primary logos. See `0xsnow/assets/companions/`.
+or interchangeable primary logos. See `brand-kit/assets/companions/`.
 
 ## Frozen geometry: do not reconstruct it
 
 Use these files directly:
 
-- [Balanced light SVG](0xsnow/assets/alternate/04S-C-A-alt-A-01-light.svg)
-- [Balanced dark SVG](0xsnow/assets/alternate/04S-C-A-alt-A-01-dark.svg)
+- [Balanced light SVG](brand-kit/assets/alternate/04S-C-A-alt-A-01-light.svg)
+- [Balanced dark SVG](brand-kit/assets/alternate/04S-C-A-alt-A-01-dark.svg)
 - Matching native-vector PDFs in the same directory.
-- [Primary light SVG](0xsnow/assets/primary/0xsnow-wordmark-light.svg) and
-  [primary dark SVG](0xsnow/assets/primary/0xsnow-wordmark-dark.svg).
-- `0xsnow/source/geometry.json` is the frozen path source; `selection.json`
+- [Primary light SVG](brand-kit/assets/primary/0xsnow-wordmark-light.svg) and
+  [primary dark SVG](brand-kit/assets/primary/0xsnow-wordmark-dark.svg).
+- `brand-kit/source/geometry.json` is the frozen path source; `selection.json`
   records the selected alternate transforms.
 
 Balanced keeps the original gauge at its origin, scales the original x uniformly
@@ -148,7 +148,7 @@ Glacial Precision as a font. The working slogan is separate, normally Plex Sans
 
 ## Motion direction
 
-See [motion/README.md](0xsnow/motion/README.md) for the supplied SVG families.
+See [motion/README.md](brand-kit/motion/README.md) for the supplied SVG families.
 The current samples accumulate for eight seconds in a ten-second loop, with a
 brief hold and opacity reset instead of snow draining downward. One-shot files
 freeze at the completed state.
@@ -199,7 +199,7 @@ Do not run report-sending commands as a branding test.
 
 ## Rebuild and provenance
 
-The guide package is self-contained. From `docs/brand/0xsnow/`, with ReportLab,
+The guide package is self-contained. From `0xSnow Branding/brand-kit/`, with ReportLab,
 Pillow and pypdf available:
 
 ```sh
