@@ -196,3 +196,17 @@ def test_public_api_429_waits_once_then_retries(monkeypatch):
     monkeypatch.setattr(time, "sleep", lambda s: waits.append(s))
     assert openmeteo.get(openmeteo.ENSEMBLE_URL, params={}).ok
     assert len(calls) == 2 and len(waits) == 1 and 3 <= waits[0] <= 10
+
+
+def test_several_places_from_our_server_are_used(monkeypatch):
+    """A forecast for several points comes back as a list; a full list is a hit, one empty point is a miss."""
+    monkeypatch.setenv("OPEN_METEO_URL", "http://snow-meteo:8080")
+    full = '{"hourly": {"time": ["t"], "precipitation": [0.1]}}'
+    empty = '{"hourly": {"time": ["t"], "precipitation": [null]}}'
+    for body, want in ((f"[{full}, {full}]", ["http://snow-meteo:8080/v1/forecast"]),
+                       (f"[{full}, {empty}]", ["http://snow-meteo:8080/v1/forecast", openmeteo.FORECAST_URL])):
+        calls = []
+        monkeypatch.setattr(openmeteo, "_http_get",
+                            lambda url, **o: calls.append(url) or (Resp(200, body) if "snow-meteo" in url else Resp()))
+        openmeteo.get(openmeteo.FORECAST_URL, params={})
+        assert calls == want

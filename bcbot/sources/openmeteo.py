@@ -35,6 +35,12 @@ def _has_data(r):
         j = r.json()
     except Exception:
         return False
+    # Several places in one call come back as a list of answers, one per place: each needs data.
+    answers = j if isinstance(j, list) else [j]
+    return bool(answers) and all(_answer_has_data(a) for a in answers)
+
+
+def _answer_has_data(j):
     if not isinstance(j, dict):
         return False
     blocks = [b for b in (j.get("hourly"), j.get("daily")) if isinstance(b, dict)]
