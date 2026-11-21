@@ -1,0 +1,38 @@
+[
+  {
+    "pair": "Light body",
+    "foreground": "#0C2A4A",
+    "background": "#F5F9FC",
+    "ratio": 13.722358072678352
+  },
+  {
+    "pair": "Light secondary",
+    "foreground": "#465C70",
+    "background": "#F5F9FC",
+    "ratio": 6.557620740711187
+  },
+  {
+    "pair": "Dark body",
+    "foreground": "#E7F2FC",
+    "background": "#102A40",
+    "ratio": 12.964991140416416
+  },
+  {
+    "pair": "Dark secondary",
+    "foreground": "#BDCEDC",
+    "background": "#102A40",
+    "ratio": 9.126461002843307
+  },
+  {
+    "pair": "Light snow line",
+    "foreground": "#376F9B",
+    "background": "#F5F9FC",
+    "ratio": 5.074372434039651
+  },
+  {
+    "pair": "Dark snow line",
+    "foreground": "#8DC4EB",
+    "background": "#102A40",
+    "ratio": 7.866976111048895
+  }
+]

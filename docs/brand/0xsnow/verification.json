@@ -1,0 +1,29 @@
+{
+  "version": "1.1",
+  "pages": 26,
+  "pageSizePt": [
+    960,
+    600
+  ],
+  "balancedPage": 5,
+  "standaloneSheetPages": 1,
+  "pageBoundaryTextIssues": 0,
+  "allOriginalAssetHashesUnchanged": true,
+  "selectedAlternateSVGsByteIdenticalToStudy": true,
+  "selectedAlternatePDFsContainNoRasterImages": true,
+  "balancedSheetContainsNoRasterImages": true,
+  "primaryVectorHashesUnchanged": true,
+  "frozenGeometryUnchanged": true,
+  "assetsVerified": 41,
+  "renderedOverviewReviewed": true,
+  "changedPagesReviewedAtFullSize": [
+    4,
+    5,
+    6,
+    25,
+    26
+  ],
+  "logoStatus": "04S-C-A primary plus selected Balanced A-01 alternate; native vector assets included",
+  "sloganStatus": "Glacial Precision / potential",
+  "productStatus": "no app code changed"
+}

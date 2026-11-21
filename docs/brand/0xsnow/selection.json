@@ -1,0 +1,32 @@
+{
+  "version": "1.1",
+  "selected_date": "2026-11-21",
+  "primary": "04S-C-A",
+  "selected_alternate": {
+    "id": "04S-C-A-alt-A-01",
+    "name": "Balanced",
+    "status": "selected; exact study geometry frozen",
+    "treatment": "standard two-color; navy/light ink x, Snow Blue gauge base",
+    "spec": {
+      "id": "A-01",
+      "label": "Balanced",
+      "scale": 0.48,
+      "x": 122,
+      "y": 6,
+      "snowX": -58,
+      "note": "A tighter connection between the gauge, x and S. Closest refinement to the original."
+    }
+  },
+  "not_selected": [
+    "A-02",
+    "A-03",
+    "A-04",
+    "A-05",
+    "ice-blue-x treatment",
+    "frosted-lettering treatment"
+  ],
+  "slogan": {
+    "text": "Glacial Precision",
+    "status": "potential / working"
+  }
+}

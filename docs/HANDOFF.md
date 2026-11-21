@@ -2,6 +2,12 @@
 
 *Updated Nov 15, 2026. Deployment follows `main`; changes on a pull-request branch are previews until merged.*
 
+**Brand asset update, Nov 21:** the [0xSnow brand kit](brand/0xsnow/README.md)
+now records the gauge primary and selected **Balanced A-01 raised-x alternate**,
+including the updated PDF guide, exact vectors and design handoff. Start branding
+agent work with [CLAUDE_BRANDING.md](brand/CLAUDE_BRANDING.md). This asset import
+does not replace the chairlift references currently used by the app.
+
 ## What it is
 **Resorts:** 22 in Colorado and Utah on the Epic and Ikon passes (Beaver Creek, Vail, Breckenridge, Keystone, Crested Butte, Park City, Telluride, the four Aspen mountains, Steamboat, Winter Park, Copper, A-Basin, Eldora, Deer Valley, Solitude, Brighton, Alta, Snowbird, Snowbasin), picked from the title in the app and grouped by state. Sources, layouts and what differs per resort: `docs/RESORTS.md`. Database schema: `docs/schema.sql`.
 

@@ -1,0 +1,10 @@
+{
+  "_note": "Partial integration example. Retain the app's existing name, start_url, scope and display settings. Paths assume these files are copied under /brand/0xsnow/.",
+  "theme_color": "#071B2E",
+  "background_color": "#071B2E",
+  "icons": [
+    {"src": "/brand/0xsnow/app-icon-dark-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/brand/0xsnow/app-icon-dark-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/brand/0xsnow/app-icon-maskable-dark-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

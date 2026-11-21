@@ -1,0 +1,65 @@
+/* 0xSnow v1.0: scoped reference tokens. Not a drop-in replacement for app styles. */
+:root {
+  --ox-brand-midnight: #071B2E;
+  --ox-brand-snow-blue: #29C3FE;
+  --ox-brand-glacier: #8DC4EB;
+  --ox-brand-ice: #DCEBFA;
+  --ox-brand-paper: #F5F9FC;
+  --ox-brand-burgundy: #7B1E2E;
+}
+[data-oxsnow-appearance="light"] {
+  color-scheme: light;
+  --ox-background: #DCEBFA;
+  --ox-surface: #F5F9FC;
+  --ox-surface-raised: #FFFFFF;
+  --ox-surface-secondary: #EEF4F8;
+  --ox-text: #0C2A4A;
+  --ox-text-secondary: #465C70;
+  --ox-line: #C3D3E0;
+  --ox-control-border: #7A90A4;
+  --ox-action: #365C7D;
+  --ox-on-action: #FFFFFF;
+  --ox-selected: #DCE8F2;
+  --ox-focus: #376F9B;
+  --ox-snow-stroke: #376F9B;
+  --ox-snow-fill: #C5DFF2;
+  --ox-snow-range: #E5F1FA;
+  --ox-snow-heat-max: #88B2D5;
+  --ox-brand-action: #7B1E2E;
+  --ox-on-brand-action: #FFFFFF;
+  --ox-warning-text: #81530A;
+  --ox-warning-surface: #FFF6E7;
+}
+[data-oxsnow-appearance="dark"] {
+  color-scheme: dark;
+  --ox-background: #071B2E;
+  --ox-surface: #102A40;
+  --ox-surface-raised: #102C43;
+  --ox-surface-secondary: #18384F;
+  --ox-text: #E7F2FC;
+  --ox-text-secondary: #BDCEDC;
+  --ox-line: #32516A;
+  --ox-control-border: #65859F;
+  --ox-action: #B8DCF6;
+  --ox-on-action: #071B2E;
+  --ox-selected: #24475E;
+  --ox-focus: #B8DCF6;
+  --ox-snow-stroke: #8DC4EB;
+  --ox-snow-fill: #376B92;
+  --ox-snow-range: #173B55;
+  --ox-snow-heat-max: #315D7B;
+  --ox-brand-action: #8B2941;
+  --ox-on-brand-action: #FFFFFF;
+  --ox-warning-text: #EAC182;
+  --ox-warning-surface: #302B27;
+}
+[data-oxsnow-appearance] {
+  --ox-font-display: "Outfit", Arial, sans-serif;
+  --ox-font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --ox-font-data: "IBM Plex Mono", ui-monospace, monospace;
+  --ox-radius-control: 12px;
+  --ox-radius-card: 24px;
+  --ox-touch-min: 44px;
+}
+/* Example data mapping: keep weather independent from brand actions. */
+.ox-snow-chart { --chart-stroke: var(--ox-snow-stroke); --chart-fill: var(--ox-snow-fill); }

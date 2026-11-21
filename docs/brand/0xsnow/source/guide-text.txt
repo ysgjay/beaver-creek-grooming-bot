@@ -1,0 +1,738 @@
+0xSnow / IDENTITY SYSTEM
+BRAND & PRODUCT GUIDE / 1.1
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   01
+SELECTED DIRECTION / 04S-C-A
+Glacial Precision
+Working slogan
+A measured identity for snow
+forecasts, grooming reports and
+mountain days.
+BRAND STRATEGY  /  LOGO  /  PRODUCT  /  APPLICATIONS
+0xSnow / THE IDEA
+BRAND & PRODUCT GUIDE / 1.1
+A clear read on the mountain.
+Simple enough to recognize. Precise enough to help people make a plan.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   02
+Measured
+Show the number, its time, its source and
+what remains uncertain. Earn trust through
+visible context.
+Frosty
+Borrow the clarity, color and etched detail
+of ice. Keep the information at the center
+calm and legible.
+Useful
+Help a skier answer three questions: what
+fell, what is groomed, and what comes
+next?
+BRAND PROMISE
+Mountain information, made clear.
+0xSnow brings snow forecasts, resort reports and practical mountain information into a readable daily view. The zero
+behaves like a snow gauge: a compact idea that connects the name to the product.
+0xSnow / THE PRIMARY MARK
+BRAND & PRODUCT GUIDE / 1.1
+Snow becomes the zero.
+04S-C-A / Glacial Precision lettering / baseline-aligned refinement
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   03
+THE CORE IDEA
+A gauge, a zero, a snowline.
+Two inward ticks suggest measurement. The blue drift completes the lower contour of
+the zero itself. Its open center keeps the symbol simple at a glance.
+Keep the outer bottom edge of the zero aligned with the wordmark
+baseline. Match the top to the capital S; preserve the selected width and
+the two left-hand ticks.
+The blue base is part of the silhouette. Do not add a dark rim beneath it.
+0xSnow / LOGO FAMILY
+BRAND & PRODUCT GUIDE / 1.1
+One identity. Three practical forms.
+Primary reference specimens. Use the matching production vectors in assets/primary for exports.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   04
+01 / PRIMARY WORDMARK
+02 / COMPACT SYMBOL
+03 / INVERSE COLOR STUDY
+Wordmark: website, email masthead,
+documents and signage.
+
+Symbol: compact navigation, app tile and
+small identifiers.
+Production SVG/PDF masters are included. The
+next sheet records Balanced A-01, the selected
+raised-x alternate.
+0xSnow / SELECTED ALTERNATE
+BRAND & PRODUCT GUIDE / 1.1
+Balanced. The selected raised x.
+04S-C-A-alt-A-01 / selected 21 November 2026 / exact study geometry retained
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   05
+LIGHT / STANDARD TREATMENT
+DARK / STANDARD TREATMENT
+PRESERVE THE SELECTED RELATIONSHIP
+48% x scale. Tighter spacing.
+The x sits between 0 and Snow. The original gauge,
+Snow letterforms and baseline remain unchanged.
+Use this alternate for brand signatures and mastheads.
+Leave 1/4 cap-height clear space; proof at 160 px / 35 mm.
+Cap line + baseline / original optical overshoot
+MIDNIGHT
+#071B2E
+LIGHT INK
+#E7F2FC
+SNOW BLUE
+#29C3FE
+Custom outlined lettering
+Glacial Precision remains a working slogan.
+0xSnow / PROPORTIONS & SPACING
+BRAND & PRODUCT GUIDE / 1.1
+Let the mark breathe.
+Primary-logo spacing guidance. Use supplied paths and proof actual size for the intended application.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   06
+H
+X = 1/4 H
+Clear space
+Keep at least X around every side.
+Measure from the visible artwork,
+including the blue base.
+Proportion
+Wordmark approximately 5:1; gauge
+approximately 0.68H wide inside the
+lockup. Scale as one object.
+Starting minimums
+Wordmark: 160 px / 35 mm wide. Symbol:
+32 px / 8 mm tall. Proof at actual size
+before production.
+0xSnow / LOGO DISCIPLINE
+BRAND & PRODUCT GUIDE / 1.1
+The details that make it ours.
+Treat the selected geometry as a fixed design, not a font setting.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   07
+01
+Keep the baseline
+The snow base sits with xSnow, not below
+it. Do not stretch the zero vertically.
+02
+Keep the snow contour
+The blue snowbank forms the bottom
+edge. No dark lower rim and no separate
+bowl.
+03
+Keep the two ticks
+Maintain their left-hand position, thickness
+and spacing. Avoid extra gauge markings.
+04
+Keep the name
+Write 0xSnow: numeral zero, lowercase x,
+capital S. Preserve the lowercase n, o and
+w.
+05
+Keep the lettering
+Do not retype the logo in Outfit. Outfit is
+the product typeface, not a logo
+substitute.
+06
+Keep effects secondary
+No enclosing icy zero, fake bevel on small
+marks, drop shadow on letters or
+stretched lockup.
+0xSnow / BRAND LANGUAGE
+BRAND & PRODUCT GUIDE / 1.1
+Glacial Precision
+A candidate slogan, now shown in context. The logo ID stays 04S-C-A.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   08
+Glacial Precision
+What it communicates
+A cold, deliberate and technically
+considered identity. It connects the glacier
+palette with the measuring zero.
+How to set it
+Use IBM Plex Sans 400 in sentence case.
+Keep it separate from the logo and at least
+1/4 H below it.
+Where it belongs
+Brand covers, campaigns, packaging and
+larger signs. Omit it in dense product
+headers and small app icons.
+0xSnow / CORE PALETTE
+BRAND & PRODUCT GUIDE / 1.1
+Cold color. Warm restraint.
+sRGB specification targets. The approved raster remains unchanged and includes tonal variation.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   09
+Midnight
+#071B2E
+Primary brand anchor
+Snow Blue
+#29C3FE
+Snowbank / brand highlight
+Glacier
+#8DC4EB
+Dark-mode snow strokes
+Ice
+#DCEBFA
+Light background
+Frost Paper
+#F5F9FC
+Readable surfaces
+Burgundy
+#7B1E2E
+Small brand accents
+Use Snow Blue as a fill or highlight, not small text on white. All snow data stays in the blue / ice family.
+0xSnow / LIGHT & DARK
+BRAND & PRODUCT GUIDE / 1.1
+Two appearances, one hierarchy.
+Theme values are grounded in the existing app. The brand snowbank blue is separate from chart colors.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   10
+Frosted Snow
+Surface
+#F5F9FC
+Text
+#0C2A4A
+Secondary
+#465C70
+Selected tab
+#DCE8F2
+Snow stroke
+#376F9B
+Expected fill
+#C5DFF2
+Uncertainty
+#E5F1FA
+Midnight Ice
+Surface
+#102A40
+Text
+#E7F2FC
+Secondary
+#BDCEDC
+Selected tab
+#24475E
+Snow stroke
+#8DC4EB
+Expected fill
+#376B92
+Uncertainty
+#173B55
+System appearance is the default. Keep the same information order, chart meanings and navigation in both modes.
+0xSnow / READABLE COLOR
+BRAND & PRODUCT GUIDE / 1.1
+Color with a job to do.
+Contrast ratios below are calculated for the opaque tokens, not a certification of every translucent state.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   11
+Light body
+13.72:1
+Light secondary
+6.56:1
+Dark body
+12.96:1
+Dark secondary
+9.13:1
+Light snow line
+5.07:1
+Dark snow line
+7.87:1
+Target 4.5:1 for normal text and 3:1 for essential graphical boundaries. Pale fills are
+supported by darker outlines, values and labels. Test actual composited surfaces over maps,
+images and scrolling content.
+Use at least 44 x 44 px touch targets as the
+product standard. Focus must be visible,
+distinct from selection and never clipped.
+Reference: W3C WCAG 2.2 / Contrast (Minimum) and Non-text Contrast. Linked in Sources.
+0xSnow / TYPOGRAPHY
+BRAND & PRODUCT GUIDE / 1.1
+Precision without stiffness.
+Retain the three licensed, self-hosted type families already used by the app.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   12
+OUTFIT / HEADINGS & KEY NUMBERS
+Your next snow day.
+4"  28"  24°
+IBM PLEX SANS / INTERFACE & BODY
+Snowfall, grooming and resort information.
+A clear forecast includes its likely range.
+IBM PLEX MONO / DATA & TIMESTAMPS
+07:00 MT   /   3.7 in   /   24 h
+PRODUCT TYPE SCALE
+Page title
+Outfit 600 / 28-32
+Section title
+Outfit 600 / 22
+Primary metric
+Outfit 600 / 34-40
+Body / control
+Plex Sans 400-600 / 15-16
+Metadata
+Plex Sans 400 / 12-13
+Dense data
+Plex Mono 400 / 11-13
+Sizes in CSS px. Use 1.45-1.6 body leading.
+0xSnow / MATERIAL LANGUAGE
+BRAND & PRODUCT GUIDE / 1.1
+Ice with depth. Information with clarity.
+Carry the app's etched ice forward as a supporting material, with the logo kept crisp.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   13
+ETCHED ICE / MATERIAL CLOSE-UP
+Fine texture.
+Soft optical edges.
+Small curled etches, scattered bubble contours and
+directional light give the pane substance.
+Magnified material study; stronger than normal UI.
+01 / Texture
+Use the existing ice-etch-v4 tile at a constant
+scale. Avoid large crystals, fern branches and a
+noisy rim.
+02 / Depth
+A gentle upper-left reflection and a narrow
+inner highlight suggest thickness. Avoid raised
+button lips.
+03 / Restraint
+Header, navigation and card shells carry the
+material. Keep images, chart fills and dense
+labels clear.
+0xSnow / MATERIAL IN PRODUCT
+BRAND & PRODUCT GUIDE / 1.1
+The same ice, in both appearances.
+These are design specimens; the packaged source records the existing app material settings.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   14
+Beaver Creek
+Next 5 days
+3.7"
+Likely 2-6"
+Beaver Creek
+Next 5 days
+3.7"
+Likely 2-6"
+A stable surface
+Cards: 74% pale tint / 76% navy tint.
+Header and bottom navigation: 94% tint.
+Keep opaque fallback surfaces.
+A fixed texture scale
+480 x 480 CSS px tile. Start at 10% opacity
+in light and 20% in dark. Never stretch the
+texture to fit a card.
+A readable fallback
+Remove texture, blur and decorative
+shadows for reduced transparency, forced
+colors and print.
+0xSnow / DATA LANGUAGE
+BRAND & PRODUCT GUIDE / 1.1
+Snow is always blue.
+Keep the app's distinctive snow stakes and daily heat strip. Meaning comes before material.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   15
+EXPECTED SNOWFALL / INCHES
+2"
+Tue
+4"
+Wed
+1"
+Thu
+6"
+Fri
+3"
+Sat
+Expected fill
+Likely range: hatch + low mark
+The snow stake
+Preserve ruler ticks, the drift top, the low-end
+mark and hatched upper estimate. Keep values
+and units visible.
+The daily strip
+Use a consistent blue scale and explicit values.
+Zero is 0; unavailable data is a dash with a
+clear label.
+1
+Tue
+0.1
+Wed
+0
+Thu
+2
+Fri
+0.6
+Sat
+0
+Sun
+0.5
+Mon
+1
+Tue
+0.3
+Wed
+4
+Thu
+All values shown here and in UI specimens are
+illustrative. No forecast or resort report is being
+published.
+0xSnow / PRODUCT / LIGHT
+BRAND & PRODUCT GUIDE / 1.1
+A calm daily overview.
+Proposed 0xSnow identity applied to the existing map-led information structure. Illustrative data.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   16
+Beaver Creek
+Today
+Calendar
+Forecast
+Help
+Morning report
+Grooming
+Map from Nov 21 / 6:15 AM MT
+ILLUSTRATIVE MAP
+Groomed overnight
+Little Brave Lower   /   Flint   /   Maverick
+NEW 24H
+4"
+BASE
+28"
+TEMP
+24°
+WIND
+8 mph
+Resort snow / 5:30 AM MT
+Snow forecast
+Next 5 days 3.7" / likely 2-6"
+1
+Tue
+0.1
+Wed
+0
+Thu
+2
+Fri
+0.6
+Sat
+0
+Sun
+0.5
+Mon
+1
+Tue
+0.3
+Wed
+4
+Thu
+Source clarity comes first.
+Times, units and uncertainty stay beside the number.
+0xSnow / PRODUCT / DARK
+BRAND & PRODUCT GUIDE / 1.1
+The same clarity, after dark.
+Keep maps and camera images in their original colors. Adapt surfaces and chart tokens, not the source imagery.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   17
+Beaver Creek
+Today
+Calendar
+Forecast
+Help
+Morning report
+Grooming
+Map from Nov 21 / 6:15 AM MT
+ILLUSTRATIVE MAP
+Groomed overnight
+Little Brave Lower   /   Flint   /   Maverick
+NEW 24H
+4"
+BASE
+28"
+TEMP
+24°
+WIND
+8 mph
+Resort snow / 5:30 AM MT
+Snow forecast
+Next 5 days 3.7" / likely 2-6"
+1
+Tue
+0.1
+Wed
+0
+Thu
+2
+Fri
+0.6
+Sat
+0
+Sun
+0.5
+Mon
+1
+Tue
+0.3
+Wed
+4
+Thu
+Source clarity comes first.
+Times, units and uncertainty stay beside the number.
+0xSnow / PRODUCT / MOBILE
+BRAND & PRODUCT GUIDE / 1.1
+The next useful fact comes first.
+A compact brand header, clear conditions and familiar bottom navigation. Illustrative data.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   18
+9:41
+Beaver Creek
+Today
+Sat, Nov 21 / saved 7 AM MT
+NEW 24H
+4"
+BASE DEPTH
+28"
+NOW
+24°
+Next 5 days
+3.7" expected / likely 2-6"
+1
+Tue
+0.1
+Wed
+0
+Thu
+2
+Fri
+0.6
+Sat
+0
+Sun
+0.5
+Mon
+1
+Tue
+0.3
+Wed
+4
+Thu
+Grooming report
+Updated 6:15 AM
+Today
+Calendar
+Forecast
+Help
+9:41
+Beaver Creek
+Today
+Sat, Nov 21 / saved 7 AM MT
+NEW 24H
+4"
+BASE DEPTH
+28"
+NOW
+24°
+Next 5 days
+3.7" expected / likely 2-6"
+1
+Tue
+0.1
+Wed
+0
+Thu
+2
+Fri
+0.6
+Sat
+0
+Sun
+0.5
+Mon
+1
+Tue
+0.3
+Wed
+4
+Thu
+Grooming report
+Updated 6:15 AM
+Today
+Calendar
+Forecast
+Help
+A quick scan
+Lead with new snow, base depth and current
+conditions, then the short outlook and grooming
+report.
+An easy next step
+Give Forecast a snowfall-first view and enough
+horizontal space for the original stakes. Keep day
+details close.
+A stable navigation
+Use four labeled destinations. Selected tabs are
+flat ice tints, with no underline or raised bottom
+edge.
+0xSnow / NAVIGATION & CONTROLS
+BRAND & PRODUCT GUIDE / 1.1
+Useful shapes. Quiet states.
+Retain the existing custom alpine icon family; it complements the new gauge symbol.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   19
+Today
+Calendar
+Forecast
+Help
+Today
+Calendar
+Forecast
+Help
+28-unit icon grid; rounded caps and joins. Render 26 px on mobile
+and 20 px in desktop tabs. Forecast uses a fine snowflake and a softly
+fading ruler edge.
+View forecast
+Get the report
+Use blue for routine actions and focus. Reserve burgundy for an
+occasional brand action; keep it out of weather graphics. A
+visible focus ring is separate from the selected state.
+SVG originals are included in assets/navigation/.
+0xSnow / VOICE & DATA INTEGRITY
+BRAND & PRODUCT GUIDE / 1.1
+Say what we know. Show what we don't.
+A calm, specific voice builds the credibility behind “Glacial Precision.”
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   20
+FORECAST
+3.7" expected over the next 5 days. Likely range 2-6".
+Lead with the useful number. Keep uncertainty beside it.
+GROOMING
+Map from Fri, Nov 20. Awaiting a newer report.
+Use the actual printed date; distinguish stale from missing.
+UNAVAILABLE
+Snow report unavailable. Last checked 7:05 AM MT.
+Missing data is not zero snowfall.
+SOURCE TIMING
+Resort snow: 5:30 AM MT. Forecast valid: 7 AM MT.
+Keep saved-report, observation and forecast times separate.
+Avoid guaranteed conditions, “perfect accuracy,” unexplained precision and hype that outruns the data.
+0xSnow / SUPPORTING MARKS
+BRAND & PRODUCT GUIDE / 1.1
+A family with clear roles.
+Companions support a section or a story; the gauge zero remains the primary identity.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   21
+21A / CORE GROOMER
+Grooming reports
+Selected companion direction. Prepare its
+own vector master before small UI or print
+use.
+48 / RESORT FOLD
+Trail maps & grooming
+Family shortlisted. 48B shown as a
+corduroy direction; no final family variant is
+frozen.
+55B / POWDER BOOTS
+Friendly brand moments
+Selected character direction. Keep it for
+onboarding, editorial and merchandise, not
+critical status.
+0xSnow / SUPPORTING GRAPHICS
+BRAND & PRODUCT GUIDE / 1.1
+The snowline and the corduroy.
+Use the product's own visual ideas to create a recognizable graphic language.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   22
+SNOWLINE
+A quiet change in level.
+CORDUROY
+Snowline
+A single continuous curve can divide a campaign, report cover or
+package. Keep it separate from quantitative chart axes.
+Corduroy
+Parallel cuts suggest a freshly groomed run. Use them on
+supporting graphics, not through body text or the approved logo.
+0xSnow / PRINT & MERCHANDISE
+BRAND & PRODUCT GUIDE / 1.1
+Make the mark work in the world.
+Flat layout studies for print and production discussion, not press-ready artwork or physical mockups.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   23
+Glacial
+Precision
+MOUNTAIN FIELD NOTES
+Forecasts / Grooming / Resort guides
+0xSnow
+Glacial Precision
+MERCHANDISE TAG
+Glacial Precision
+A small signature.
+Embroidery: simplify only after approval.
+Preserve the counter and ticks. Screen print:
+two-color flat art. Signage: use vector paths.
+Proof minimum stroke widths, actual-size legibility and spot-color matches with the producer. CMYK is substrate/profile dependent.
+0xSnow / DIGITAL APPLICATIONS
+BRAND & PRODUCT GUIDE / 1.1
+A compact identity with room to grow.
+App tile, report masthead and social card directions. These specimens are not exported install icons.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   24
+APP TILE / FLAT DIRECTION
+Use the compact symbol. Keep the
+artwork inside a central circle with
+radius 40% of the tile width. Proof
+masks before export.
+Your morning report
+Beaver Creek / Sat, Nov 21
+Glacial Precision
+Snow forecasts. Grooming reports. Resort guides.
+Use a calm, opaque email surface. Keep social headlines outside the logo clear space. No slogan in the app tile.
+0xSnow / ADOPTION & HANDOFF
+BRAND & PRODUCT GUIDE / 1.1
+A new identity, with a careful handover.
+This guide proposes the 0xSnow system. The website and installed app have not been changed by this work.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   25
+Preserve
+The selected 04S-C-A light wordmark; its
+aligned baseline, open counter, two ticks
+and snow base. Keep the blue chart
+language, source labels and app
+navigation.
+Use the masters
+Primary vectors and selected Balanced
+A-01 are supplied. Preserve their exact
+paths and IDs. Proof small sizes, app
+masks, print and embroidery for the actual
+use.
+Apply
+Swap brand assets only after vector proof
+approval. Update headers, email, manifest
+icons, social previews and documentation
+together; preserve data behavior.
+ASSET STATUS
+Selected identities
+04S-C-A primary / Balanced A-01 alternate
+Working slogan
+Glacial Precision - candidate, not permanently locked
+Ready to reuse
+Logo vectors, guide, tokens, fonts and navigation SVGs
+0xSnow / SOURCES & PACKAGE
+BRAND & PRODUCT GUIDE / 1.1
+A practical source of truth.
+Use the packaged specification and asset manifest to keep future changes intentional.
+0xSnow  /  GLACIAL PRECISION - WORKING SLOGAN
+21 NOV 2026   /   26
+Design evidence
+Primary: frozen 04S-C-A vectors and original reference. Selected
+alternate: Balanced A-01, with exact study paths. Companions: 21A,
+48 family and 55B raster boards.
+Product evidence
+Local app snapshot: ysgjay/beaver-creek-grooming-bot, commit
+95662ad, dated Nov 17, 2026. Reviewed BRAND.md, frost.css,
+dark.css, frost-surfaces.css and navigation SVGs. No claim of a fresh
+live-site audit.
+IN THE KIT
+Brand-Specification.md / Agent-Handoff.md
+tokens.css / tokens.json / contrast-checks.json
+asset-manifest.json / assets/ / source/
+REFERENCE LINKS
+W3C / text contrast
+W3C / non-text contrast
+web.dev / maskable app icons
+Font licenses are included with Outfit, IBM Plex Sans and IBM Plex Mono. The
+logo lettering is custom exploratory artwork, not one of these fonts.
+Edition 1.1 / 21 November 2026 / Balanced A-01 selected. Primary and alternate SVG/PDF paths supplied.
