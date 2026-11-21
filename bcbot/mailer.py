@@ -366,26 +366,16 @@ def daily_html(day, map_url, hidden_preheader=True):
                      f'<p style="{sub};margin-top:6px">{cap}</p>')
 
     # 4. Snow forecast: ten days, weekday over MM/DD, likely range under each snowy day.
-    cells = ""
-    for f in (fc.get("days") or [])[:10]:
-        dd = _date.fromisoformat(f["date"])
-        s = f["snow"]
-        val = "–" if s < 0.1 else (round(s) if s >= 1 else round(s, 1))
-        rng = (f'{f["low"]:g}–{f["high"]:g}' if s >= 0.1 and f.get("low") is not None and f.get("high") is not None
-               and f["high"] > f["low"] else "&nbsp;")
-        cells += (f'<td style="padding:1px;text-align:center"><div style="background:{_ramp(s)};border:1px solid #dce8f2;border-radius:7px;'
-                  f'padding:7px 0;font:600 13px {MONO};color:{INK}">{val}</div>'
-                  f'<div style="font-size:10px;line-height:1.25;color:{INK2};margin-top:3px">{dd.strftime("%a")}<br>{dd.month}/{dd.day}</div>'
-                  f'<div style="font-size:10px;color:{SNOW}">{rng}</div></td>')
+    cells = snow_row(fc, 6, ranges=True, report=(r24, day["date"]))
     if cells:
         lo, hi = (fc.get("next_1_5_range") or [None, None])[:2]
         head = (f'Next 5 days <b>{_inch(lo).rstrip(chr(34))} to {_inch(hi)}</b>, most likely {_inch(fc.get("next_1_5"))}'
                 if lo is not None and hi is not None and hi > lo else f'Next 5 days <b>{_inch(fc.get("next_1_5"))}</b>')
         head += f' · next 7 days <b>{_inch(next_7(fc))}</b>' if next_7(fc) is not None else ""
         head += f' · days 6–10 {_inch(fc.get("next_6_10"))}' if fc.get("next_6_10") is not None else ""
-        out += _card(f'<p style="{KICKER}">Snow forecast · likely range under each day</p>'
+        out += _card(f'<p style="{KICKER}">Snow forecast · likely range under each tile</p>'
                      f'<p style="margin:0 0 8px;font-size:14px">{head}</p>'
-                     f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed"><tr>{cells}</tr></table>'
+                     f'{cells}'
                      f'<p style="margin:14px 0 0"><a href="{app}" style="{BUTTON}">See the full report</a>'
                      f'&nbsp;&nbsp;<a href="{app}" style="{LINK};font-size:14px">Cams</a> · '
                      f'<a href="{app}#forecast" style="{LINK};font-size:14px">Forecast</a></p>')
@@ -535,14 +525,17 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
             facts.append(f"{n} groomed")
         elif g.get("image") and not g.get("new_map", True):
             facts.append("no new grooming map yet")
-        if fc.get("next_1_5") is not None:
+        lead = report_summary(d)
+        if lead:
+            facts.insert(0, lead)
+        elif fc.get("next_1_5") is not None:
             facts.append(f'next 5 days {_inch(fc["next_1_5"])}')
         if next_7(fc) is not None:
             facts.append(f'next 7 days {_inch(next_7(fc))}')
         links = [f'<a href="{report.app_url(d)}" style="{LINK}">Full report</a>']
         if g.get("image"):
             links.append(f'<a href="{_site(g["image"])}" style="{LINK}">Grooming map</a>')
-        tiles = _day_tiles(fc, 7)
+        tiles = snow_row(fc, 6, report=(new_snow(d), d["date"]))
         img = ""
         if maps and g.get("image"):
             img = (f'<a href="{_site(g["image"])}"><img src="{_site(g["image"])}" alt="Grooming map for {escape(_resort_name(s, d))}" width="608" '
@@ -583,20 +576,71 @@ def digest_html(picked, pending, now, radar_url=None, maps=False, token=None):
     return out
 
 
-def _day_tiles(fc, n):
-    """One small snow tile per forecast day: amount, then weekday over MM/DD."""
-    cells = ""
-    for f in (fc.get("days") or [])[:n]:
-        dd = _d.fromisoformat(f["date"])
-        sn = f.get("snow") or 0
-        val = "–" if sn < 0.1 else (round(sn) if sn >= 1 else round(sn, 1))
-        cells += (f'<td style="padding:1px;text-align:center"><div style="background:{_ramp(sn)};border:1px solid #dce8f2;border-radius:7px;'
-                  f'padding:6px 0;font:600 13px {MONO};color:{INK}">{val}</div>'
-                  f'<div style="font-size:10px;line-height:1.25;color:{INK2};margin-top:3px">{dd.strftime("%a")}<br>{dd.month}/{dd.day}</div></td>')
-    if not cells:
-        return ""
-    return (f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed;margin-top:8px">'
-            f'<tr>{cells}</tr></table>')
+def _short(hhmm):
+    h = int(hhmm[:2])
+    return f"{(h % 12) or 12}{'a' if h < 12 else 'p'}"
+
+
+def _tile(sn, label, rng=None, edge=""):
+    val = "–" if sn < 0.1 else (round(sn) if sn >= 1 else round(sn, 1))
+    return (f'<td style="padding:1px;text-align:center;vertical-align:top{edge}"><div style="background:{_ramp(sn)};border:1px solid #dce8f2;border-radius:7px;'
+            f'padding:6px 0;font:600 13px {MONO};color:{INK}">{val}</div>'
+            f'<div style="font-size:10px;line-height:1.25;color:{INK2};margin-top:3px">{label}</div>'
+            + (f'<div style="font-size:10px;color:{SNOW}">{rng}</div>' if rng is not None else "") + '</td>')
+
+
+def _range(f):
+    s = f.get("snow") or 0
+    n = lambda x: f"{x:.0f}" if x >= 1 else f"{x:g}"
+    return (f'{n(f["low"])}–{n(f["high"])}' if s >= 0.1 and f.get("low") is not None and f.get("high") is not None
+            and f["high"] > f["low"] else "&nbsp;")
+
+
+def snow_row(fc, n, ranges=False, report=None):
+    """Snow tiles. With `report_days` (saved since 11/20): a dashed tile with the latest report's
+    new snow, a line for now, then the snow expected by each morning report after it, each
+    counted from the report before (the first from now). Older saved forecasts show calendar
+    days by date. `report` is (inches, date) of the latest report."""
+    rds = (fc.get("report_days") or [])[:n]
+    hd = f"padding:0 2px 4px;font:600 10px/1.3 {MONO};letter-spacing:.05em;text-transform:uppercase;color:{INK2};text-align:left"
+    lab = lambda iso: f'{_d.fromisoformat(iso).strftime("%a")}<br>{_d.fromisoformat(iso).month}/{_d.fromisoformat(iso).day}'
+    if not rds:
+        cells = "".join(_tile(f.get("snow") or 0, lab(f["date"]), _range(f) if ranges else None) for f in (fc.get("days") or [])[:n + 1])
+        return (f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed;margin-top:8px">'
+                f'<tr>{cells}</tr></table>') if cells else ""
+    cells, cols, top = "", [], ""
+    if report is not None:
+        v, iso = report
+        val = "–" if v is None else ("0" if v < 0.1 else (f"{round(v)}" if v >= 1 else f"{v:.1f}")) + '"'
+        cells += (f'<td style="padding:1px;text-align:center;vertical-align:top"><div style="background:{WHITE};border:1.5px dashed {LINE};'
+                  f'border-radius:7px;padding:6px 0;font:600 13px {MONO};color:{INK2}">{val}</div>'
+                  f'<div style="font-size:10px;line-height:1.25;color:{INK2};margin-top:3px">{lab(iso)}</div>'
+                  + (f'<div style="font-size:10px;color:{SNOW}">&nbsp;</div>' if ranges else "") + '</td>'
+                  f'<td style="padding:0 3px;vertical-align:top"><div style="width:2px;height:34px;margin:0 auto;background:{BURGUNDY};border-radius:1px"></div></td>')
+        cols += [12, 4]
+        top = f'<td colspan="2" style="{hd}">Report</td>'
+    for f in rds:
+        cells += _tile(f.get("snow") or 0, lab(f["date"]), _range(f) if ranges else None)
+    cols += [(100 - sum(cols)) / len(rds)] * len(rds)
+    colgroup = "<colgroup>" + "".join(f'<col width="{w:.2f}%" style="width:{w:.2f}%">' for w in cols) + "</colgroup>"
+    top += f'<td colspan="{len(rds)}" style="{hd};padding-left:4px">Expected on each morning report</td>'
+    hour = _short(fc.get("report_hour") or "06:00")
+    return (f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed;margin-top:10px">{colgroup}'
+            f'<tr>{top}</tr><tr>{cells}</tr></table>'
+            f'<p style="margin:6px 2px 0;color:{INK2};font-size:11px">New snow the stake should show each morning (about {hour}), '
+            f'counted from the report before.</p>')
+
+
+def report_summary(day):
+    """'1" on this morning's report · about 12" by tomorrow's'."""
+    fc = day.get("forecast") or {}
+    rds = fc.get("report_days") or []
+    if not rds:
+        return None
+    b = lambda x: f'<b style="color:{INK}">{_inch(x if x is None or x >= 0.1 else 0)}</b>'
+    nxt = rds[0]
+    when = "tomorrow's" if nxt["date"] != day.get("date") else "this morning's"
+    return f'{b(new_snow(day))} on this morning\'s report · about {b(nxt["snow"])} by {when}'
 
 
 def next_7(fc):

@@ -129,9 +129,60 @@ def _percentile(values, q):
     return v[lo] + (v[hi] - v[lo]) * (k - lo)
 
 
-def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, today=None):
-    """Return the forecast document stored in data/ and rendered by the dashboard."""
-    today = today or date.today()
+REPORT_HOUR = 6  # morning stake reading, local
+
+
+def hour_shares(model_rows, day, start, end):
+    """Share of `day`'s snow each hourly model puts in local hours [start, end). Models with
+    no snow that day say nothing about timing, so they are left out."""
+    out = {}
+    for m, rows in (model_rows or {}).items():
+        full = part = 0.0
+        for r in rows:
+            if r["time"][:10] != day or r.get("precipitation") is None:
+                continue
+            s = hourly_snow(r["precipitation"], r.get("temperature_2m"), r.get("relative_humidity_2m"))
+            full += s
+            if start <= int(r["time"][11:13]) < end:
+                part += s
+        if full >= 0.05:
+            out[m] = part / full
+    return out
+
+
+def _share(model_rows, day, start, end, lead):
+    """The blend's share of `day`'s snow in hours [start, end): each model's share, weighted
+    like the blend. With no snow in any model, assume it spreads evenly."""
+    shares = hour_shares(model_rows, day, start, end)
+    w = {m: _weight(m, lead) for m in shares if _weight(m, lead) > 0}
+    return (sum(w[m] * shares[m] for m in w) / sum(w.values())) if w else max(0, end - start) / 24
+
+
+def report_days(model_rows, days, now, hour=REPORT_HOUR):
+    """Snow expected by each morning report: from one report (stake read about 6 AM) to the
+    next, labeled by the report's morning. The first window starts now, since the latest
+    report already covers what fell before it."""
+    out = []
+    for i, d in enumerate(days):
+        if i == 0:
+            if now.hour >= hour:
+                continue  # this morning's report is in
+            parts, start = [(d, _share(model_rows, d["date"], now.hour, hour, 0))], now.hour
+        else:
+            prev = days[i - 1]
+            begin = now.hour if i == 1 and now.hour >= hour else hour
+            parts = [(prev, _share(model_rows, prev["date"], begin, 24, i - 1)),
+                     (d, _share(model_rows, d["date"], 0, hour, i))]
+            start = begin
+        out.append({"date": d["date"], "from": f"{start:02d}:00", "from_date": parts[0][0]["date"]} | {
+            k: r1(sum(x[k] * f for x, f in parts)) for k in ("snow", "low", "high")})
+    return out
+
+
+def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, today=None, now=None):
+    """Return the forecast document stored in data/ and rendered by the dashboard. With `now`,
+    it also carries `report_days`: snow expected from one morning report to the next."""
+    today = today or (now.date() if now else date.today())
     verification = verification or {}
     vstats = verification.get("models", {})
     dates = [(today + timedelta(days=i)).isoformat() for i in range(config.FORECAST_DAYS)]
@@ -220,7 +271,11 @@ def build(model_rows, nws_daily=None, ensemble_rows=None, verification=None, tod
                 hits += 1
         powder_odds = round(100 * hits / len(ens_daily))
 
-    return {
+    extra = {}
+    if now and days and days[0]["date"] == now.date().isoformat():
+        extra = {"report_days": report_days(model_rows, days, now), "report_hour": f"{REPORT_HOUR:02d}:00"}
+
+    return extra | {
         "issued": today.isoformat(),
         "point": {"lat": config.LAT, "lon": config.LON, "elevation_ft": config.ELEVATION_FT},
         "snow_cal": snow_cal,

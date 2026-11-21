@@ -239,19 +239,30 @@
   const dayLabels = (dates, x, y) => { const size = tickSize(dates.length > 1 ? x(1) - x(0) : 99); return dates.map((d, i) => { const t = dayTick(d); return `<text class="wd${t.wk ? " wk" : ""}" x="${x(i)}" y="${y}" text-anchor="middle"${size}>${t.wd}</text><text class="${t.wk ? "wk" : ""}" x="${x(i)}" y="${y + DAY_LINE}" text-anchor="middle"${size}>${t.label}</text>`; }).join(""); };
 
   // Today: ten days in one row. Cell color deepens with snow; number inside.
-  function heatStrip(days) {
+  // With `report` ({snow, date}): a dashed cell for what the latest report measured and a line
+  // for now, then `days` are report-to-report totals (snow expected on each morning's report).
+  function heatStrip(days, report) {
     return mountChart((W) => {
-      const gap = 3, cw = (W - gap * (days.length - 1)) / days.length; let s = "";
+      const gap = 3, lead = report ? 1 : 0, sep = report ? 10 : 0;
+      const cw = (W - sep - gap * (days.length + lead - 1)) / (days.length + lead); let s = "";
+      if (report) {
+        const k = dayTick(report.date), cx = cw / 2;
+        s += `<rect x="1" y="1" width="${cw - 2}" height="36" rx="7" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 3" tabindex="0" data-tip="${esc(`${fmtDay(report.date)} report: ${inch(report.snow)} new`)}"/>`;
+        s += `<text class="val" x="${cx}" y="24" text-anchor="middle" style="fill:var(--ink-2);pointer-events:none">${report.snow == null ? "–" : val(report.snow) + "″"}</text>`;
+        s += `<text class="wd${k.wk ? " wk" : ""}" x="${cx}" y="52" text-anchor="middle"${tickSize(cw + gap)}>${k.wd}</text><text class="${k.wk ? "wk" : ""}" x="${cx}" y="${52 + DAY_LINE}" text-anchor="middle"${tickSize(cw + gap)}>${k.label}</text>`;
+        s += `<rect x="${cw + gap + sep / 2 - 2}" y="0" width="2" height="38" rx="1" fill="var(--brand, #7b1e2e)"/>`;
+      }
+      const x0 = report ? cw + gap + sep : 0;
       days.forEach((d, i) => {
-        const x = i * (cw + gap), t = Math.min(1, d.snow / 10), k = dayTick(d.date);
+        const x = x0 + i * (cw + gap), t = Math.min(1, d.snow / 10), k = dayTick(d.date);
         const fill = d.snow < 0.1 ? "var(--surface-2)" : `color-mix(in oklab, var(--accent) ${Math.round(16 + t * 84)}%, var(--surface))`;
         const ink = t > 0.5 ? "var(--on-accent)" : "var(--ink)";
-        s += `<rect x="${x}" y="0" width="${cw}" height="38" rx="7" fill="${fill}" tabindex="0" data-tip="${esc(`${fmtDay(d.date)}: ${inch(d.snow)} expected, likely ${inch(d.low)}–${inch(d.high)}`)}"/>`;
+        s += `<rect x="${x}" y="0" width="${cw}" height="38" rx="7" fill="${fill}" tabindex="0" data-tip="${esc(`${fmtDay(d.date)}${report ? " report" : ""}: ${inch(d.snow)} expected, likely ${inch(d.low)}–${inch(d.high)}`)}"/>`;
         s += `<text class="val" x="${x + cw / 2}" y="24" text-anchor="middle" style="fill:${ink};pointer-events:none">${d.snow < 0.1 ? "–" : val(d.snow)}</text>`;
         s += `<text class="wd${k.wk ? " wk" : ""}" x="${x + cw / 2}" y="52" text-anchor="middle"${tickSize(cw + gap)}>${k.wd}</text><text class="${k.wk ? "wk" : ""}" x="${x + cw / 2}" y="${52 + DAY_LINE}" text-anchor="middle"${tickSize(cw + gap)}>${k.label}</text>`;
       });
       return [69, s];
-    }, "10-day snowfall, one cell per day");
+    }, report ? "Latest report, then snow expected on each morning report" : "10-day snowfall, one cell per day");
   }
 
   // Forecast: each day is a snow stake. Solid = expected; hatched = how much more it could
@@ -493,7 +504,12 @@
         <div id="cams"></div>
       </section>
       <a class="btn secondary block a-cta" href="#help" data-goto="alerts">Get this report at 7:00 by email or notification</a>`;
-    if (fc.days?.length) $("#fc-mini", v).appendChild(heatStrip(fc.days));
+    if (fc.report_days?.length) {
+      // Report to report: what the stake should show each morning, so today's forecast never repeats this morning's report.
+      const mini = $("#fc-mini", v), hr = fc.report_hour || "06:00";
+      mini.appendChild(heatStrip(fc.report_days.slice(0, 9), { snow: snow.value, date: L.date }));
+      mini.insertAdjacentHTML("beforeend", `<p class="muted small">Dashed: this morning's report. Then the new snow expected on each morning's report (about ${+hr.slice(0, 2) % 12 || 12} ${+hr.slice(0, 2) < 12 ? "AM" : "PM"}), counted from the report before.</p>`);
+    } else if (fc.days?.length) $("#fc-mini", v).appendChild(heatStrip(fc.days));
     v.querySelectorAll("[data-map-page]").forEach((mb) => mb.addEventListener("click", () =>
       openLightbox("/" + mapPages[+mb.dataset.mapPage], mapPages.length > 1 ? `Grooming map, page ${+mb.dataset.mapPage + 1}` : "Grooming map", mb)));
     renderCams($("#cams", v), L);

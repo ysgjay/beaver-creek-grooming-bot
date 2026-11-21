@@ -430,7 +430,7 @@ def _full_run(store, state, groom, map_changed, now, day_str, errors, resort_rep
         verification = verify.refresh(store.get_json("data/verification.json", {}) or {},
                                       _terrain_priors(store, now.date(), errors, saved_only=True),
                                       no_prior=openmeteo.NO_PRIOR_MODELS)
-    fc = forecast.build(models, nws_daily, ens, verification, today=now.date()) if (models or nws_daily) else None
+    fc = forecast.build(models, nws_daily, ens, verification, today=now.date(), now=now) if (models or nws_daily) else None
     if fc:
         store.put_json(f"data/forecasts/{day_str}.json", fc)
     # Snow Audit: freeze the morning call and log what fell (never fails the run).
