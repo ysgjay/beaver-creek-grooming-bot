@@ -200,7 +200,17 @@ Shiga Kogen (Nagano), Lotte Arai (Niigata), Zao Onsen (Yamagata) and Appi Kogen 
 - **Forecast:** no SNOTEL or NWS outside the US, and HRRR/NBM don't cover Japan, so the blend is ECMWF, GFS, ICON, GEM,
   UKMO plus JMA (`jma_seamless`, Japan's own 5 km MSM then GSM). JMA is asked for only for Japanese resorts
   (`config.models_here()`), so US and Canada blends are unchanged. Snow calibration learns from each resort's own report.
-- **Not covered for Japan yet:** the app's radar (NEXRAD/HRRR tiles are US only), avalanche danger (avalanche.org is US
-  only), and the Cloudflare/Vercel crons (UTC windows built for North American mornings; a 7 AM JST send is 22:00 UTC).
-  The Render worker already schedules each resort in local time. The combined 6:30 AM Mountain email would carry Japan
-  as "Report pending" (Japan's morning is the US afternoon), so Japan likely needs its own send slot before launch.
+- **Not covered for Japan yet:** the app's radar (NEXRAD/HRRR tiles are US only) and avalanche danger (avalanche.org is US
+  only). The combined email leaves the radar picture out of the Japan email for the same reason.
+- **Japan is its own email** (Young, 11/20: "Japan emails can be separate sends"; `resorts.send_group`). A subscriber's
+  resorts are split into North America and Japan. Each group with two or more resorts gets its own combined email at
+  6:30 AM in its own zone (claim key `<token>:jp`, Resend idempotency kind `digest-jp`); a group with one resort gets
+  that resort's own Day Ticket. Someone with Vail and Niseko gets Vail's Day Ticket on Mountain time and Niseko's on
+  Japan time.
+- **Japan's crons:** the Render worker already runs each resort on local time. The Cloudflare scheduler needs three
+  crons for Japan's morning before launch (see HANDOFF.md, "Scheduler"); `api/run.py` `cron_window` keeps each resort
+  to its own hours, so North America's ticks don't change.
+- **Shadow check, 11/21 6 AM JST:** no reader errors in the Render worker logs. Read live: Happo-one 120 cm at Usagidaira
+  (11/20; opens 11/21), Appi 35 cm (11/21 6:01), Shiga 0 cm (11/20), Kiroro 0 cm (11/20; its "Total snowfall" is still
+  last season's), Whitewater 32 cm base (11/19). Niseko (11/13), Rusutsu (10/23), Furano and Nozawa (blank) post nothing
+  new until they open on 11/28.

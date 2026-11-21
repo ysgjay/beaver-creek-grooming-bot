@@ -44,6 +44,31 @@ def due(slugs, force=False, user_agent="", now=None):
     return [s for s in slugs if minute % 30 < 2 or not resorts.is_static(s)]
 
 
+# Cloudflare cron hours (UTC) that exist only for Japan's morning (4:00-6:55 AM JST every 5 min,
+# 3 AM and 7-10 AM every 15 min, 2 PM refresh). North American resorts sit those ticks out, and the
+# 21:05-21:55 ticks too (21:00 is their afternoon refresh), so they keep the schedule they had.
+JP_ONLY_UTC_HOURS = {18, 19, 20, 22, 23, 0, 1, 5}
+
+
+def cron_window(slugs, user_agent="", now=None):
+    """The Cloudflare ticks run on UTC hours built for Mountain time plus Japan's own hours. A
+    Japanese resort runs only on the ticks that fall in its local morning (worker.local_due); a
+    North American one skips the Japan-only hours. The Vercel backup cron runs everything."""
+    if "vercel-cron" in user_agent.lower():
+        return list(slugs)
+    from datetime import datetime, timezone
+    from bcbot.worker import local_due
+    now = (now or datetime.now(timezone.utc)).replace(second=0, microsecond=0)
+    out = []
+    for s in slugs:
+        if resorts.send_group(s) == "jp":
+            if local_due(resorts.get(s)["tz"], now.replace(minute=now.minute - now.minute % 5)):
+                out.append(s)
+        elif now.hour not in JP_ONLY_UTC_HOURS and not (now.hour == 21 and now.minute >= 5):
+            out.append(s)
+    return out
+
+
 TICK_SECONDS = 55   # Vercel stops the function at 60 s (vercel.json maxDuration)
 
 
@@ -89,7 +114,10 @@ class handler(BaseHTTPRequestHandler):
             return self._reply(500, {"status": "error", "error": str(e)})
 
     def _fan_out(self, auth, force):
-        slugs = due(resorts.enabled(), force, self.headers.get("User-Agent", ""))
+        ua = self.headers.get("User-Agent", "")
+        slugs = due(resorts.enabled(), force, ua)
+        if not force:
+            slugs = cron_window(slugs, ua)
         if not slugs:
             return {}
         host = urlsplit(config.DASHBOARD_URL).netloc  # never the request's Host: the secret goes along

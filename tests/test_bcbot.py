@@ -1607,3 +1607,87 @@ def test_japan_resorts_setup():
     assert "jma_seamless" not in config.models_here()
     app = open("public/app.js").read()
     assert '["Japan", ["Hokkaido"' in app and all(resorts.get(s)["region"] in app for s in jp)
+
+
+# ---------- 11/20/2026: Japan is its own send ----------
+def test_japan_resorts_get_their_own_send_group():
+    from bcbot import digest, resorts
+    assert resorts.send_group("niseko") == "jp" and resorts.send_group("vail") == "na"
+    assert resorts.send_group("whitewater") == "na"
+    assert resorts.by_send_group(["vail", "niseko", "copper", "appi"]) == {"na": ["vail", "copper"], "jp": ["niseko", "appi"]}
+    subs = [("a@x.com", "ta", ["vail", "niseko", "copper", "appi"], True),   # two emails
+            ("b@x.com", "tb", ["vail", "niseko"], False),                     # two Day Tickets, no combined email
+            ("c@x.com", "tc", ["furano", "rusutsu"], False)]                  # one Japan email
+    assert digest.split(subs) == [("a@x.com", "ta", ["vail", "copper"], True, "ta", "na"),
+                                  ("a@x.com", "ta:jp", ["niseko", "appi"], True, "ta", "jp"),
+                                  ("c@x.com", "tc:jp", ["furano", "rusutsu"], False, "tc", "jp")]
+    assert digest.home_zone(["niseko", "appi"]).key == "Asia/Tokyo"
+
+
+def test_japan_combined_email_waits_for_japan_time():
+    from zoneinfo import ZoneInfo
+    from bcbot import digest
+    subs = digest.split([("a@x.com", "ta", ["vail", "copper", "niseko", "appi"], False)])
+    days = {s: _digest_day(s, s, 1, []) for s in ["vail", "copper", "niseko", "appi"]}
+    mt_630 = datetime(2026, 11, 16, 6, 30, tzinfo=ZoneInfo("America/Denver"))     # 10:30 PM in Japan
+    assert [k for _, k, *_ in digest.plan(subs, set(), days, mt_630)] == ["ta"]
+    jst_630 = datetime(2026, 11, 17, 6, 30, tzinfo=ZoneInfo("Asia/Tokyo"))        # 2:30 PM Mountain
+    assert [k for _, k, *_ in digest.plan(subs, set(), days, jst_630)] == ["ta:jp"]
+
+
+def test_single_resort_send_counts_picks_per_group():
+    from bcbot import db
+
+    class Cur:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def execute(self, *a): pass
+        def fetchall(self):
+            return [("a@x.com", "ta", ["niseko"]), ("b@x.com", "tb", ["vail", "niseko"]),
+                    ("c@x.com", "tc", ["niseko", "appi"])]
+
+    class Conn:
+        def cursor(self): return Cur()
+    assert db.active_subscribers(Conn(), "niseko", single_only=True) == [("a@x.com", "ta"), ("b@x.com", "tb")]
+    assert len(db.active_subscribers(Conn(), "niseko")) == 3
+
+
+def test_japan_email_sends_as_its_own_batch(monkeypatch):
+    from contextlib import contextmanager
+    from zoneinfo import ZoneInfo
+    from bcbot import db, digest, mailer
+    monkeypatch.setenv("RESEND_API_KEY", "k")
+    monkeypatch.setenv("SEND_ENABLED", "1")
+    monkeypatch.setattr(db, "url", lambda: "postgres://x")
+    monkeypatch.setattr(db, "connect", contextmanager(lambda: (yield object())))
+    monkeypatch.setattr(db, "multi_resort_subscribers", lambda c: [("a@x.com", "ta", ["vail", "copper", "niseko", "appi"], False)])
+    monkeypatch.setattr(db, "sent_resorts", lambda c, d: set())
+    monkeypatch.setattr(db, "digest_sent", lambda c, d: set())
+    claims = []
+    monkeypatch.setattr(db, "claim_digest", lambda c, d, key, ready, pending: claims.append((d, key, ready)) or True)
+    monkeypatch.setattr(digest, "_today_day", lambda store, slug, today: _digest_day(slug, slug, 1, []))
+    monkeypatch.setattr(digest.radar, "snapshot", lambda store, now: "https://x/radar.png")
+    monkeypatch.setattr(digest.resorts, "enabled", lambda: ["vail", "copper", "niseko", "appi"])
+    batches = []
+    monkeypatch.setattr(mailer, "send_personal", lambda ms, kind=None, day=None: batches.append((kind, day, ms)))
+    out = digest.run(now=datetime(2026, 11, 17, 6, 30, tzinfo=ZoneInfo("Asia/Tokyo")), store=object())
+    assert out["sent"] == 1 and claims == [("2026-11-17", "ta:jp", ["niseko", "appi"])]
+    kind, day, ms = batches[0]
+    assert kind == "digest-jp" and day == "2026-11-17"
+    assert ms[0][1] == "ta" and len(ms[0]) == 5                     # real token for the links
+    assert "radar.png" not in ms[0][3]                               # the radar picture is North America only
+
+
+def test_cron_window_keeps_each_resort_to_its_own_hours(monkeypatch):
+    from datetime import timezone
+    from api.run import cron_window
+    slugs = ["vail", "niseko"]
+    at = lambda h, m: datetime(2026, 11, 20, h, m, tzinfo=timezone.utc)
+    assert cron_window(slugs, now=at(12, 0)) == ["vail"]            # 5 AM MST, 9 PM JST
+    assert cron_window(slugs, now=at(20, 0)) == ["niseko"]          # 5 AM JST
+    assert cron_window(slugs, now=at(21, 0)) == ["vail", "niseko"]  # MST afternoon refresh, 6 AM JST
+    assert cron_window(slugs, now=at(21, 5)) == ["niseko"]
+    assert cron_window(slugs, now=at(22, 15)) == ["niseko"]         # 7:15 AM JST
+    assert cron_window(slugs, now=at(5, 0)) == ["niseko"]           # 2 PM JST refresh
+    assert cron_window(slugs, now=at(17, 0)) == ["vail", "niseko"]  # 10 AM MST, 2 AM JST
+    assert cron_window(slugs, "vercel-cron/1.0", now=at(14, 5)) == slugs

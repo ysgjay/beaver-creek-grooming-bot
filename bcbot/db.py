@@ -88,14 +88,20 @@ def unsubscribe(conn, token):
 def active_subscribers(conn, resort=None, single_only=False):
     """[(email, token)] of active subscribers; only those who picked `resort` when given.
 
-    single_only: just the ones who picked that resort alone. Everyone with two or more
-    resorts gets one combined email instead (bcbot/digest.py)."""
+    single_only: just the ones for whom `resort` is the only pick in its send group
+    (resorts.send_group): someone with Vail and Niseko gets Niseko's own Day Ticket on Japan time.
+    Everyone with two or more resorts in a group gets one combined email for it (bcbot/digest.py)."""
     with conn.cursor() as cur:
         if resort:
-            cur.execute("SELECT email, token FROM subscribers WHERE status = 'active' AND %s = ANY(resorts) "
-                        + ("AND cardinality(resorts) = 1 " if single_only else "") + "ORDER BY id", (resort,))
-        else:
-            cur.execute("SELECT email, token FROM subscribers WHERE status = 'active' ORDER BY id")
+            cur.execute("SELECT email, token, resorts FROM subscribers WHERE status = 'active' AND %s = ANY(resorts) "
+                        "ORDER BY id", (resort,))
+            rows = cur.fetchall()
+            if single_only:
+                from . import resorts as _r
+                group = _r.send_group(resort)
+                rows = [row for row in rows if len(_r.by_send_group(row[2]).get(group, [])) <= 1]
+            return [(e, t) for e, t, _ in rows]
+        cur.execute("SELECT email, token FROM subscribers WHERE status = 'active' ORDER BY id")
         return cur.fetchall()
 
 
