@@ -1,0 +1,495 @@
+{
+  "version": "1.1",
+  "sourceCommit": "95662ad",
+  "sourceDate": "2026-11-17",
+  "selectedAlternate": "04S-C-A-alt-A-01",
+  "assets": [
+    {
+      "path": "app-icons/README.md",
+      "bytes": 978,
+      "sha256": "0a88b5ca828c54083c6496027e3ee73908d99ef6cf072ba6e626eb327adfc9a2",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-dark-1024.png",
+      "bytes": 45189,
+      "sha256": "dfd42ac0e806ed73df8bd51acf6030279e094b9153a669d9374b2d0c30bc12a3",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-dark-180.png",
+      "bytes": 3957,
+      "sha256": "195f68dbe4690b25be2e74a7fff12fbb562cc00456717ef342a113eb0576d7d9",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-dark-192.png",
+      "bytes": 4360,
+      "sha256": "53991882a3dac3196a3b911b0a18f4429c07bd3ed9f2ceabcc14cc7949adf498",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-dark-512.png",
+      "bytes": 16603,
+      "sha256": "db1192a74d29d5c882afc80c040843104d21abea828f0eae377b367f099b01d5",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-dark.pdf",
+      "bytes": 2533,
+      "sha256": "0596e52513810eb1e7559fb5dca2988f41ad0de72b76db33bda86971d6f5b853",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-dark.svg",
+      "bytes": 3471,
+      "sha256": "23edeeae637d699771b779adbffe8a20ddd704cd2fc3c931fbf17a28f790602a",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-light-1024.png",
+      "bytes": 44677,
+      "sha256": "26570f9cfbb4b18c86596192efeffb9c205ee2673ee84386ec9334ee9496589b",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-light-180.png",
+      "bytes": 3873,
+      "sha256": "4d43fceda4dd32f6b4f98751779d4467dc0c47c3397afaacd1da770d7fa0ef9d",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-light-192.png",
+      "bytes": 4290,
+      "sha256": "097874d5b247d50f2d012716078dfc2ec774125708ab95fc99303a6824990c20",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-light-512.png",
+      "bytes": 16320,
+      "sha256": "d5c4cb9b871616760eb2a467e954ad2949b888253e9f0274fa53471d865e8bd2",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-light.pdf",
+      "bytes": 2535,
+      "sha256": "d7737e99984a6a482c6a96edd299f5565db6c9ab427a67740f752807030b3958",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-light.svg",
+      "bytes": 3474,
+      "sha256": "4d5afa28732d7c51771905005e5582eac10ed369a3a8c7b9b553bc31ba550a3a",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-maskable-dark-192.png",
+      "bytes": 4360,
+      "sha256": "53991882a3dac3196a3b911b0a18f4429c07bd3ed9f2ceabcc14cc7949adf498",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-maskable-dark-512.png",
+      "bytes": 16603,
+      "sha256": "db1192a74d29d5c882afc80c040843104d21abea828f0eae377b367f099b01d5",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-maskable-dark.svg",
+      "bytes": 3471,
+      "sha256": "23edeeae637d699771b779adbffe8a20ddd704cd2fc3c931fbf17a28f790602a",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-maskable-light-192.png",
+      "bytes": 4290,
+      "sha256": "097874d5b247d50f2d012716078dfc2ec774125708ab95fc99303a6824990c20",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-maskable-light-512.png",
+      "bytes": 16320,
+      "sha256": "d5c4cb9b871616760eb2a467e954ad2949b888253e9f0274fa53471d865e8bd2",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/app-icon-maskable-light.svg",
+      "bytes": 3474,
+      "sha256": "4d5afa28732d7c51771905005e5582eac10ed369a3a8c7b9b553bc31ba550a3a",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/favicon-16.png",
+      "bytes": 355,
+      "sha256": "0c8cc3a34098534da9ca1caa302bdbede5d19bc9c3cd880c99e138255cc897c6",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/favicon-32.png",
+      "bytes": 674,
+      "sha256": "0051e748fe8d8ff0d23328ed1585332d568b96ab63c5766f31a09fc1735f779e",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/favicon-48.png",
+      "bytes": 1018,
+      "sha256": "147411ebfd86cdeab98e6c8d9b92dfdfe91595111a42f99ea6abf4f293cbda88",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/favicon.ico",
+      "bytes": 3645,
+      "sha256": "0a70436bca07df3156410ec993f3b7c1fcaf3bad35125e1e8a19608d38856f89",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "app-icons/manifest-snippet.json",
+      "bytes": 600,
+      "sha256": "741b18968d26ff251d22187b5600a5309486c4e2144646559157ea721ff1751d",
+      "status": "prepared app-icon export / not deployed"
+    },
+    {
+      "path": "assets/alternate/04S-C-A-alt-A-01-dark.pdf",
+      "bytes": 4589,
+      "sha256": "e1261597d118fd622354ec66b337be03ed5468ffad366c3f62cbd8c6a306d94f",
+      "status": "selected Balanced A-01 / frozen native vector"
+    },
+    {
+      "path": "assets/alternate/04S-C-A-alt-A-01-dark.svg",
+      "bytes": 6278,
+      "sha256": "b4b32dfd8b5255c56c6d6ecd8954105e78137b300f5287ca1f82e20d0da72eaf",
+      "status": "selected Balanced A-01 / frozen native vector"
+    },
+    {
+      "path": "assets/alternate/04S-C-A-alt-A-01-light.pdf",
+      "bytes": 4592,
+      "sha256": "fed99d2b567bf37e47ad54dbb4a3c694230956c676c024e6e61af6361c818a19",
+      "status": "selected Balanced A-01 / frozen native vector"
+    },
+    {
+      "path": "assets/alternate/04S-C-A-alt-A-01-light.svg",
+      "bytes": 6280,
+      "sha256": "36692acc7a0fa1b9fe3da1dce77bddef07a9c6a3b4c9fe6c16e5f9a21ecb0001",
+      "status": "selected Balanced A-01 / frozen native vector"
+    },
+    {
+      "path": "assets/companions/21-groomer-reference.png",
+      "bytes": 1781085,
+      "sha256": "13fdb26577a643bfcb6058b58e2aa1f8134aad10ccf6151823b215086a3a132f",
+      "status": "reference raster"
+    },
+    {
+      "path": "assets/companions/48-resort-fold-reference.png",
+      "bytes": 1469958,
+      "sha256": "ba353c54f6b962ca09d0e765ee837d928d47a71a15a862fc051363161876b20a",
+      "status": "reference raster"
+    },
+    {
+      "path": "assets/companions/55-stake-scout-reference.png",
+      "bytes": 1453260,
+      "sha256": "ea10e0430f634d4e71d2bebb8e0f5f3b68637b14e44fe5af28b9ca5c3917a5b4",
+      "status": "reference raster"
+    },
+    {
+      "path": "assets/fonts/IBMPlexMono-OFL.txt",
+      "bytes": 4456,
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/IBMPlexMono-Regular.ttf",
+      "bytes": 135580,
+      "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/IBMPlexSans-400.ttf",
+      "bytes": 218076,
+      "sha256": "96b74cf61a2a6a7d812bc8e779fbe2209177b1ef35ca6bb33fc5ccbda544a883",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/IBMPlexSans-600.ttf",
+      "bytes": 218240,
+      "sha256": "c51c38afb7d15f3453c81d562bdcf58dafb9ec8a3c1b72bae97b4f326287fd51",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/IBMPlexSans-OFL.txt",
+      "bytes": 4456,
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/Outfit-400.ttf",
+      "bytes": 55208,
+      "sha256": "1d701a0dba6d564a090e0d90eee76d37307ee06787c5f59b4fe8bcdc26190fe6",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/Outfit-600.ttf",
+      "bytes": 55400,
+      "sha256": "8f7c5983e178617f9ea1cf2f5e6ce70895b9957ebcd852091227b038dd7e1182",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/Outfit-700.ttf",
+      "bytes": 55260,
+      "sha256": "b87803c6aaf77afc4fcf88d7b9127c14ad73867ebda96b37430747927be22754",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/Outfit-OFL.txt",
+      "bytes": 4389,
+      "sha256": "c676351bf8576b9aba743cd5eaa8c0e7ee0d51f805d720447b4df4ddb6a2e416",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/outfit.woff2",
+      "bytes": 45124,
+      "sha256": "dadc070de3efc4a3203061b74e1a21f219ddb600811f555c9d14fbf8c733ec53",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/plex-mono.woff2",
+      "bytes": 39176,
+      "sha256": "73b6a813fa5cc1e3e72dd4a6f36ef505074979a62bc05fe6a30d70a94b4d0542",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/fonts/plex-sans.woff2",
+      "bytes": 230172,
+      "sha256": "05e76ed1fa5533fec3d0b57bc1ecbb1e63c3f62232d03b1c5fc2cbe6851457da",
+      "status": "font or bundled license"
+    },
+    {
+      "path": "assets/heritage/app-icon-dark-1024.png",
+      "bytes": 1596480,
+      "sha256": "4b104816086632c25955c7a326531601328a6218b8c88a3850101490f0c5ac0b",
+      "status": "reference raster"
+    },
+    {
+      "path": "assets/heritage/frosted-logo.webp",
+      "bytes": 70184,
+      "sha256": "641242f531d7c482195b263ee3016aa8285471e8e4ae0c894e4176731443baf3",
+      "status": "reference raster"
+    },
+    {
+      "path": "assets/heritage/logo-utility.svg",
+      "bytes": 739,
+      "sha256": "ed18f98d4c0bfa8f4b4a563485dcd54a8b67b6ed24a59c95245e3b41fd1b6dd2",
+      "status": "supporting file"
+    },
+    {
+      "path": "assets/logo-approved-reference.png",
+      "bytes": 1509966,
+      "sha256": "6d3c1b29f372315698785068a138467978b0d26b3d8323decd8f5b3db9b9f4cf",
+      "status": "reference raster"
+    },
+    {
+      "path": "assets/logo-before-baseline-reference.png",
+      "bytes": 760143,
+      "sha256": "756fcb5cc039f37ad18252a915f503d3239468d6741934223a811d707271a628",
+      "status": "reference raster"
+    },
+    {
+      "path": "assets/logo-viewports.json",
+      "bytes": 619,
+      "sha256": "6233760417c23c5209f4ed92747a25da31e785e934f623a50caa7e2f590e6c5b",
+      "status": "supporting file"
+    },
+    {
+      "path": "assets/material/ice-etch-provenance.md",
+      "bytes": 4708,
+      "sha256": "553fa6c9e8291c297baf5c8ff0b573d11aff6324c7f6543f7bf2433df11847c0",
+      "status": "supporting file"
+    },
+    {
+      "path": "assets/material/ice-etch-v4.webp",
+      "bytes": 119830,
+      "sha256": "33a4ce757e5f9de7742be5e11d710c09ea0fba780cac92bfe14eb367c324ff98",
+      "status": "reference raster"
+    },
+    {
+      "path": "assets/navigation/calendar.svg",
+      "bytes": 514,
+      "sha256": "2125f374a8a4b3ec7e5baba3106d533baaa777202c92a11f4644eff8b995eeeb",
+      "status": "existing UI vector icon, extracted from local app snapshot"
+    },
+    {
+      "path": "assets/navigation/forecast.svg",
+      "bytes": 1182,
+      "sha256": "10552ba083661691b5a2dc87018780e5788824116b51b7fc00a93259487b15aa",
+      "status": "existing UI vector icon, extracted from local app snapshot"
+    },
+    {
+      "path": "assets/navigation/help.svg",
+      "bytes": 360,
+      "sha256": "a399838a22a62618fa997452cfd2823856c76526cb97a24d84d2ea2e0dd1b542",
+      "status": "existing UI vector icon, extracted from local app snapshot"
+    },
+    {
+      "path": "assets/navigation/today.svg",
+      "bytes": 391,
+      "sha256": "d313013923b55c895f2e16a60c26a71a047e2987508e15ce61a3361b2efb8443",
+      "status": "existing UI vector icon, extracted from local app snapshot"
+    },
+    {
+      "path": "assets/primary/0xsnow-gauge-dark.pdf",
+      "bytes": 2488,
+      "sha256": "3f33514420b8c5ffbb34c85b70abeab0e612465fde98b8da1d6eec54162bfbd3",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "assets/primary/0xsnow-gauge-dark.svg",
+      "bytes": 3370,
+      "sha256": "228097c667736558a187a2ff315c74edbfabf32fdc3d701308c5a7439065efd9",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "assets/primary/0xsnow-gauge-light.pdf",
+      "bytes": 2493,
+      "sha256": "87c0e018a1f6d7d8efdd8c36f01244dd82c13b7b254f437cfd043ad992b08a09",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "assets/primary/0xsnow-gauge-light.svg",
+      "bytes": 3373,
+      "sha256": "773f2a14d3fc3e5c6c2811d0aca77870afdaa7935c81844cfead44fce6062054",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "assets/primary/0xsnow-wordmark-dark.pdf",
+      "bytes": 4516,
+      "sha256": "90d199db6429962eef70ed661c7255689f53edd7b70e7b534492cce1c401e1ce",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "assets/primary/0xsnow-wordmark-dark.svg",
+      "bytes": 7177,
+      "sha256": "02a2a815613d9b9e56501f16642ff800500546ab82c7af64333abec9df7086b9",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "assets/primary/0xsnow-wordmark-light.pdf",
+      "bytes": 4520,
+      "sha256": "df57355e226f1779dd23d7155a883ea20c25072c58d0e1b8f1b5af9fa1a87c01",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "assets/primary/0xsnow-wordmark-light.svg",
+      "bytes": 7180,
+      "sha256": "e3d52d402ebc13a5d29d1b44b0178fdce4b0594ce81a761af8120f0204ff5897",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "assets/primary/0xsnow-wordmark-mono-black.svg",
+      "bytes": 7180,
+      "sha256": "8118f41f83d8ad8031ed8e8455e9e470becb68b99d198e3e387b054876f7ce91",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "assets/primary/0xsnow-wordmark-mono-white.svg",
+      "bytes": 7180,
+      "sha256": "976526fa654731664d7eb1f78bfbf0f0ac6736ad66594c83c21f6dacebf66338",
+      "status": "existing primary production vector"
+    },
+    {
+      "path": "motion/README.md",
+      "bytes": 1692,
+      "sha256": "2cc3f8177313d6990aedb5747e9f9b9befd454aadf83b8557c660420ecd6d792",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/accumulation-profiles.json",
+      "bytes": 125690,
+      "sha256": "e436a41945b4244bcb95d6c7384754c84ad174b05316674fe6c2c5fadab64ada",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/browser-check.json",
+      "bytes": 836,
+      "sha256": "1d58f1d59f202711ff889c6ce231c28ab10da7c018104581348774f56e01bee0",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/controls-check.json",
+      "bytes": 121,
+      "sha256": "e9bbb69d3405a3ba69813959c63d7e02cd913c5e787de6838928ceb424e01690",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/gauge-accumulation-loop-dark.svg",
+      "bytes": 62519,
+      "sha256": "dc49b7272106acb1ba412b2c6b7feb57a0185579d5ed116c651945fa0fb431d8",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/gauge-accumulation-loop-light.svg",
+      "bytes": 62538,
+      "sha256": "a2c9f5878a9b098c385e3a69fc190e30394b2410f3c478b2b8aecda86a4a535d",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/gauge-accumulation-once-dark.svg",
+      "bytes": 63174,
+      "sha256": "179bf6263ba2dbd224f9108a2b1e274a9c968277fd025098967a22928228a677",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/gauge-accumulation-once-light.svg",
+      "bytes": 63193,
+      "sha256": "ec6035a2e1e3e00b7dd31f383bb62a6f68dd65cb6c6bee6ddeb2a916c7cb927d",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/wordmark-gauge-accumulation-loop-dark.svg",
+      "bytes": 70239,
+      "sha256": "3fbc11639963150f61fc9e5a723dff01cbd120ed7fbe5fa0afe8b3ca3817ad8e",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/wordmark-gauge-accumulation-loop-light.svg",
+      "bytes": 70258,
+      "sha256": "4d504ff93cc29fd472c01e004e58249854143d6d2a5d2eac832dcc1df8061391",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/wordmark-gauge-accumulation-once-dark.svg",
+      "bytes": 70894,
+      "sha256": "d49a3da0658c017a05acbc7b23bcbd6ccbfc038a6a1025bdb4a28fc5349ad2b2",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/wordmark-gauge-accumulation-once-light.svg",
+      "bytes": 70913,
+      "sha256": "fb47f8389fb2c4c35d23acd9ce9078a7da3ce3e7d381484484c72c55a2066e72",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/wordmark-gauge-and-snow-accumulation-loop-dark.svg",
+      "bytes": 190770,
+      "sha256": "a8b63770f5baddbf5e01fb82e3d76a99a5a7d8115959659b5d230fb0c120a500",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/wordmark-gauge-and-snow-accumulation-loop-light.svg",
+      "bytes": 190797,
+      "sha256": "65b7f8283848b4ff27d80f06b0434de458ff32cf9325560dae1f8240c76cdf95",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/wordmark-gauge-and-snow-accumulation-once-dark.svg",
+      "bytes": 192420,
+      "sha256": "334ab961ad25aecb3e14798036c7badc00492402386b7c2be1792594f42a4436",
+      "status": "primary snow accumulation v2 / not deployed"
+    },
+    {
+      "path": "motion/wordmark-gauge-and-snow-accumulation-once-light.svg",
+      "bytes": 192447,
+      "sha256": "5120c34f6b5a9a2c8375995c752346df92db7e06ffd77055e8c90670836f6990",
+      "status": "primary snow accumulation v2 / not deployed"
+    }
+  ],
+  "repositoryBaseline": "b3d952614c486bf75eefff0950839a0623d7290b"
+}

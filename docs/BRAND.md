@@ -2,6 +2,22 @@
 
 0xSnow is the brand and the product name (renamed from "Chair 0: Snow Desk" on 11/18/2026; the "0x" is a nod to 0xM Studio). The lift-terminal symbol has no wordmark attached. Use the resort name in navigation and keep the report, forecast, and cameras as the focus of the product.
 
+## Selected identity assets / November 21, 2026
+
+The new gauge identity is documented in the [0xSnow brand kit](brand/0xsnow/README.md).
+The standard primary is **04S-C-A**; the selected raised-x alternate is
+**Balanced / 04S-C-A-alt-A-01**, with exact light/dark SVG and PDF assets.
+See the [Balanced brand sheet](brand/0xsnow/0xSnow-Balanced-Brand-Sheet.pdf),
+[selection record](brand/0xsnow/selection.json) and
+[Claude branding guide](brand/CLAUDE_BRANDING.md).
+
+These are selected design assets, not an automatic runtime replacement. At this
+import, the header and home-screen icon still reference the iced chairlift. The
+sections below describe that current product implementation. Use the new kit for
+frozen gauge/wordmark geometry and the existing CSS for actual product behavior.
+Glacial Precision remains a potential slogan. Other raised-x and finish studies
+are not selected defaults.
+
 ## Visual system
 
 | Role | Value |

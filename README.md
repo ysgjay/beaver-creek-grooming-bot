@@ -18,7 +18,10 @@ Every morning it sends the grooming report, weather, a multi-model snow forecast
 
 GitHub only stores the code and runs the unit tests. Vercel deploys from it.
 
-Brand colors, logo files, typography, and layout rules: [Frosted Snow guide](docs/BRAND.md).
+Brand colors and current product rules: [Frosted Snow guide](docs/BRAND.md).
+The selected gauge identity, Balanced raised-x alternate, PDFs and vector assets
+are in the [0xSnow brand kit](docs/brand/0xsnow/README.md).
+For agent work, start with the [Claude branding guide](docs/brand/CLAUDE_BRANDING.md).
 
 ## When the report goes out
 - **Before opening day** (`OPENING_DAY`, Nov 25): every morning at **7:00 a.m.** MT, with the forecast and stake cam, map or not.

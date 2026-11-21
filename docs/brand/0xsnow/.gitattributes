@@ -1,0 +1,5 @@
+# Generated PDF artwork is binary even when its first streams use ASCII85.
+*.pdf binary
+
+# Preserve third-party license bytes, including their original CRLF formatting.
+*-OFL.txt -text -whitespace

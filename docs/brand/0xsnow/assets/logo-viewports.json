@@ -1,0 +1,23 @@
+{
+  "source": "logo-approved-reference.png",
+  "status": "Raster reference viewports, not vector masters. Coordinates refer to original 2172 x 724 PNG. No source pixels altered.",
+  "wordmark_light": {
+    "x": 490,
+    "y": 280,
+    "width": 800,
+    "height": 176
+  },
+  "symbol": {
+    "x": 1425,
+    "y": 274,
+    "width": 137,
+    "height": 202
+  },
+  "wordmark_inverse_study": {
+    "x": 1700,
+    "y": 302,
+    "width": 440,
+    "height": 111
+  },
+  "baseline_note": "Light wordmark is the approved geometry reference. Inverse preview is a color study and must inherit exact light-master paths in production."
+}

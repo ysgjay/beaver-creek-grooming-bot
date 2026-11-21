@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-21",
+  "repository": "ysgjay/beaver-creek-grooming-bot",
+  "baselineCommit": "b3d952614c486bf75eefff0950839a0623d7290b",
+  "brandGuideVersion": "1.1",
+  "selectedAlternate": "04S-C-A-alt-A-01",
+  "guideAndBalancedAssetsByteIdenticalToReviewedPackage": true,
+  "relativeLinksChecked": 32,
+  "brokenRelativeLinks": 0,
+  "SVGsParsed": 29,
+  "assetsHashed": 81,
+  "runtimeFilesChanged": false,
+  "note": "The name 0xSnow is implemented. Header and installed-app artwork still use chairlift assets. Primary motion and prepared gauge icons are included as documented references."
+}
