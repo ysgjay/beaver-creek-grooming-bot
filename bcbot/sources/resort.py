@@ -90,6 +90,14 @@ def is_fresh(report, today):
 
 
 def fetch():
+    out = _fetch()
+    if config.DOR_API or config.REPORTPAL or config.REPORT_FEED:
+        # One line per resort and run, so a shadow day can be checked against the resort's own page.
+        log.info("report %s: %s", config.RESORT, {k: v for k, v in (out or {}).items() if k != "raw"})
+    return out
+
+
+def _fetch():
     if config.DOR_API:  # Copper, Snowbird, Eldora: open JSON feed
         from . import dor
         return dor.fetch_snow_report()
