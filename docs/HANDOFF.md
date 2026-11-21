@@ -2,10 +2,10 @@
 
 *Updated Nov 15, 2026. Deployment follows `main`; changes on a pull-request branch are previews until merged.*
 
-**Brand asset update, Nov 21:** the [0xSnow brand kit](brand/0xsnow/README.md)
+**Brand asset update, Nov 21:** the [0xSnow brand kit](../0xSnow%20Branding/brand-kit/README.md)
 now records the gauge primary and selected **Balanced A-01 raised-x alternate**,
 including the updated PDF guide, exact vectors and design handoff. Start branding
-agent work with [CLAUDE_BRANDING.md](brand/CLAUDE_BRANDING.md). This asset import
+agent work with [CLAUDE_BRANDING.md](../0xSnow%20Branding/CLAUDE_BRANDING.md). This asset import
 does not replace the chairlift references currently used by the app.
 
 ## What it is

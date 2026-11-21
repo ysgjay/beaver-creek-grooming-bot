@@ -20,8 +20,8 @@ GitHub only stores the code and runs the unit tests. Vercel deploys from it.
 
 Brand colors and current product rules: [Frosted Snow guide](docs/BRAND.md).
 The selected gauge identity, Balanced raised-x alternate, PDFs and vector assets
-are in the [0xSnow brand kit](docs/brand/0xsnow/README.md).
-For agent work, start with the [Claude branding guide](docs/brand/CLAUDE_BRANDING.md).
+are in the [0xSnow brand kit](0xSnow%20Branding/brand-kit/README.md).
+For agent work, start with the [Claude branding guide](0xSnow%20Branding/CLAUDE_BRANDING.md).
 
 ## When the report goes out
 - **Before opening day** (`OPENING_DAY`, Nov 25): every morning at **7:00 a.m.** MT, with the forecast and stake cam, map or not.

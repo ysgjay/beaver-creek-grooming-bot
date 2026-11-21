@@ -4,12 +4,12 @@
 
 ## Selected identity assets / November 21, 2026
 
-The new gauge identity is documented in the [0xSnow brand kit](brand/0xsnow/README.md).
+The new gauge identity is documented in the [0xSnow brand kit](../0xSnow%20Branding/brand-kit/README.md).
 The standard primary is **04S-C-A**; the selected raised-x alternate is
 **Balanced / 04S-C-A-alt-A-01**, with exact light/dark SVG and PDF assets.
-See the [Balanced brand sheet](brand/0xsnow/0xSnow-Balanced-Brand-Sheet.pdf),
-[selection record](brand/0xsnow/selection.json) and
-[Claude branding guide](brand/CLAUDE_BRANDING.md).
+See the [Balanced brand sheet](../0xSnow%20Branding/brand-kit/0xSnow-Balanced-Brand-Sheet.pdf),
+[selection record](../0xSnow%20Branding/brand-kit/selection.json) and
+[Claude branding guide](../0xSnow%20Branding/CLAUDE_BRANDING.md).
 
 These are selected design assets, not an automatic runtime replacement. At this
 import, the header and home-screen icon still reference the iced chairlift. The
@@ -128,6 +128,6 @@ Home-screen icon setup follows [Apple touch-icon guidance](https://developer.app
 - Each card establishes its own stacking context to hold the decorative pseudo-element behind its content. An open `.votes-pop` lifts its card above sibling cards. Do not clip overflow: desktop forecast popovers, focus rings, and charts must remain usable. Mobile forecast details keep their native dialog.
 - Selected tabs stay flat with no underline, raised lip, or bottom shadow. Custom icons, touch targets, the patrol card's burgundy border, and the original snowfall stakes/blue data palette are unchanged.
 - Reduced transparency, forced colors, and print remove texture, blur, gradients, and decorative shadows, restoring opaque panels. Forced colors retains a system-color border.
-- The 119,830-byte texture is shared by the app and Snow Audit and pre-cached with shell v20. Asset provenance, final prompt, and validation notes: `docs/brand/ice-etch-v4.md`.
+- The 119,830-byte texture is shared by the app and Snow Audit and pre-cached with shell v20. Asset provenance, final prompt, and validation notes: `0xSnow Branding/Texture notes/ice-etch-v4.md`.
 
 The backend, forecast calculations, delivery schedule, opt-in behavior, and resort data are unchanged by this styling update.
