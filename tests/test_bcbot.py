@@ -1691,3 +1691,50 @@ def test_cron_window_keeps_each_resort_to_its_own_hours(monkeypatch):
     assert cron_window(slugs, now=at(5, 0)) == ["niseko"]           # 2 PM JST refresh
     assert cron_window(slugs, now=at(17, 0)) == ["vail", "niseko"]  # 10 AM MST, 2 AM JST
     assert cron_window(slugs, "vercel-cron/1.0", now=at(14, 5)) == slugs
+
+
+def _hourly(daily, first_day_by_hour=None):
+    from datetime import datetime, timedelta
+    out = []
+    for d, total in enumerate(daily):
+        for h in range(24):
+            share = first_day_by_hour[h] if (d == 0 and first_day_by_hour) else 1 / 24
+            out.append({"time": (datetime(2026, 11, 19) + timedelta(days=d, hours=h)).strftime("%Y-%m-%dT%H:00"),
+                        "precipitation": total / 15 * share, "temperature_2m": 18, "relative_humidity_2m": 90})
+    return out
+
+
+def test_report_days_run_from_one_morning_report_to_the_next():
+    from datetime import date, datetime
+    from bcbot import forecast
+    # All of 11/19's snow falls after 6 AM; 11/20's spreads evenly.
+    by_hour = [0] * 6 + [1 / 18] * 18
+    rows = _hourly([9, 12, 0, 0, 0, 0, 0, 0, 0, 0], by_hour)
+    fc = forecast.build({"ecmwf_ifs025": rows}, today=date(2026, 11, 19), now=datetime(2026, 11, 19, 6, 30))
+    rd = fc["report_days"]
+    # This morning's report is in, so the first tile is tomorrow's report: Thu 6 AM to Fri 6 AM.
+    assert rd[0]["date"] == "2026-11-20" and rd[0]["from"] == "06:00"
+    assert abs(rd[0]["snow"] - (fc["days"][0]["snow"] + fc["days"][1]["snow"] / 4)) < 0.2
+    # Sat's report: the rest of Fri (6 AM on), none counted twice.
+    assert abs(rd[1]["snow"] - fc["days"][1]["snow"] * 3 / 4) < 0.2
+
+
+def test_report_days_before_the_morning_report_end_at_this_morning():
+    from datetime import date, datetime
+    from bcbot import forecast
+    fc = forecast.build({"ecmwf_ifs025": _hourly([4] * 10)}, today=date(2026, 11, 19), now=datetime(2026, 11, 19, 3, 0))
+    assert fc["report_days"][0]["date"] == "2026-11-19" and fc["report_days"][0]["from"] == "03:00"
+    assert abs(fc["report_days"][0]["snow"] - fc["days"][0]["snow"] * 3 / 24) < 0.1
+
+
+def test_email_snow_row_shows_the_report_then_each_morning_report():
+    from bcbot import mailer
+    fc = {"report_hour": "06:00", "days": [{"date": "2026-11-19", "snow": 10}],
+          "report_days": [{"date": "2026-11-20", "from": "06:00", "snow": 12, "low": 7, "high": 18},
+                          {"date": "2026-11-21", "from": "06:00", "snow": 0.8, "low": 0.5, "high": 1}]}
+    html = mailer.snow_row(fc, 6, report=(1, "2026-11-19"))
+    assert "Expected on each morning report" in html and "1\"" in html and "Fri<br>11/20" in html
+    assert "Thu<br>11/19" in html and ">10<" not in html  # today's whole-day number never shows
+    assert "about 6a" in html
+    # Saved forecasts from before the change keep calendar days.
+    assert "Thu<br>11/19" in mailer.snow_row({"days": fc["days"]}, 6) and "morning report" not in mailer.snow_row({"days": fc["days"]}, 6)
