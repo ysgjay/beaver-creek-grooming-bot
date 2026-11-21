@@ -334,12 +334,13 @@ CURATED_1119 = {
                                "https://www.solitudemountain.com/-/media/Solitude/Trail-Map-PDFs/Solitude_Winter_Trail_Map_2627.pdf")]),
     },
     "brighton": {
-        "opening_day": _c(None, "https://www.brightonresort.com", "Brighton: Home",
-                          note="Brighton says \"Opening Day To Be Announced.\""),
+        "opening_day": _c("2026-11-24", "https://www.brightonresort.com", "Brighton: Home",
+                          note="Explorer and Majestic are planned to run 9 AM to 4 PM.", checked="2026-11-21"),
         "closing_day": _c(None, "https://www.brightonresort.com", "Brighton: Home", note="Not announced."),
-        "lift_hours": _c(None, "https://www.brightonresort.com/hours", "Brighton: Hours of Operation",
-                         note="Brighton hasn't posted 2026/27 lift hours. It runs night skiing, and its weekly closed day "
-                              "moves to Tuesday this season."),
+        "lift_hours": _c("9 AM to 4 PM daily from 11/24 until night riding begins.",
+                         "https://www.brightonresort.com/hours", "Brighton: Hours of Operation",
+                         note="Night riding hours aren't posted yet. Brighton rides Sunday nights this season, and its "
+                              "weekly closed day moves to Tuesday.", checked="2026-11-21"),
         "lift_tickets": _c("From $72 for winter lift tickets (all-day, afternoon and night tickets).",
                            "https://www.brightonresort.com/lift-tickets", "Brighton: Lift Tickets",
                            note="Prices vary by ticket type, age and date."),
